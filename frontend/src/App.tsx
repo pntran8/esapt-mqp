@@ -23,21 +23,15 @@ function App() {
     const [debugInfo, setDebugInfo] = useState<string>("");
     const [isLoading, setIsLoading] = useState(false);
 
-    const decodeHtml = (html: string) => {
-        const txt = document.createElement("textarea");
-        txt.innerHTML = html;
-        return txt.value;
-    };
-
     const parseLabel = (rawLabel: string) => {
-        // Remove HTML tags but preserve the text content
+        // only get text content
         const tempDiv = document.createElement("div");
         tempDiv.innerHTML = rawLabel;
 
-        // Check if the content has underline tags
+        // check if has underline
         const hasUnderline = rawLabel.includes("<u>") || rawLabel.includes("<U>");
 
-        // Get clean text content
+        // clean text
         const cleanText = tempDiv.textContent || tempDiv.innerText || "";
 
         return {
@@ -63,7 +57,7 @@ function App() {
                 const parser = new DOMParser();
                 const xmlDoc = parser.parseFromString(xmlText, "text/xml");
 
-                // Check for parsing errors
+                // errs?
                 const parseError = xmlDoc.getElementsByTagName("parsererror");
                 if (parseError.length > 0) {
                     setDebugInfo("XML parsing error: " + parseError[0].textContent);
@@ -77,17 +71,16 @@ function App() {
                 const shapeMap: Record<string, Shape> = {};
                 const edges: Connection[] = [];
 
-                // Build shape map with better type detection
                 for (const cell of cells) {
                     const id = cell.getAttribute("id");
                     const style = cell.getAttribute("style") || "";
                     let value = cell.getAttribute("value") || "";
 
-                    // Parse the label to extract text and key information
+                    // parse text to get info
                     const labelInfo = parseLabel(value);
                     value = labelInfo.text;
 
-                    // Check if it's a key (underlined text or style)
+                    // check if key (check for <u> tag or wtv the underline is)
                     const isKey = labelInfo.isKey ||
                         style.includes("text-decoration-line:underline") ||
                         style.includes("textDecoration=underline") ||
@@ -98,7 +91,6 @@ function App() {
 
                     let type: ShapeType = "Unknown";
 
-                    // More comprehensive style detection
                     if (style.includes("ellipse") || style.includes("oval")) {
                         type = "Attribute";
                     } else if (style.includes("rhombus") || style.includes("diamond") ||
@@ -110,13 +102,13 @@ function App() {
                         type = "Entity";
                     }
 
-                    // Only add shapes with meaningful labels and types
+                    // only add if there's a value in it
                     if (type !== "Unknown" && value.trim()) {
                         shapeMap[id] = { id, label: value.trim(), type, isKey };
                     }
                 }
 
-                // Get edges
+                // get lines (the edges)
                 for (const cell of cells) {
                     if (cell.getAttribute("edge") === "1") {
                         const source = cell.getAttribute("source");
@@ -129,7 +121,7 @@ function App() {
 
                 setDebugInfo(`Found ${Object.keys(shapeMap).length} shapes and ${edges.length} edges`);
 
-                // Store attribute details with key information
+                // stores attribute with key
                 const entityAttributeDetails: Record<string, {label: string, isKey: boolean}[]> = {};
                 const relationshipLinks: Record<string, string[]> = {};
 
@@ -139,7 +131,7 @@ function App() {
 
                     if (!from || !to) continue;
 
-                    // Entity <-> Attribute
+                    // entitty attributes
                     if (from.type === "Entity" && to.type === "Attribute") {
                         if (!entityAttributeDetails[from.label]) entityAttributeDetails[from.label] = [];
                         entityAttributeDetails[from.label].push({label: to.label, isKey: to.isKey || false});
@@ -148,7 +140,7 @@ function App() {
                         entityAttributeDetails[to.label].push({label: from.label, isKey: from.isKey || false});
                     }
 
-                    // Entity <-> Relationship
+                    // entity relationships
                     if (from.type === "Entity" && to.type === "Relationship") {
                         if (!relationshipLinks[to.label]) relationshipLinks[to.label] = [];
                         relationshipLinks[to.label].push(from.label);
@@ -158,13 +150,7 @@ function App() {
                     }
                 }
 
-                // Convert to simple format for backward compatibility
-                const entityAttributes: Record<string, string[]> = {};
-                Object.entries(entityAttributeDetails).forEach(([entity, attrs]) => {
-                    entityAttributes[entity] = attrs.map(attr => attr.label);
-                });
-
-                // Store results
+                // store results
                 setEntities(shapeMap);
                 setAttributesByEntity(entityAttributeDetails);
 
