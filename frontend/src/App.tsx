@@ -1,6 +1,8 @@
-    import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import Header from "../components/Header.tsx"
-    type ShapeType = "Entity" | "Attribute" | "Relationship" | "Unknown";
+type ShapeType = "Entity" | "Attribute" | "Relationship" | "Unknown";
+import wpiLogo from "./images/wpiLogo.png";
+import wpiLogoAlt from "./images/wpiLogoAlternate.png";
     
     interface Shape {
         id: string;
@@ -416,166 +418,230 @@ import Header from "../components/Header.tsx"
         const relationshipCount = relationships.length;
         const totalShapes = Object.keys(entities).length;
 
+        const YourComponent = () => {
+            const [sqlCode, setSqlCode] = useState("");
+
+            useEffect(() => {
+                const sql = generateSQLSchema(); // call your function once on mount
+                setSqlCode(sql);
+            }, []);
+        }
+
 
         return (
             <div>
-                <div className=" mx-auto p-6 bg-red-500 justify-center">
-                    <h1 className="text-3xl font-bold text-gray-800 mb-6">???</h1>
+                {/* Navbar */}
+                <div className="relative mx-auto p-1 bg-[#c31432] flex items-center justify-between h-20">
+                    <div className="flex items-center z-10">
+                        <img
+                            className="h-12 mx-1 object-scale-down"
+                            src={wpiLogo}
+                            alt="WPI Logo"
+                        />
+                        <div className="text-5xl font-bold text-white font-serif">
+                            WPI
+                        </div>
+                    </div>
+                    <h1 className="absolute left-1/2 transform -translate-x-1/2 text-5xl font-bold text-white font-serif tracking-wide">
+                        ESAPT
+                    </h1>
+                </div>
 
-                    <div className="mb-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                <div className={" relative mx-auto p-1 flex items-center justify-between h-15"}>
+                    <div className="my-3 mb-1 mx-10 flex">
+                        <label className="block text-sm font-medium text-gray-700 my-2">
                             ONLY A .DRAWIO FILE (it should be XML if you export it, BUT CAN'T BE COMPRESSED)
                         </label>
+
                         <input
                             type="file"
                             accept=".drawio,.xml"
                             onChange={handleFileUpload}
-                            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                            className="block text-sm ml-auto text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                         />
                         {isLoading && <p className="mt-2 text-blue-600">loading...</p>}
                     </div>
+                </div>
 
-                    {debugInfo && (
-                        <div className="mb-6 p-4 bg-gray-100 rounded-lg">
-                            <h3 className="font-semibold text-gray-700 mb-2">hello???</h3>
-                            <p className="text-sm text-gray-600">{debugInfo}</p>
+                <div className="flex">
+                    {/*first half*/}
+                    <div className="flex flex-col h-screen w-1/2  ">
+
+                        <div className="shadow-2xl border-[3px] border-[#c31432] rounded-md bg-white m-0 h-screen mx-10 my-3 mt-2">
+                            HELLLO
                         </div>
-                    )}
+                    </div>
 
-                    {totalShapes > 0 && (
-                        <div className="mb-6 p-4 bg-blue-50 rounded-lg">
-                            <h3 className="font-semibold text-blue-800 mb-2">summary</h3>
-                            <p className="text-sm text-blue-700">
-                                {totalShapes} total shapes, {entityCount} entities, {relationshipCount} relationships
-                            </p>
-                        </div>
-                    )}
-                    {entitiesWithNoAttributes.length > 0 && (
-                        <div className="mb-8">
-                            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Entities Without Attributes</h2>
-                            <ul className="list-disc list-inside text-gray-700">
-                                {entitiesWithNoAttributes.map((entity) => (
-                                    <li key={entity.id}>{entity.label}</li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
+                    {/*second half*/}
+                    <div className="w-1/2 flex flex-col h-screen ">
+                        <div className="shadow-2xl border-[3px] border-[#c31432] rounded-md bg-white m-0 h-screen mx-10 my-3 mt-2">
+                            <div className={""}>
+                                {entitiesWithNoAttributes.length > 0 && (
+                                    <div className="mb-8">
+                                        <h2 className="text-2xl font-semibold text-gray-800 mb-4">Entities Without Attributes</h2>
+                                        <ul className="list-disc list-inside text-gray-700">
+                                            {entitiesWithNoAttributes.map((entity) => (
+                                                <li key={entity.id}>{entity.label}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
 
 
-                    {entityCount > 0 && (
-                        <div className="mb-8">
-                            <h2 className="text-2xl font-semibold text-gray-800 mb-4">ENTITIES AND ATTRIBUTES</h2>
-                            <div className="space-y-3">
-                                {Object.entries(attributesByEntity).map(([entity, attrs]) => {
-                                    const keys = attrs.filter(attr => attr.isKey);
-                                    const regularAttrs = attrs.filter(attr => !attr.isKey);
+                                <div>
+                                    {entityCount > 0 && (
+                                        <div className="mb-8">
+                                            <h2 className="text-2xl font-semibold text-gray-800 mb-4">ENTITIES AND ATTRIBUTES</h2>
+                                            <div className="space-y-3">
+                                                {Object.entries(attributesByEntity).map(([entity, attrs]) => {
+                                                    const keys = attrs.filter(attr => attr.isKey);
+                                                    const regularAttrs = attrs.filter(attr => !attr.isKey);
 
-                                    return (
-                                        <div key={entity} className="p-4 border border-gray-200 rounded-lg">
-                                            <h3 className="font-bold text-lg text-blue-600 mb-3">{entity}</h3>
+                                                    return (
+                                                        <div key={entity} className="p-4 border border-gray-200 rounded-lg">
+                                                            <h3 className="font-bold text-lg text-blue-600 mb-3">{entity}</h3>
 
-                                            {keys.length > 0 && (
-                                                <div className="mb-2">
-                                                    <span className="font-semibold text-yellow-800">Key: </span>
-                                                    <span className="text-gray-700">
+                                                            {keys.length > 0 && (
+                                                                <div className="mb-2">
+                                                                    <span className="font-semibold text-yellow-800">Key: </span>
+                                                                    <span className="text-gray-700">
                                                     {keys.map(key => key.label).join(', ')}
                                                 </span>
-                                                </div>
-                                            )}
+                                                                </div>
+                                                            )}
 
-                                            {regularAttrs.length > 0 && (
-                                                <div className="mb-2">
-                                                    <span className="font-semibold text-gray-800">Attributes: </span>
-                                                    <span className="text-gray-700">
+                                                            {regularAttrs.length > 0 && (
+                                                                <div className="mb-2">
+                                                                    <span className="font-semibold text-gray-800">Attributes: </span>
+                                                                    <span className="text-gray-700">
                                                     {regularAttrs.map(attr => attr.label).join(', ')}
                                                 </span>
-                                                </div>
-                                            )}
+                                                                </div>
+                                                            )}
 
-                                            {attrs.length === 0 && (
-                                                <p className="text-gray-500 text-sm">No attributes found</p>
-                                            )}
+                                                            {attrs.length === 0 && (
+                                                                <p className="text-gray-500 text-sm">No attributes found</p>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
                                         </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    )}
+                                    )}
+                                </div>
+                                {relationshipCount > 0 && (
+                                    <div className="mb-8">
+                                        <h2 className="text-2xl font-semibold text-gray-800 mb-4">Relationships</h2>
+                                        <div className="space-y-3">
+                                            {relationships.map((rel, i) => (
+                                                <div key={i} className="p-4 border border-gray-200 rounded-lg">
+                                                    <h3 className="font-bold text-lg text-green-600 mb-2">
+                                                        {rel.name} {rel.isWeak && <span className="text-red-500 text-sm">(weak)</span>}
+                                                    </h3>
+                                                    <p className="text-gray-700">
+                                                        {rel.entities.join(" <--> ")}
+                                                    </p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
 
-                    {relationshipCount > 0 && (
-                        <div className="mb-8">
-                            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Relationships</h2>
-                            <div className="space-y-3">
-                                {relationships.map((rel, i) => (
-                                    <div key={i} className="p-4 border border-gray-200 rounded-lg">
-                                        <h3 className="font-bold text-lg text-green-600 mb-2">
-                                            {rel.name} {rel.isWeak && <span className="text-red-500 text-sm">(weak)</span>}
-                                        </h3>
-                                        <p className="text-gray-700">
-                                            {rel.entities.join(" <--> ")}
+                                {totalShapes === 0 && !isLoading && (
+                                    <div className="text-center py-12">
+                                        <p className="text-gray-500">ONLY A .DRAWIO FILE</p>
+                                    </div>
+                                )}
+
+                                {totalShapes > 0 && entityCount === 0 && relationshipCount === 0 && (
+                                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                        <h3 className="font-semibold text-yellow-800 mb-2">no elements found</h3>
+                                        <p className="text-yellow-700 text-sm">
+                                            {totalShapes} shapes, but no entities or relationships were detected. MAKE SURE IT'S ALL PROPERLY CONNECTED
                                         </p>
                                     </div>
-                                ))}
+                                )}
+                                {entityCount > 0 && (
+                                    <div className="my-8">
+                                        <h2 className="text-xl font-bold mb-2 text-gray-800">SQL Schema Output</h2>
+                                        <button
+                                            className="mb-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                                            onClick={() => {
+                                                const sql = generateSQLSchema();
+                                                const blob = new Blob([sql], { type: "text/plain" });
+                                                const url = URL.createObjectURL(blob);
+                                                const link = document.createElement("a");
+                                                link.href = url;
+                                                link.download = "schema.sql";
+                                                link.click();
+                                                URL.revokeObjectURL(url);
+                                            }}
+                                        >
+                                            Download SQL Schema
+                                        </button>
+                                    </div>
+                                )}
+
+                                {entityCount > 0 && (
+                                    <div className="my-8">
+                                        <h2 className="text-xl font-bold mb-2 text-gray-800">Prisma Schema Output</h2>
+                                        <button
+                                            className="mb-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                                            onClick={() => {
+                                                const schema = generatePrismaSchema();
+                                                const blob = new Blob([schema], { type: "text/plain" });
+                                                const url = URL.createObjectURL(blob);
+                                                const link = document.createElement("a");
+                                                link.href = url;
+                                                link.download = "schema.prisma";
+                                                link.click();
+                                                URL.revokeObjectURL(url);
+                                            }}
+                                        >
+                                            Download Prisma Schema
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
-                    )}
-
-                    {totalShapes === 0 && !isLoading && (
-                        <div className="text-center py-12">
-                            <p className="text-gray-500">ONLY A .DRAWIO FILE</p>
-                        </div>
-                    )}
-
-                    {totalShapes > 0 && entityCount === 0 && relationshipCount === 0 && (
-                        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                            <h3 className="font-semibold text-yellow-800 mb-2">no elements found</h3>
-                            <p className="text-yellow-700 text-sm">
-                                {totalShapes} shapes, but no entities or relationships were detected. MAKE SURE IT'S ALL PROPERLY CONNECTED
-                            </p>
-                        </div>
-                    )}
-                    {entityCount > 0 && (
-                        <div className="my-8">
-                            <h2 className="text-xl font-bold mb-2 text-gray-800">SQL Schema Output</h2>
-                            <button
-                                className="mb-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                                onClick={() => {
-                                    const sql = generateSQLSchema();
-                                    const blob = new Blob([sql], { type: "text/plain" });
-                                    const url = URL.createObjectURL(blob);
-                                    const link = document.createElement("a");
-                                    link.href = url;
-                                    link.download = "schema.sql";
-                                    link.click();
-                                    URL.revokeObjectURL(url);
-                                }}
-                            >
-                                Download SQL Schema
-                            </button>
-                        </div>
-                    )}
-
-                    {entityCount > 0 && (
-                        <div className="my-8">
-                            <h2 className="text-xl font-bold mb-2 text-gray-800">Prisma Schema Output</h2>
-                            <button
-                                className="mb-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                                onClick={() => {
-                                    const schema = generatePrismaSchema();
-                                    const blob = new Blob([schema], { type: "text/plain" });
-                                    const url = URL.createObjectURL(blob);
-                                    const link = document.createElement("a");
-                                    link.href = url;
-                                    link.download = "schema.prisma";
-                                    link.click();
-                                    URL.revokeObjectURL(url);
-                                }}
-                            >
-                                Download Prisma Schema
-                            </button>
-                        </div>
-                    )}
+                    </div>
                 </div>
+
+                {/*<div className={"bg-purple-500"}>*/}
+
+                {/*    <div className="mb-6">*/}
+                {/*    <label className="block text-sm font-medium text-gray-700 mb-2">*/}
+                {/*            ONLY A .DRAWIO FILE (it should be XML if you export it, BUT CAN'T BE COMPRESSED)*/}
+                {/*        </label>*/}
+                {/*        <input*/}
+                {/*            type="file"*/}
+                {/*            accept=".drawio,.xml"*/}
+                {/*            onChange={handleFileUpload}*/}
+                {/*            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"*/}
+                {/*        />*/}
+                {/*        {isLoading && <p className="mt-2 text-blue-600">loading...</p>}*/}
+                {/*    </div>*/}
+
+                {/*    <div className="mb-6 bg-pink-500">*/}
+                {/*        {debugInfo && (*/}
+                {/*            <div className="mb-6 p-4 bg-gray-100 rounded-lg">*/}
+                {/*                <h3 className="font-semibold text-gray-700 mb-2">hello???</h3>*/}
+                {/*                <p className="text-sm text-gray-600">{debugInfo}</p>*/}
+                {/*            </div>*/}
+                {/*        )}*/}
+
+                {/*        {totalShapes > 0 && (*/}
+                {/*            <div className="mb-6 p-4 bg-blue-50 rounded-lg">*/}
+                {/*                <h3 className="font-semibold text-blue-800 mb-2">summary</h3>*/}
+                {/*                <p className="text-sm text-blue-700">*/}
+                {/*                    {totalShapes} total shapes, {entityCount} entities, {relationshipCount} relationships*/}
+                {/*                </p>*/}
+                {/*            </div>*/}
+                {/*        )}*/}
+                {/*    </div>*/}
+                {/*</div>*/}
+
+
                 {/*<div</div>*/}
             </div>
 
