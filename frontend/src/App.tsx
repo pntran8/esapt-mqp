@@ -1,9 +1,7 @@
-import React, {useEffect, useState} from "react";
-import Header from "../components/Header.tsx"
+import React, { useState} from "react";
 type ShapeType = "Entity" | "Attribute" | "Relationship" | "Unknown";
 import wpiLogo from "./images/wpiLogo.png";
-import wpiLogoAlt from "./images/wpiLogoAlternate.png";
-    
+
     interface Shape {
         id: string;
         label: string;
@@ -52,7 +50,10 @@ import wpiLogoAlt from "./images/wpiLogoAlternate.png";
                 isKey: hasUnderline
             };
         };
-    
+
+        const [parsedXML, setParsedXML] = useState<Document | null>(null);
+
+
         const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
             const file = e.target.files?.[0];
             if (!file) return;
@@ -77,7 +78,9 @@ import wpiLogoAlt from "./images/wpiLogoAlternate.png";
                         setIsLoading(false);
                         return;
                     }
-    
+
+                    setParsedXML(xmlDoc);
+
                     const cells = Array.from(xmlDoc.getElementsByTagName("mxCell"));
                     setDebugInfo(`Found ${cells.length} cells`);
                     console.log("CELLS:");
@@ -418,14 +421,6 @@ import wpiLogoAlt from "./images/wpiLogoAlternate.png";
         const relationshipCount = relationships.length;
         const totalShapes = Object.keys(entities).length;
 
-        const YourComponent = () => {
-            const [sqlCode, setSqlCode] = useState("");
-
-            useEffect(() => {
-                const sql = generateSQLSchema(); // call your function once on mount
-                setSqlCode(sql);
-            }, []);
-        }
 
 
         return (
@@ -447,162 +442,197 @@ import wpiLogoAlt from "./images/wpiLogoAlternate.png";
                     </h1>
                 </div>
 
-                <div className={" relative mx-auto p-1 flex items-center justify-between h-15"}>
-                    <div className="my-3 mb-1 mx-10 flex">
-                        <label className="block text-sm font-medium text-gray-700 my-2">
-                            ONLY A .DRAWIO FILE (it should be XML if you export it, BUT CAN'T BE COMPRESSED)
+                <div className={"relative mx-auto p-1 flex items-center justify-between h-15"}>
+                    <div className="my-3 mb-1 mx-10 flex w-[45%] relative">
+                        <label className="text-sm font-medium  text-gray-700 my-2">
+                            ONLY A .DRAWIO FILE
                         </label>
 
                         <input
                             type="file"
                             accept=".drawio,.xml"
                             onChange={handleFileUpload}
-                            className="block text-sm ml-auto text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                            className="absolute right-0 ml-10 block text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                         />
                         {isLoading && <p className="mt-2 text-blue-600">loading...</p>}
                     </div>
+
+                    {entityCount > 0 && (
+                        <div className="my-3 mb-1 mx-10 flex">
+                            <button
+                                className=" px-4 py-2 bg-[#c53a52] text-white rounded hover:bg-[#c31534]"
+                                onClick={() => {
+                                    const sql = generateSQLSchema();
+                                    const blob = new Blob([sql], { type: "text/plain" });
+                                    const url = URL.createObjectURL(blob);
+                                    const link = document.createElement("a");
+                                    link.href = url;
+                                    link.download = "schema.sql";
+                                    link.click();
+                                    URL.revokeObjectURL(url);
+                                }}
+                            >
+                                Download SQL Schema
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex">
                     {/*first half*/}
-                    <div className="flex flex-col h-screen w-1/2  ">
-
-                        <div className="shadow-2xl border-[3px] border-[#c31432] rounded-md bg-white m-0 h-screen mx-10 my-3 mt-2">
-                            HELLLO
+                    <div className="flex flex-col h-screen w-1/2">
+                        <div className="flex flex-col h-full mx-10 my-3 mt-2 shadow-2xl border-[3px] border-[#c31432] rounded-md bg-white overflow-hidden">
+                            <div className="flex-1 overflow-auto p-4">
+                                <pre className="whitespace-pre-wrap break-words">
+                                    {parsedXML
+                                        ? parsedXML.documentElement.outerHTML
+                                        : "No file has been uploaded or parsed yet."}
+                                </pre>
+                            </div>
                         </div>
                     </div>
 
+
                     {/*second half*/}
-                    <div className="w-1/2 flex flex-col h-screen ">
+                    <div className="flex flex-col h-screen w-1/2">
                         <div className="shadow-2xl border-[3px] border-[#c31432] rounded-md bg-white m-0 h-screen mx-10 my-3 mt-2">
-                            <div className={""}>
-                                {entitiesWithNoAttributes.length > 0 && (
-                                    <div className="mb-8">
-                                        <h2 className="text-2xl font-semibold text-gray-800 mb-4">Entities Without Attributes</h2>
-                                        <ul className="list-disc list-inside text-gray-700">
-                                            {entitiesWithNoAttributes.map((entity) => (
-                                                <li key={entity.id}>{entity.label}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                )}
-
-
-                                <div>
-                                    {entityCount > 0 && (
-                                        <div className="mb-8">
-                                            <h2 className="text-2xl font-semibold text-gray-800 mb-4">ENTITIES AND ATTRIBUTES</h2>
-                                            <div className="space-y-3">
-                                                {Object.entries(attributesByEntity).map(([entity, attrs]) => {
-                                                    const keys = attrs.filter(attr => attr.isKey);
-                                                    const regularAttrs = attrs.filter(attr => !attr.isKey);
-
-                                                    return (
-                                                        <div key={entity} className="p-4 border border-gray-200 rounded-lg">
-                                                            <h3 className="font-bold text-lg text-blue-600 mb-3">{entity}</h3>
-
-                                                            {keys.length > 0 && (
-                                                                <div className="mb-2">
-                                                                    <span className="font-semibold text-yellow-800">Key: </span>
-                                                                    <span className="text-gray-700">
-                                                    {keys.map(key => key.label).join(', ')}
-                                                </span>
-                                                                </div>
-                                                            )}
-
-                                                            {regularAttrs.length > 0 && (
-                                                                <div className="mb-2">
-                                                                    <span className="font-semibold text-gray-800">Attributes: </span>
-                                                                    <span className="text-gray-700">
-                                                    {regularAttrs.map(attr => attr.label).join(', ')}
-                                                </span>
-                                                                </div>
-                                                            )}
-
-                                                            {attrs.length === 0 && (
-                                                                <p className="text-gray-500 text-sm">No attributes found</p>
-                                                            )}
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                                {relationshipCount > 0 && (
-                                    <div className="mb-8">
-                                        <h2 className="text-2xl font-semibold text-gray-800 mb-4">Relationships</h2>
-                                        <div className="space-y-3">
-                                            {relationships.map((rel, i) => (
-                                                <div key={i} className="p-4 border border-gray-200 rounded-lg">
-                                                    <h3 className="font-bold text-lg text-green-600 mb-2">
-                                                        {rel.name} {rel.isWeak && <span className="text-red-500 text-sm">(weak)</span>}
-                                                    </h3>
-                                                    <p className="text-gray-700">
-                                                        {rel.entities.join(" <--> ")}
-                                                    </p>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {totalShapes === 0 && !isLoading && (
-                                    <div className="text-center py-12">
-                                        <p className="text-gray-500">ONLY A .DRAWIO FILE</p>
-                                    </div>
-                                )}
-
-                                {totalShapes > 0 && entityCount === 0 && relationshipCount === 0 && (
-                                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                                        <h3 className="font-semibold text-yellow-800 mb-2">no elements found</h3>
-                                        <p className="text-yellow-700 text-sm">
-                                            {totalShapes} shapes, but no entities or relationships were detected. MAKE SURE IT'S ALL PROPERLY CONNECTED
-                                        </p>
-                                    </div>
-                                )}
-                                {entityCount > 0 && (
-                                    <div className="my-8">
-                                        <h2 className="text-xl font-bold mb-2 text-gray-800">SQL Schema Output</h2>
-                                        <button
-                                            className="mb-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                                            onClick={() => {
-                                                const sql = generateSQLSchema();
-                                                const blob = new Blob([sql], { type: "text/plain" });
-                                                const url = URL.createObjectURL(blob);
-                                                const link = document.createElement("a");
-                                                link.href = url;
-                                                link.download = "schema.sql";
-                                                link.click();
-                                                URL.revokeObjectURL(url);
-                                            }}
-                                        >
-                                            Download SQL Schema
-                                        </button>
-                                    </div>
-                                )}
-
-                                {entityCount > 0 && (
-                                    <div className="my-8">
-                                        <h2 className="text-xl font-bold mb-2 text-gray-800">Prisma Schema Output</h2>
-                                        <button
-                                            className="mb-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                                            onClick={() => {
-                                                const schema = generatePrismaSchema();
-                                                const blob = new Blob([schema], { type: "text/plain" });
-                                                const url = URL.createObjectURL(blob);
-                                                const link = document.createElement("a");
-                                                link.href = url;
-                                                link.download = "schema.prisma";
-                                                link.click();
-                                                URL.revokeObjectURL(url);
-                                            }}
-                                        >
-                                            Download Prisma Schema
-                                        </button>
-                                    </div>
-                                )}
+                            <div className="flex-1 overflow-auto p-4">
+                                <pre className="whitespace-pre-wrap break-words">
+                                    {parsedXML
+                                        ? generateSQLSchema()
+                                        : "No SQL Schemas to generate."}
+                                </pre>
                             </div>
+
+
+                            {/*<div className={""}>*/}
+                            {/*    {entitiesWithNoAttributes.length > 0 && (*/}
+                            {/*        <div className="mb-8">*/}
+                            {/*            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Entities Without Attributes</h2>*/}
+                            {/*            <ul className="list-disc list-inside text-gray-700">*/}
+                            {/*                {entitiesWithNoAttributes.map((entity) => (*/}
+                            {/*                    <li key={entity.id}>{entity.label}</li>*/}
+                            {/*                ))}*/}
+                            {/*            </ul>*/}
+                            {/*        </div>*/}
+                            {/*    )}*/}
+
+
+                            {/*    /!*<div>*!/*/}
+                            {/*    /!*    {entityCount > 0 && (*!/*/}
+                            {/*    /!*        <div className="mb-8">*!/*/}
+                            {/*    /!*            <h2 className="text-2xl font-semibold text-gray-800 mb-4">ENTITIES AND ATTRIBUTES</h2>*!/*/}
+                            {/*    /!*            <div className="space-y-3">*!/*/}
+                            {/*    /!*                {Object.entries(attributesByEntity).map(([entity, attrs]) => {*!/*/}
+                            {/*    /!*                    const keys = attrs.filter(attr => attr.isKey);*!/*/}
+                            {/*    /!*                    const regularAttrs = attrs.filter(attr => !attr.isKey);*!/*/}
+
+                            {/*    /!*                    return (*!/*/}
+                            {/*    /!*                        <div key={entity} className="p-4 border border-gray-200 rounded-lg">*!/*/}
+                            {/*    /!*                            <h3 className="font-bold text-lg text-blue-600 mb-3">{entity}</h3>*!/*/}
+
+                            {/*    /!*                            {keys.length > 0 && (*!/*/}
+                            {/*    /!*                                <div className="mb-2">*!/*/}
+                            {/*    /!*                                    <span className="font-semibold text-yellow-800">Key: </span>*!/*/}
+                            {/*    /!*                                    <span className="text-gray-700">*!/*/}
+                            {/*    /!*                    {keys.map(key => key.label).join(', ')}*!/*/}
+                            {/*    /!*                </span>*!/*/}
+                            {/*    /!*                                </div>*!/*/}
+                            {/*    /!*                            )}*!/*/}
+
+                            {/*    /!*                            {regularAttrs.length > 0 && (*!/*/}
+                            {/*    /!*                                <div className="mb-2">*!/*/}
+                            {/*    /!*                                    <span className="font-semibold text-gray-800">Attributes: </span>*!/*/}
+                            {/*    /!*                                    <span className="text-gray-700">*!/*/}
+                            {/*    /!*                    {regularAttrs.map(attr => attr.label).join(', ')}*!/*/}
+                            {/*    /!*                </span>*!/*/}
+                            {/*    /!*                                </div>*!/*/}
+                            {/*    /!*                            )}*!/*/}
+
+                            {/*    /!*                            {attrs.length === 0 && (*!/*/}
+                            {/*    /!*                                <p className="text-gray-500 text-sm">No attributes found</p>*!/*/}
+                            {/*    /!*                            )}*!/*/}
+                            {/*    /!*                        </div>*!/*/}
+                            {/*    /!*                    );*!/*/}
+                            {/*    /!*                })}*!/*/}
+                            {/*    /!*            </div>*!/*/}
+                            {/*    /!*        </div>*!/*/}
+                            {/*    /!*    )}*!/*/}
+                            {/*    /!*</div>*!/*/}
+                            {/*    /!*{relationshipCount > 0 && (*!/*/}
+                            {/*    /!*    <div className="mb-8">*!/*/}
+                            {/*    /!*        <h2 className="text-2xl font-semibold text-gray-800 mb-4">Relationships</h2>*!/*/}
+                            {/*    /!*        <div className="space-y-3">*!/*/}
+                            {/*    /!*            {relationships.map((rel, i) => (*!/*/}
+                            {/*    /!*                <div key={i} className="p-4 border border-gray-200 rounded-lg">*!/*/}
+                            {/*    /!*                    <h3 className="font-bold text-lg text-green-600 mb-2">*!/*/}
+                            {/*    /!*                        {rel.name} {rel.isWeak && <span className="text-red-500 text-sm">(weak)</span>}*!/*/}
+                            {/*    /!*                    </h3>*!/*/}
+                            {/*    /!*                    <p className="text-gray-700">*!/*/}
+                            {/*    /!*                        {rel.entities.join(" <--> ")}*!/*/}
+                            {/*    /!*                    </p>*!/*/}
+                            {/*    /!*                </div>*!/*/}
+                            {/*    /!*            ))}*!/*/}
+                            {/*    /!*        </div>*!/*/}
+                            {/*    /!*    </div>*!/*/}
+                            {/*    /!*)}*!/*/}
+
+                            {/*    /!*{totalShapes === 0 && !isLoading && (*!/*/}
+                            {/*    /!*    <div className="text-center py-12">*!/*/}
+                            {/*    /!*        <p className="text-gray-500">ONLY A .DRAWIO FILE</p>*!/*/}
+                            {/*    /!*    </div>*!/*/}
+                            {/*    /!*)}*!/*/}
+
+                            {/*    /!*{totalShapes > 0 && entityCount === 0 && relationshipCount === 0 && (*!/*/}
+                            {/*    /!*    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">*!/*/}
+                            {/*    /!*        <h3 className="font-semibold text-yellow-800 mb-2">no elements found</h3>*!/*/}
+                            {/*    /!*        <p className="text-yellow-700 text-sm">*!/*/}
+                            {/*    /!*            {totalShapes} shapes, but no entities or relationships were detected. MAKE SURE IT'S ALL PROPERLY CONNECTED*!/*/}
+                            {/*    /!*        </p>*!/*/}
+                            {/*    /!*    </div>*!/*/}
+                            {/*    /!*)}*!/*/}
+                            {/*    /!*{entityCount > 0 && (*!/*/}
+                            {/*    /!*    <div className="my-8">*!/*/}
+                            {/*    /!*        <h2 className="text-xl font-bold mb-2 text-gray-800">SQL Schema Output</h2>*!/*/}
+                            {/*    /!*        <button*!/*/}
+                            {/*    /!*            className="mb-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"*!/*/}
+                            {/*    /!*            onClick={() => {*!/*/}
+                            {/*    /!*                const sql = generateSQLSchema();*!/*/}
+                            {/*    /!*                const blob = new Blob([sql], { type: "text/plain" });*!/*/}
+                            {/*    /!*                const url = URL.createObjectURL(blob);*!/*/}
+                            {/*    /!*                const link = document.createElement("a");*!/*/}
+                            {/*    /!*                link.href = url;*!/*/}
+                            {/*    /!*                link.download = "schema.sql";*!/*/}
+                            {/*    /!*                link.click();*!/*/}
+                            {/*    /!*                URL.revokeObjectURL(url);*!/*/}
+                            {/*    /!*            }}*!/*/}
+                            {/*    /!*        >*!/*/}
+                            {/*    /!*            Download SQL Schema*!/*/}
+                            {/*    /!*        </button>*!/*/}
+                            {/*    /!*    </div>*!/*/}
+                            {/*    /!*)}*!/*/}
+
+                            {/*    /!*{entityCount > 0 && (*!/*/}
+                            {/*    /!*    <div className="my-8">*!/*/}
+                            {/*    /!*        <h2 className="text-xl font-bold mb-2 text-gray-800">Prisma Schema Output</h2>*!/*/}
+                            {/*    /!*        <button*!/*/}
+                            {/*    /!*            className="mb-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"*!/*/}
+                            {/*    /!*            onClick={() => {*!/*/}
+                            {/*    /!*                const schema = generatePrismaSchema();*!/*/}
+                            {/*    /!*                const blob = new Blob([schema], { type: "text/plain" });*!/*/}
+                            {/*    /!*                const url = URL.createObjectURL(blob);*!/*/}
+                            {/*    /!*                const link = document.createElement("a");*!/*/}
+                            {/*    /!*                link.href = url;*!/*/}
+                            {/*    /!*                link.download = "schema.prisma";*!/*/}
+                            {/*    /!*                link.click();*!/*/}
+                            {/*    /!*                URL.revokeObjectURL(url);*!/*/}
+                            {/*    /!*            }}*!/*/}
+                            {/*    /!*        >*!/*/}
+                            {/*    /!*            Download Prisma Schema*!/*/}
+                            {/*    /!*        </button>*!/*/}
+                            {/*    /!*    </div>*!/*/}
+                            {/*    /!*)}*!/*/}
+                            {/*</div>*/}
                         </div>
                     </div>
                 </div>
@@ -643,6 +673,10 @@ import wpiLogoAlt from "./images/wpiLogoAlternate.png";
 
 
                 {/*<div</div>*/}
+
+                <footer className="mt-10 relative mx-auto p-1 bg-[#c31432] flex items-center justify-between h-20">
+                    <h1 className={"text-white"}>Credits?</h1>
+                </footer>
             </div>
 
         );
