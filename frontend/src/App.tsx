@@ -480,8 +480,8 @@ import wpiLogo from "./images/wpiLogo.png";
 
                 <div className="flex">
                     {/*first half*/}
-                    <div className="flex flex-col h-screen w-1/2">
-                        <div className="flex flex-col h-full mx-10 my-3 mt-2 shadow-2xl border-[3px] border-[#c31432] rounded-md bg-white overflow-hidden">
+                    <div className="flex flex-col h-[80vh] w-1/2">
+                        <div className="flex flex-col h-full mx-10  mt-2 shadow-2xl border-[3px] border-[#c31432] rounded-md bg-white overflow-hidden">
                             <div className="flex-1 overflow-auto p-4">
                                 <pre className="whitespace-pre-wrap break-words">
                                     {parsedXML
@@ -494,8 +494,8 @@ import wpiLogo from "./images/wpiLogo.png";
 
 
                     {/*second half*/}
-                    <div className="flex flex-col h-screen w-1/2">
-                        <div className="shadow-2xl border-[3px] border-[#c31432] rounded-md bg-white m-0 h-screen mx-10 my-3 mt-2">
+                    <div className="flex flex-col h-[80vh] w-1/2">
+                        <div className="flex flex-col h-full  mx-10 mt-2 shadow-2xl border-[3px] border-[#c31432] rounded-md bg-white overflow-hidden">
                             <div className="flex-1 overflow-auto p-4">
                                 <pre className="whitespace-pre-wrap break-words">
                                     {parsedXML
@@ -674,7 +674,7 @@ import wpiLogo from "./images/wpiLogo.png";
 
                 {/*<div</div>*/}
 
-                <footer className="mt-10 relative mx-auto p-1 bg-[#c31432] flex items-center justify-between h-20">
+                <footer className="relative mx-auto p-1 mt-10 bg-[#c31432] flex items-center justify-between h-20">
                     <h1 className={"text-white"}>Credits?</h1>
                 </footer>
             </div>
