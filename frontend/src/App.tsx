@@ -14,6 +14,7 @@ import wpiLogo from "./images/wpiLogo.png";
         from: string;
         to: string;
         isWeak?: boolean;
+        label?: string;
     }
     function sanitizeName(name: string): string {
         return name
@@ -25,11 +26,13 @@ import wpiLogo from "./images/wpiLogo.png";
 
 
     function App() {
+        // @ts-ignore
         const [entities, setEntities] = useState<Record<string, Shape>>({});
         const [attributesByEntity, setAttributesByEntity] = useState<Record<string, {label: string, isKey: boolean}[]>>({});
         const [relationships, setRelationships] = useState<
-            { name: string; entities: string[]; isWeak?: boolean }[]
+            { name: string; entities: string[]; isWeak?: boolean, cardinality: string[] }[]
         >([]);
+        // @ts-ignore
         const [debugInfo, setDebugInfo] = useState<string>("");
         const [isLoading, setIsLoading] = useState(false);
 
@@ -91,6 +94,7 @@ import wpiLogo from "./images/wpiLogo.png";
                         const isEdge = cell.getAttribute("edge") === "1";
                         const source = cell.getAttribute("source");
                         const target = cell.getAttribute("target");
+                        const parent = cell.getAttribute("parent");
 
                         const isWeak =
                             !isEdge && (
@@ -100,23 +104,24 @@ import wpiLogo from "./images/wpiLogo.png";
                             );
 
                         // Only log edges or cells that have a visible label
-                        if (isEdge || value.trim()) {
+                        if (isEdge || value.trim() || parent) {
                             console.log(`[${i}] ID: ${id}`);
                             console.log(`   Value: ${value}`);
                             console.log(`   Style: ${style}`);
                             console.log(`   IsEdge: ${isEdge}`);
                             console.log(`   isWeak: ${isWeak}`);
+                            console.log(`   Parent: ${parent || "(none)"}`);
                             if (isEdge) {
                                 console.log(`   Source: ${source}, Target: ${target}`);
                             }
                         }
                     });
 
-
-
                     const shapeMap: Record<string, Shape> = {};
                     const edges: Connection[] = [];
-    
+                    const edgeLabels: Record<string, string[]> = {};
+
+
                     for (const cell of cells) {
                         const id = cell.getAttribute("id");
                         const style = cell.getAttribute("style") || "";
@@ -175,23 +180,57 @@ import wpiLogo from "./images/wpiLogo.png";
                             shapeMap[id] = { id, label: value.trim(), type, isKey, isWeak };
                         }
                     }
-    
-                    // get lines (the edges)
+
+                    // Edge label children (like "1", "N" for cardinality)
                     for (const cell of cells) {
-                        if (cell.getAttribute("edge") === "1") {
-                            const source = cell.getAttribute("source");
-                            const target = cell.getAttribute("target");
-                            if (source && target) {
-                                edges.push({ from: source, to: target });
+                        const parentId = cell.getAttribute("parent");
+                        const isEdgeChild = parentId && !cell.getAttribute("source") && !cell.getAttribute("target");
+
+                        if (isEdgeChild) {
+                            const label = parseLabel(cell.getAttribute("value") || "").text;
+
+                            if (label) {
+                                console.log(`Edge Label: "${label}" on Edge ID: ${parentId}`);
+                                // Optional: store in edgeLabels map
+                                if (!edgeLabels[parentId]) edgeLabels[parentId] = [];
+                                edgeLabels[parentId].push(label);
                             }
                         }
                     }
+
+                    // get lines (the edges)
+                    for (const cell of cells) {
+                        const isEdge = cell.getAttribute("edge") === "1";
+
+                        if (isEdge) {
+                            const source = cell.getAttribute("source");
+                            const target = cell.getAttribute("target");
+
+                            if (source && target) {
+                                const edgeId = cell.getAttribute("id") || "";
+                                const label = edgeId && edgeLabels[edgeId]?.join(", ");
+
+                                const connection: Connection = {
+                                    from: source,
+                                    to: target,
+                                    ...(label && { label })
+                                };
+
+                                edges.push(connection);
+                            }
+
+
+                        }
+                    }
+
+
     
                     setDebugInfo(`Found ${Object.keys(shapeMap).length} shapes and ${edges.length} edges`);
     
                     // stores attribute with key
                     const entityAttributeDetails: Record<string, {label: string, isKey: boolean}[]> = {};
-                    const relationshipLinks: Record<string, string[]> = {};
+                    const relationshipLinks: Record<string, [string, string][]> = {};
+
 
                     console.log("Expanded Edges with Labels:");
                     edges.forEach((edge, index) => {
@@ -221,13 +260,18 @@ import wpiLogo from "./images/wpiLogo.png";
                         }
     
                         // entity relationships
-                        if (from.type === "Entity" && to.type === "Relationship") {
-                            if (!relationshipLinks[to.label]) relationshipLinks[to.label] = [];
-                            relationshipLinks[to.label].push(from.label);
-                        } else if (to.type === "Entity" && from.type === "Relationship") {
-                            if (!relationshipLinks[from.label]) relationshipLinks[from.label] = [];
-                            relationshipLinks[from.label].push(to.label);
+                        if (
+                            (from.type === "Entity" && to.type === "Relationship") ||
+                            (to.type === "Entity" && from.type === "Relationship")
+                        ) {
+                            const entity = from.type === "Entity" ? from : to;
+                            const relationship = from.type === "Relationship" ? from : to;
+                            const label = edge.label || "";  // cardinality label (may be "1", "N", etc.)
+
+                            if (!relationshipLinks[relationship.label]) relationshipLinks[relationship.label] = [];
+                            relationshipLinks[relationship.label].push([entity.label, label]);
                         }
+
                     }
     
                     // store results
@@ -242,15 +286,22 @@ import wpiLogo from "./images/wpiLogo.png";
                         });
                     });
 
-                    console.log("Relationships:", relationshipLinks);
-
-
                     const relationshipArray = Object.entries(relationshipLinks).map(([name, ents]) => {
-                        const shape = Object.values(shapeMap).find((s) => s.label === name && s.type === "Relationship");
-                        return { name, entities: ents, isWeak: shape?.isWeak };
+                        const shape = Object.values(shapeMap).find(
+                            (s) => s.label === name && s.type === "Relationship"
+                        );
+
+                        return {
+                            name,
+                            entities: ents.map(([entity, cardinality]) => entity),
+                            cardinality: ents.map(([_, cardinality]) => cardinality),
+                            isWeak: shape?.isWeak
+                        };
                     });
 
+
                     setRelationships(relationshipArray);
+                    console.log("Final Relationships Array:\n", JSON.stringify(relationshipArray, null, 2));
 
 
                     setDebugInfo(`Processed: ${Object.keys(entityAttributeDetails).length} entities with attributes, ${relationshipArray.length} relationships`);
@@ -263,70 +314,113 @@ import wpiLogo from "./images/wpiLogo.png";
                 setIsLoading(false);
             }
         };
-        const generateSQLSchema = () => {
+        const generateSQLSchema = (): string => {
             let sql = "";
-
             const definedTables = new Set<string>();
 
-            // 1. Define all tables for entities
+            // Step 1: Extract primary keys
+            const pkMap: Record<string, string> = {};
+            for (const [entityName, attributes] of Object.entries(attributesByEntity)) {
+                const keyAttr = attributes.find(attr => attr.isKey);
+                if (keyAttr) {
+                    pkMap[sanitizeName(entityName)] = sanitizeName(keyAttr.label);
+                }
+            }
+
+            // Step 2: Track foreign key columns for 1:N and 1:1
+            const foreignKeys: Record<string, { column: string; refTable: string; refColumn: string }[]> = {};
+
+            for (const rel of relationships) {
+                if (rel.entities.length !== 2) continue;
+
+                const [entityA, entityB] = rel.entities;
+                const [cardA, cardB] = rel.cardinality;
+
+                const tableA = sanitizeName(entityA);
+                const tableB = sanitizeName(entityB);
+                const pkA = pkMap[tableA];
+                const pkB = pkMap[tableB];
+
+                if (!pkA || !pkB) continue;
+
+                if ((cardA === "1" && cardB === "N") || (cardA === "N" && cardB === "1")) {
+                    const oneSide = cardA === "1" ? tableA : tableB;
+                    const manySide = cardA === "1" ? tableB : tableA;
+                    const pk = pkMap[oneSide];
+
+                    if (!foreignKeys[manySide]) foreignKeys[manySide] = [];
+                    foreignKeys[manySide].push({
+                        column: `${oneSide.toLowerCase()}_id`,
+                        refTable: oneSide,
+                        refColumn: pk,
+                    });
+                } else if (cardA === "1" && cardB === "1") {
+                    if (!foreignKeys[tableB]) foreignKeys[tableB] = [];
+                    foreignKeys[tableB].push({
+                        column: `${tableA.toLowerCase()}_id`,
+                        refTable: tableA,
+                        refColumn: pkA,
+                    });
+                }
+            }
+
+            // Step 3: Create entity tables with inline FK definitions
             for (const [entityName, attributes] of Object.entries(attributesByEntity)) {
                 const tableName = sanitizeName(entityName);
                 definedTables.add(tableName);
 
-                sql += `CREATE TABLE ${tableName} (\n`;
+                const fields: string[] = attributes.map(attr => {
+                    const name = sanitizeName(attr.label);
+                    const type = attr.isKey ? "INT" : "VARCHAR(255)";
+                    const pk = attr.isKey ? " PRIMARY KEY" : "";
+                    return `  ${name} ${type}${pk}`;
+                });
 
-                const lines: string[] = [];
-                for (const attr of attributes) {
-                    const fieldName = sanitizeName(attr.label);
-                    const fieldType = attr.isKey ? "INT" : "VARCHAR(255)";
-                    let line = `  ${fieldName} ${fieldType}`;
-                    if (attr.isKey) line += " PRIMARY KEY";
-                    lines.push(line);
+                if (foreignKeys[tableName]) {
+                    foreignKeys[tableName].forEach(fk => {
+                        fields.push(`  ${fk.column} INT`);
+                    });
                 }
 
-                sql += lines.join(",\n") + `\n);\n\n`;
+                sql += `CREATE TABLE ${tableName} (\n`;
+                sql += fields.join(",\n");
+
+                if (foreignKeys[tableName]) {
+                    const constraints = foreignKeys[tableName].map(fk =>
+                        `  FOREIGN KEY (${fk.column}) REFERENCES ${fk.refTable}(${fk.refColumn})`
+                    );
+                    sql += ",\n" + constraints.join(",\n");
+                }
+
+                sql += `\n);\n\n`;
             }
 
-            // 2. Relationships
-            const addedConstraints = new Set<string>();
-
+            // Step 4: Join tables for M:N relationships
             for (const rel of relationships) {
-                if (rel.entities.length === 2) {
-                    const [a, b] = rel.entities;
-                    const tableA = sanitizeName(a);
-                    const tableB = sanitizeName(b);
-                    /*const relName = sanitizeName(rel.name);*/
+                if (rel.entities.length !== 2) continue;
 
-                    const constraintId = [tableA, tableB].sort().join("_");
+                const [entityA, entityB] = rel.entities;
+                const [cardA, cardB] = rel.cardinality;
 
-                    if (!addedConstraints.has(constraintId)) {
-                        sql += `-- Relationship: ${a} <--> ${b} via ${rel.name}\n`;
-
-                        sql += `ALTER TABLE ${tableA}\n  ADD COLUMN ${tableB.toLowerCase()}_id INT,\n  ADD FOREIGN KEY (${tableB.toLowerCase()}_id) REFERENCES ${tableB}(id);\n\n`;
-
-                        sql += `ALTER TABLE ${tableB}\n  ADD COLUMN ${tableA.toLowerCase()}_id INT,\n  ADD FOREIGN KEY (${tableA.toLowerCase()}_id) REFERENCES ${tableA}(id);\n\n`;
-
-                        addedConstraints.add(constraintId);
-                    }
-                } else {
-                    // Relationship with >2 entities → join table
+                if (cardA === "N" && cardB === "N") {
                     const joinTable = sanitizeName(rel.name);
-                    if (!definedTables.has(joinTable)) {
-                        sql += `-- Join table for relationship: ${rel.name}\n`;
-                        sql += `CREATE TABLE ${joinTable} (\n`;
+                    if (definedTables.has(joinTable)) continue;
 
-                        const lines: string[] = [];
+                    const tableA = sanitizeName(entityA);
+                    const tableB = sanitizeName(entityB);
+                    const pkA = pkMap[tableA];
+                    const pkB = pkMap[tableB];
 
-                        rel.entities.forEach((ent) => {
-                            const colName = sanitizeName(ent.toLowerCase() + "_id");
-                            const refTable = sanitizeName(ent);
-                            lines.push(`  ${colName} INT,\n  FOREIGN KEY (${colName}) REFERENCES ${refTable}(id)`);
-                        });
+                    if (!pkA || !pkB) continue;
 
-                        sql += lines.join(",\n") + `\n);\n\n`;
+                    sql += `CREATE TABLE ${joinTable} (\n`;
+                    sql += `  ${tableA.toLowerCase()}_id INT,\n`;
+                    sql += `  ${tableB.toLowerCase()}_id INT,\n`;
+                    sql += `  FOREIGN KEY (${tableA.toLowerCase()}_id) REFERENCES ${tableA}(${pkA}),\n`;
+                    sql += `  FOREIGN KEY (${tableB.toLowerCase()}_id) REFERENCES ${tableB}(${pkB})\n`;
+                    sql += `);\n\n`;
 
-                        definedTables.add(joinTable);
-                    }
+                    definedTables.add(joinTable);
                 }
             }
 
@@ -334,92 +428,17 @@ import wpiLogo from "./images/wpiLogo.png";
         };
 
 
-        const generatePrismaSchema = () => {
-            let schema = `generator client {
-              provider = "prisma-client-js"
-            }
-            
-            datasource db {
-              provider = "postgresql"
-              url      = env("DATABASE_URL")
-            }\n\n`;
-
-            const definedModels = new Set<string>();
-
-            // Generate base models with attributes
-            for (const [entityName, attributes] of Object.entries(attributesByEntity)) {
-                definedModels.add(entityName);
-
-                schema += `model ${sanitizeName(entityName)} {\n`;
-
-                for (const attr of attributes) {
-                    const fieldName = sanitizeName(attr.label);
-                    const isId = attr.isKey;
-                    const fieldType = isId ? "Int" : "String";
-
-                    schema += `  ${fieldName} ${fieldType}${isId ? " @id @default(autoincrement())" : ""}\n`;
-                }
-
-                schema += `}\n\n`;
-            }
-
-            // Add relationships to models
-            const addedRelations = new Set<string>();
-
-            for (const rel of relationships) {
-                if (rel.entities.length === 2) {
-                    const [entityA, entityB] = rel.entities;
-                    const modelA = sanitizeName(entityA);
-                    const modelB = sanitizeName(entityB);
-                    const relName = sanitizeName(rel.name);
-
-                    // Add relation fields if models exist
-                    if (definedModels.has(entityA) && definedModels.has(entityB)) {
-                        // Ensure relation is only added once per pair
-                        const relId = [modelA, modelB].sort().join("-");
-                        if (!addedRelations.has(relId)) {
-                            schema = schema.replace(
-                                new RegExp(`model ${modelA} {([\\s\\S]*?)\\n\\}`),
-                                `model ${modelA} {\$1\n  ${modelB.toLowerCase()}s ${modelB}[] @relation("${relName}")\n}`
-                            );
-
-                            schema = schema.replace(
-                                new RegExp(`model ${modelB} {([\\s\\S]*?)\\n\\}`),
-                                `model ${modelB} {\$1\n  ${modelA.toLowerCase()}s ${modelA}[] @relation("${relName}")\n}`
-                            );
-
-                            addedRelations.add(relId);
-                        }
-                    }
-                } else {
-                    // If the relationship involves > 2 entities, generate a join table
-                    const relModelName = sanitizeName(rel.name);
-                    if (!definedModels.has(relModelName)) {
-                        schema += `model ${relModelName} {\n`;
-                        rel.entities.forEach((ent, idx) => {
-                            const model = sanitizeName(ent);
-                            const field = `${model.toLowerCase()}${idx}`;
-                            schema += `  ${field} ${model} @relation(fields: [${field}Id], references: [id])\n`;
-                            schema += `  ${field}Id Int\n`;
-                        });
-                        schema += `  id Int @id @default(autoincrement())\n`;
-                        schema += `}\n\n`;
-                        definedModels.add(relModelName);
-                    }
-                }
-            }
-
-            return schema;
-        };
 
 
         const entityCount = Object.keys(attributesByEntity).length;
+/*
         const entitiesWithNoAttributes = Object.values(entities).filter(
             (shape) => shape.type === "Entity" && !attributesByEntity[shape.label]
         );
 
         const relationshipCount = relationships.length;
         const totalShapes = Object.keys(entities).length;
+*/
 
 
 
