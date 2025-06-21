@@ -3,6 +3,7 @@ type ShapeType = "Entity" | "Attribute" | "Relationship" | "Unknown";
 import Header from "../components/Header.tsx";
 import Footer from "../components/Footer.tsx";
 import ProcessXML from "../components/ProcessXML.tsx";
+import {useNavigate} from "react-router-dom";
 
     interface Shape {
         id: string;
@@ -20,7 +21,8 @@ import ProcessXML from "../components/ProcessXML.tsx";
             .replace(/^(\d)/, '_$1');    // Prefix leading digits with underscore
     }
 
-    function UploadImg() {
+    const UploadImg = () => {
+        const navigate = useNavigate();
         const [entities, setEntities] = useState<Record<string, Shape>>({});
         const [attributesByEntity, setAttributesByEntity] = useState<Record<string, {label: string, isKey: boolean}[]>>({});
         const [relationships, setRelationships] = useState<
@@ -101,6 +103,14 @@ import ProcessXML from "../components/ProcessXML.tsx";
 
         return (
             <div>
+                <button
+                    onClick={() => {
+                        navigate("/gem")
+                    }}
+                    className = "p-6 bg-amber-600 hover:bg-amber-700 transition duration-150"
+                >
+                    click here to open gemini
+                </button>
                 <Header />
                 <ProcessXML
                     entities={entities}

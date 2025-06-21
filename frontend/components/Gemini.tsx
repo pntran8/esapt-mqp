@@ -1,0 +1,35 @@
+export const generateContent = async (prompt: string) => {
+    const apiKey = import.meta.env.VITE_LLM_API_KEY;
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+    const payload = {
+        contents: [
+            {
+                parts: [
+                    { text: prompt },
+                ],
+            },
+        ],
+    };
+
+    const response = await fetch(url, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+        const errorBody = await response.text();
+        throw new Error(`API error: ${response.status} - ${errorBody}`);
+    }
+
+    const data = await response.json();
+
+    // Access the generated text from response structure
+    const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    return generatedText || "";
+};
