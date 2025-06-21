@@ -3,6 +3,7 @@ import express, { Express, NextFunction, Request, Response } from "express";
 import cookieParser from "cookie-parser";
 import logger from "morgan";
 //import dotenv from "dotenv";
+import examplePy from "./routes/examplePy";
 
 //dotenv.config();
 const app: Express = express(); // Set up the backend
@@ -18,6 +19,12 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 app.use(express.json());
+
+const APP_ROUTES = {
+    PYTHON: "/api/examplePy"
+};
+
+app.use(APP_ROUTES.PYTHON, examplePy);
 
 // Setup generic middlewear
 app.use(
@@ -35,7 +42,7 @@ app.use(cookieParser()); // Cookie parser
 
 //set up routes here
 
-app.use((req: Request, res: Response, next: NextFunction) => {
+app.use((_req: Request, _res: Response, next: NextFunction) => {
     // Have the next (generic error handler) process a 404 error
     next(createError(404));
 });
@@ -52,6 +59,10 @@ app.use((err: HttpError, req: Request, res: Response) => {
     // Reply with the error
     res.status(err.status || 500);
 });
+
+app.listen(3001, () => {
+    console.log("App listening on port 3001");
+})
 
 // Export the backend, so that www.ts can start it
 export default app;

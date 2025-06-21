@@ -1,6 +1,7 @@
 import wpiLogo from "../src/images/wpiLogo.png";
 
 export default function Header() {
+
     return (
         <>
             {/* Navbar */}
