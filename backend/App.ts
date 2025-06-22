@@ -36,6 +36,43 @@ app.use(
     }),
 ); // This records all HTTP requests
 
+// auth0 domain key
+app.get(
+    "/api/authodom/key",
+    (_req: Request, res: Response, next: NextFunction) => {
+        const authDomain = process.env.REACT_APP_AUTH0_DOMAIN;
+
+        if (!authDomain) {
+            console.error(
+                "Auth0 Domain API Key not found in backend environment variables.",
+            );
+            return next(
+                createError(500, "Auth0 Domain API Key configuration error :("),
+            );
+        }
+        res.json({ authDomain });
+    },
+);
+
+// auth0 client key
+app.get(
+    "/api/authocli/key",
+    (_req: Request, res: Response, next: NextFunction) => {
+        const authCli = process.env.REACT_APP_AUTH0_CLIENT_ID;
+
+        if (!authCli) {
+            console.error(
+                "Auth0 Client API Key not found in backend environment variables.",
+            );
+            return next(
+                createError(500, "Auth0 Client API Key configuration error :("),
+            );
+        }
+        res.json({ authCli });
+    },
+);
+
+
 app.use(express.json()); // This processes requests as JSON
 app.use(express.urlencoded({ extended: false })); // URL parser
 app.use(cookieParser()); // Cookie parser
