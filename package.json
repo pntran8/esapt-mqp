@@ -12,7 +12,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@auth0/auth0-react": "^2.3.0",
     "@google/generative-ai": "^0.24.1",
+    "@radix-ui/react-dialog": "^1.1.14",
     "@tailwindcss/postcss": "^4.1.10",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -21,6 +23,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "express-openid-connect": "^2.18.1",
     "http-errors": "^2.0.0",
     "lucide-react": "^0.515.0",
     "morgan": "^1.10.0",

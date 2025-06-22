@@ -1,4 +1,5 @@
 import wpiLogo from "../src/images/wpiLogo.png";
+import Profile from "./Profile.tsx";
 
 export default function Header() {
 
@@ -19,6 +20,7 @@ export default function Header() {
                 <h1 className="absolute left-1/2 transform -translate-x-1/2 text-5xl font-bold text-white font-serif tracking-wide">
                     ESAPT
                 </h1>
+                <Profile />
             </div>
         </>
     );
