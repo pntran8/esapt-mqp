@@ -12,6 +12,9 @@ interface Message {
 const SendToGem = () => {
     const [response, setResponse] = useState<Message[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [parsedOutput, setParsedOutput] = useState<string>("");
+    const [editableJson, setEditableJson] = useState<string>("");
+
 
     const handleFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -22,23 +25,44 @@ const SendToGem = () => {
         try {
             const fileText = await file.text(); // Read file content as text
 
-            const prompt = `
-            This is the content of a .drawio ER diagram.
+            const prompt =
+            `This is the content of a .drawio ER diagram.
             
-            Please analyze the structure, explain step-by-step how you identified entities, attributes, and relationships, and then generate SQL CREATE TABLE statements based on it.
+            Please analyze the structure and return a JSON object with the following format:
             
-            Respond with your reasoning first, and SQL output after that.
+            {
+              "entities": [
+                {
+                  "name": "EntityName",
+                  "attributes": ["attr1", "attr2", "attr3"]
+                },
+                ...
+              ],
+              "relationships": [
+                {
+                  "from": "EntityA",
+                  "to": "EntityB",
+                  "type": "one-to-many" | "many-to-many" | "one-to-one",
+                  "label": "RelationshipLabel"
+                },
+                ...
+              ]
+            }
+            
+            Respond only with valid JSON and no explanation.
             
             ${fileText}
             `.trim();
 
 
-            const res = await generateContent(prompt);
+            const parsed = await generateContent(prompt);
+            setParsedOutput(parsed);
+            setEditableJson(parsed);
 
             setResponse((prev) => [
                 ...prev,
                 { type: "user", message: `[Uploaded file: ${file.name}]` },
-                { type: "bot", message: res },
+                { type: "bot", message: `**Parsed Structure:**\n\`\`\`json\n${parsed}\n\`\`\`` },
             ]);
         } catch (err) {
             console.error("Error reading file:", err);
@@ -50,9 +74,41 @@ const SendToGem = () => {
             setIsLoading(false);
         }
     };
+    const handleGenerateSQL = async () => {
+        if (!editableJson) return;
 
+        setIsLoading(true);
+        try {
+            const prompt = `
+            You are given a JSON description of entities and relationships from an ER diagram.
+            
+            Please generate SQL CREATE TABLE statements based on it. Consider foreign key constraints where applicable.
+            
+            JSON:
+            ${editableJson}
+            `.trim();
+
+            const sql = await generateContent(prompt);
+
+            setResponse((prev) => [
+                ...prev,
+                { type: "user", message: `[Generate SQL]` },
+                { type: "bot", message: `**Generated SQL:**\n\`\`\`sql\n${sql}\n\`\`\`` },
+            ]);
+        } catch (err) {
+            console.error("Error generating SQL:", err);
+            setResponse((prev) => [
+                ...prev,
+                { type: "system", message: "Failed to generate SQL." },
+            ]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
     const handleClear = () => {
         setResponse([]);
+        setParsedOutput("");
+        setEditableJson("");
         setIsLoading(false);
     };
 
@@ -70,6 +126,18 @@ const SendToGem = () => {
                     {isLoading && <p className="loading-text">Generating response...</p>}
                 </div>
             )}
+            {parsedOutput && (
+                <div className="json-editor">
+                    <h3>Edit Parsed JSON:</h3>
+                    <textarea
+                        value={editableJson}
+                        onChange={(e) => setEditableJson(e.target.value)}
+                        rows={20}
+                        cols={80}
+                        className="json-textarea"
+                    />
+                </div>
+            )}
 
             <div className="input-container">
                 <button onClick={handleClear} className="clear-btn">
@@ -82,6 +150,9 @@ const SendToGem = () => {
                     onChange={handleFileUpload}
                     className="chat-input"
                 />
+                <button onClick={handleGenerateSQL} className="generate-btn" disabled={!parsedOutput || isLoading}>
+                    Generate SQL
+                </button>
             </div>
         </div>
     );
