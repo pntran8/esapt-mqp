@@ -340,6 +340,18 @@ function ProcessXML({
                 console.error("Fetch error:", err);
             });
     };
+
+    const handleDB = () => {
+        console.log("i <3 soobin");
+        fetch("http://localhost:3001/api/getHistory")
+            .then(res => res.text())
+            .then(data => {
+                console.log("Response from backend:", data);
+            })
+            .catch(err => {
+                console.error("Fetch error:", err);
+            });
+    };
     return (
         <div>
             <button
@@ -349,6 +361,14 @@ function ProcessXML({
                 className = "p-6 bg-amber-400 hover:bg-amber-500 transition duration-150"
             >
                 click here to run example py
+            </button>
+            <button
+                onClick={() => {
+                    handleDB();
+                }}
+                className = "p-6 bg-amber-400 hover:bg-amber-500 transition duration-150"
+            >
+                is db working
             </button>
             <div className={"relative mx-auto p-1 flex items-center justify-between h-15"}>
                 <div className="my-3 mb-1 mx-10 flex w-[45%] relative">

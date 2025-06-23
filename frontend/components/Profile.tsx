@@ -64,6 +64,7 @@ const Profile: React.FC = () => {
                                 </div>
                                 <div className="flex flex-col gap-1 items-start">
                                     <div className="flex flex-row gap-1 items-center">
+                                        {/*user id*/}
                                         <FaIdCard className="text-sm"/>
                                         <p><strong>User ID:</strong> {user.sub?.slice(-8).toUpperCase()}</p>
                                     </div>

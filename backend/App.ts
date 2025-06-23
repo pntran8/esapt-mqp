@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 import logger from "morgan";
 //import dotenv from "dotenv";
 import examplePy from "./routes/examplePy";
+import getHistory from "./routes/getHistory";
 
 //dotenv.config();
 const app: Express = express(); // Set up the backend
@@ -21,10 +22,12 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 const APP_ROUTES = {
-    PYTHON: "/api/examplePy"
+    PYTHON: "/api/examplePy",
+    DB: "/api/getHistory"
 };
 
 app.use(APP_ROUTES.PYTHON, examplePy);
+app.use(APP_ROUTES.DB, getHistory);
 
 // Setup generic middlewear
 app.use(
@@ -102,4 +105,7 @@ app.listen(3001, () => {
 })
 
 // Export the backend, so that www.ts can start it
+
+
+
 export default app;
