@@ -11,6 +11,12 @@ export const generateContent = async (prompt: string) => {
                 ],
             },
         ],
+        generationConfig: {
+            thinkingConfig: {
+                thinkingBudget: -1,
+                includeThoughts: true,
+            },
+        },
     };
 
     const response = await fetch(url, {
@@ -28,8 +34,25 @@ export const generateContent = async (prompt: string) => {
 
     const data = await response.json();
 
+    /*
     // Access the generated text from response structure
     const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
     return generatedText || "";
+    */
+
+    const parts = data.candidates?.[0]?.content?.parts ?? [];
+
+    // Separate thoughts and answer parts
+    const thoughts = parts
+        .filter((part: any) => part.thought)
+        .map((part: any) => part.text)
+        .join("\n");
+
+    const answer = parts
+        .filter((part: any) => !part.thought)
+        .map((part: any) => part.text)
+        .join("\n");
+
+    return { thoughts, answer };
 };
