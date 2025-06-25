@@ -28,12 +28,12 @@
     "baseUrl": ".",
     "paths": {
       "@/*": [
-        "./src/*"
+        "frontend/*"
       ]
     }
   },
   "include": [
     "frontend/",
-    "backend/"
+    "backend/",
   ]
 }

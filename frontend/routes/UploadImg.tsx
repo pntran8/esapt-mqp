@@ -4,6 +4,7 @@ import Header from "../components/Header.tsx";
 import Footer from "../components/Footer.tsx";
 import ProcessXML from "../components/ProcessXML.tsx";
 import {useNavigate} from "react-router-dom";
+import {AppSidebar} from "../components/AppSidebar.tsx";
 
     interface Shape {
         id: string;
@@ -112,6 +113,7 @@ import {useNavigate} from "react-router-dom";
                     click here to open gemini
                 </button>
                 <Header />
+                {/*<AppSidebar />*/}
                 <ProcessXML
                     entities={entities}
                     setEntities={setEntities}
