@@ -1,0 +1,19 @@
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../.prisma/client"
+  engineType      = "binary"
+  previewFeatures = ["relationJoins"] // Allows for joins to be used
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_URL")
+}
+
+model Accounts {
+  id          Int      @id @default(autoincrement())
+  userID      String
+  imageFile   String
+  textFile    String?
+  timeCreated DateTime
+}

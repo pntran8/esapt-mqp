@@ -6,7 +6,7 @@ import "./gem.css";
 
 // Message type definition
 interface Message {
-    type: "user" | "bot" | "system";
+    type: "user" | "bot" | "system" | "thought";
     message: string;
 }
 
@@ -33,11 +33,12 @@ const SendToGem = () => {
 
         setIsLoading(true);
         try {
-            const res = await generateContent(userInput); // res is string
+            const {answer, thoughts} = await generateContent(userInput); // res is string
             setResponse((prevResponse) => [
                 ...prevResponse,
-                { type: "user", message: userInput },
-                { type: "bot", message: res },
+                { type: "user" as const, message: userInput },
+                ...(thoughts ? [{ type: "thought" as const, message: thoughts }] : []),
+                { type: "bot" as const, message: answer },
             ]);
             setUserInput("");
         } catch (err) {
