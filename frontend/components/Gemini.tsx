@@ -11,6 +11,12 @@ export const generateContent = async (prompt: string) => {
                 ],
             },
         ],
+        generationConfig: {
+            thinkingConfig: {
+                thinkingBudget: -1,
+                includeThoughts: true,
+            }
+        }
     };
 
     const response = await fetch(url, {
