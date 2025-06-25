@@ -15,8 +15,8 @@ export const generateContent = async (prompt: string) => {
             thinkingConfig: {
                 thinkingBudget: -1,
                 includeThoughts: true,
-            },
-        },
+            }
+        }
     };
 
     const response = await fetch(url, {
