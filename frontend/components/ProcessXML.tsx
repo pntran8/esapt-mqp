@@ -1,4 +1,5 @@
 import React from "react";
+import {useNavigate} from "react-router-dom";
 
 type ShapeType = "Entity" | "Attribute" | "Relationship" | "Unknown";
 
@@ -44,6 +45,12 @@ function ProcessXML({
                         isLoading,
                         setIsLoading
                     }: ProcessImgProps) {
+
+    const navigate = useNavigate();
+
+    const goToGem = () => {
+        navigate("/imggem");
+    }
 
     const parseLabel = (rawLabel: string) => {
         // only get text content
@@ -329,46 +336,16 @@ function ProcessXML({
     };
 
     const entityCount = Object.keys(attributesByEntity).length;
-    const handleExamplePy = () => {
-        console.log("hello???");
-        fetch("http://localhost:3001/api/examplePy")
-            .then(res => res.text())
-            .then(data => {
-                console.log("Response from backend:", data);
-            })
-            .catch(err => {
-                console.error("Fetch error:", err);
-            });
-    };
 
-    const handleDB = () => {
-        console.log("i <3 soobin");
-        fetch("http://localhost:3001/api/getHistory")
-            .then(res => res.text())
-            .then(data => {
-                console.log("Response from backend:", data);
-            })
-            .catch(err => {
-                console.error("Fetch error:", err);
-            });
-    };
     return (
         <div>
             <button
                 onClick={() => {
-                    handleExamplePy();
+                    goToGem()
                 }}
                 className = "p-6 bg-amber-400 hover:bg-amber-500 transition duration-150"
             >
-                click here to run example py
-            </button>
-            <button
-                onClick={() => {
-                    handleDB();
-                }}
-                className = "p-6 bg-amber-400 hover:bg-amber-500 transition duration-150"
-            >
-                is db working
+                click here to go to gem
             </button>
             <div className={"relative mx-auto p-1 flex items-center justify-between h-15"}>
                 <div className="my-3 mb-1 mx-10 flex w-[45%] relative">
