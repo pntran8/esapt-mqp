@@ -1,0 +1,113 @@
+import React, { useEffect, useState } from "react";
+import { useAuth0 } from "@auth0/auth0-react";
+import Header from "./Header.tsx";
+import ReactMarkdown from "react-markdown";
+
+interface UploadEntry {
+    id: number;
+    userID: string;
+    textFile: string;
+    decodedImage: string;
+    timeCreated: string;
+}
+
+const View: React.FC = () => {
+    const { user, isAuthenticated } = useAuth0();
+    const [entries, setEntries] = useState<UploadEntry[]>([]);
+    const [openEntryId, setOpenEntryId] = useState(0);
+    const openEntry = entries.find((e) => e.id === openEntryId) || null;
+
+    function parseText(input: string): string {
+        try {
+            const parsed = JSON.parse(input);
+            return typeof parsed === "object" && parsed.text
+                ? parsed.text
+                : input;
+        } catch {
+            return input;
+        }
+    }
+
+    useEffect(() => {
+        if (!isAuthenticated || !user?.sub) return;
+
+        const fetchUploads = async () => {
+            try {
+                const res = await fetch(
+                    `http://localhost:3001/api/viewUpload?userID=${user?.sub?.slice(-8).toUpperCase()}`
+                );
+                const data = await res.json();
+                console.log(data);
+                setEntries(data);
+            } catch (err) {
+                console.error("Failed to fetch uploads:", err);
+            }
+        };
+
+        fetchUploads();
+    }, [isAuthenticated, user]);
+
+    return (
+        <>
+            <Header />
+            <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                {entries.map((entry) => (
+                    <div
+                        key={entry.id}
+                        onClick={() => setOpenEntryId(entry.id)}
+                        className="cursor-pointer border shadow rounded-xl p-2 flex flex-col items-center w-auto h-95 overflow-hidden"
+                    >
+                        <img
+                            src={entry.decodedImage}
+                            alt="Upload preview"
+                            className="w-full h-32 object-cover rounded mb-1"
+                        />
+                        <div className="text-xs overflow-auto whitespace-pre-wrap break-words">
+                            <ReactMarkdown>
+                                {parseText(entry.textFile)}
+                            </ReactMarkdown>
+                        </div>
+                        <p className="text-[10px] text-gray-500 mt-1">
+                            {new Date(entry.timeCreated).toLocaleString()}
+                        </p>
+                    </div>
+                ))}
+            </div>
+
+            {/* popup */}
+            {openEntry && (
+                <div
+                    onClick={() => setOpenEntryId(0)}
+                    className="fixed inset-0 bg-gray-400/50 flex justify-center items-center z-50 p-4"
+                >
+                    <div
+                        onClick={(e) => e.stopPropagation()}
+                        className="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-full overflow-auto p-6 flex flex-col items-center"
+                    >
+                        <button
+                            onClick={() => setOpenEntryId(0)}
+                            className="cursor-pointer self-end text-gray-600 hover:text-gray-900 mb-4"
+                        >
+                            ✕
+                        </button>
+                        <img
+                            src={openEntry.decodedImage}
+                            alt="Upload preview large"
+                            className="w-full max-h-96 object-contain rounded mb-4"
+                        />
+                        <div className="whitespace-pre-wrap break-words mb-4">
+                            <ReactMarkdown>
+                                {parseText(openEntry.textFile)}
+                            </ReactMarkdown>
+                        </div>
+                        <p className="text-sm text-gray-500">
+                            {new Date(openEntry.timeCreated).toLocaleString()}
+                        </p>
+                    </div>
+                </div>
+            )}
+        </>
+    );
+};
+
+export default View;
