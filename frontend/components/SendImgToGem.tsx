@@ -1,5 +1,4 @@
 import { useState, ChangeEvent } from "react";
-import { generateContent } from "./Gemini";
 import ReactMarkdown from "react-markdown";
 import "./gem.css";
 import {
@@ -7,7 +6,6 @@ import {
   createUserContent,
   createPartFromUri,
 } from "@google/genai";
-import * as fs from "node:fs";
 
 // Message type definition
 interface Message {
@@ -15,17 +13,7 @@ interface Message {
     message: string;
 }
 const ai = new GoogleGenAI({ apiKey: "AIzaSyCRBP9yA8mavdaepsouEfpElGCnUIOu4_M" });
-/*const base64 = (f: File) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(f);
-    return new Promise((resolve, reject) =>{
-        console.log(f.toString());
-        reader.onload = () => {
-                resolve(reader.result?.toString());
-                reader.onerror = error => reject(error);
-            }
-        })
-}*/
+
 
 const SendImgToGem = () => {
     const [response, setResponse] = useState<Message[]>([]);
@@ -38,26 +26,7 @@ const SendImgToGem = () => {
 
         setIsLoading(true);
 
-       // try {
-            
-            /*const fileText = await base64(file)
-            console.log(fileText)
-            //const fileText = await file.text(); // Read file content as text
 
-            const prompt = `
-            The following is base64 text of a JPEG. Convert it to an image and tell me what it is.
-            
-            ${fileText}
-            `.trim();
-
-            console.log("oops, nothing read");
-            const res = await generateContent(prompt);
-
-            setResponse((prev) => [
-                ...prev,
-                { type: "user", message: `[Uploaded file: ${file.name}]` },
-                { type: "bot", message: res },
-            ]);*/
             if (e.target.files?.[0] != undefined){
                 
             const myfile = await ai.files.upload({
@@ -74,20 +43,17 @@ const SendImgToGem = () => {
       "What is this image showing?",
     ]),
   });
+  setResponse((prev) => [
+                ...prev,
+                { type: "user", message: `[Uploaded file: ${file.name}]` },
+                { type: "bot", message: response.text!.toString() },
+            ]);
+        
   console.log(response.text);
     }
   
 }
-        /*} catch (err) {
-            console.error("Error reading file:", err);
-            setResponse((prev) => [
-                ...prev,
-                { type: "system", message: "Failed to read or process the file." },
-            ]);
-        } finally {
-            setIsLoading(false);
-        }
-*/    };
+         };
     
     const handleClear = () => {
         setResponse([]);
