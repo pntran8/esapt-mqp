@@ -14,17 +14,6 @@ const Save: React.FC<SaveProps> = ({ file, responseText }) => {
     const {user} = useAuth0();
     const uID = user?.sub?.slice(-8).toUpperCase() || "No associated user";
 
-    /*
-    const compressAndEncode = async (file: File): Promise<string> => {
-        const arrayBuffer = await file.arrayBuffer();
-        const compressed = pako.deflate(new Uint8Array(arrayBuffer));
-        const base64 = btoa(
-            compressed.reduce((data, byte) => data + String.fromCharCode(byte), "")
-        );
-        return base64;
-    };
-     */
-
     const compressImageFile = (file: File): Promise<File> => {
         return new Promise((resolve) => {
             const img = new Image();
