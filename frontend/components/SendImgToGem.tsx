@@ -55,16 +55,22 @@ const SendImgToGem = () => {
                         model: "gemini-2.5-flash",
                         contents: createUserContent([
                             createPartFromUri(myfile.uri, myfile.mimeType),
-                            "What is this image showing?",
+      "I am providing you with a conceptual Entity-Relationship diagram that is in either Chen or Crow's Foot notation. " +
+      "Return that diagram translated into SQL code. " +
+      "Look at the lines between relationships and tables, and build extra tables if those lines have the features of a many-to-many relationship in either notation. " +
+      "Do not make assumptions about relationships or attributes based on names, solely consider the picture. " +
+      "Remember that in Chen notation, a 1 cardinality means one, and a letter cardinality means many, so 1 to M is one-to-many. " +
+      "Also remember that primary keys are signified by underlined text, and partial keys are signified by text underlined with a dashed line. Do not assume anything is a primary or partial key unless it is underlined. ",
                         ]),
                     });
 
-                    const text = response.text ?? "No response received.";
+                    //const text = response.text ?? "No response received.";
                     //console.log(text);
 
                     setResponse((prev) => [
                         ...prev,
-                        {type: "bot", message: text}
+                { type: "user", message: `[Uploaded file: ${file.name}]` },
+                { type: "bot", message: response.text!.toString() },
                     ]);
 
                     const resStr = response.text ?? "No bot response available";
@@ -81,7 +87,7 @@ const SendImgToGem = () => {
             }
         }
     }
-
+    
     const handleClear = () => {
         setResponse([]);
         setIsLoading(false);
