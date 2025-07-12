@@ -1,13 +1,16 @@
 import wpiLogo from "../src/images/wpiLogo.png";
 import Profile from "./Profile.tsx";
+import {useNavigate} from "react-router-dom";
 
 export default function Header() {
-
+    const navigate = useNavigate();
+    const handleClick = () => {
+        navigate("/");
+    }
     return (
         <>
-            {/* Navbar */}
             <div className="relative mx-auto p-1 bg-[#c31432] flex items-center justify-between h-20">
-                <div className="flex items-center z-10">
+                <div className="cursor-pointer flex items-center z-10" onClick={handleClick}>
                     <img
                         className="h-12 mx-1 object-scale-down"
                         src={wpiLogo}
@@ -17,7 +20,7 @@ export default function Header() {
                         WPI
                     </div>
                 </div>
-                <h1 className="absolute left-1/2 transform -translate-x-1/2 text-5xl font-bold text-white font-serif tracking-wide">
+                <h1 className="mt-0 left-1/2 transform -translate-x-1/2 text-5xl font-bold text-white font-serif tracking-wide">
                     ESAPT
                 </h1>
                 <Profile />

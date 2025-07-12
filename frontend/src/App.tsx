@@ -3,6 +3,7 @@ import UploadImg from '../routes/UploadImg.tsx';
 import SendToGem from "../components/SendToGem.tsx"
 import SendXMLToGem from "../components/SendXMLToGem.tsx"
 import SendImgToGem from "../components/SendImgToGem.tsx"
+import View from "../components/View.tsx";
 import {Auth0Provider} from '@auth0/auth0-react';
 import { useAuth0 } from '@auth0/auth0-react';
 import {useEffect} from 'react';
@@ -36,6 +37,7 @@ const App = () => {
                     <Route path="/gem" element={<SendToGem />} />
                     <Route path="/XMLgem" element={<SendXMLToGem />} />
                     <Route path="/imggem" element={<SendImgToGem />} />
+                    <Route path="/viewHistory" element={<View />} />
                 </Routes>
             </Router>
         </Auth0Provider>

@@ -27,10 +27,14 @@ const Profile: React.FC = () => {
         }
     };
 
+    const handleHistory = () => {
+        navigate('/viewHistory');
+    }
+
     return (
         <Dialog.Root open={open} onOpenChange={setOpen}>
             <Dialog.Trigger asChild>
-                <button className="rounded-full bg-black transition hover:bg-neutral-800 duration-150">
+                <button className="cursor-pointer p-2 rounded-full bg-black transition hover:bg-neutral-800 duration-150">
                     <User className="w-5 h-5 text-[#6D9396]"/>
                 </button>
             </Dialog.Trigger>
@@ -38,14 +42,14 @@ const Profile: React.FC = () => {
             <Dialog.Portal>
                 <Dialog.Overlay className="fixed inset-0 bg-black/20 z-40"/>
                 <Dialog.Content
-                    className="fixed top-0 right-0 w-75 h-1/2 bg-[#FBF8F3] shadow-xl z-50 flex flex-col px-6 py-5 gap-4"
+                    className="fixed top-0 right-0 w-80 h-full bg-[#FBF8F3] shadow-xl z-50 flex flex-col px-6 py-5 gap-4"
                 >
                     <div className="flex justify-between items-center mb-1">
                         <Dialog.Title className="text-xl font-semibold">
                             {isAuthenticated ? "Profile" : "Welcome!"}
                         </Dialog.Title>
                         <Dialog.Close asChild>
-                            <button aria-label="Close" className="hover:bg-[#9BB8B9] transition duration-150">
+                            <button aria-label="Close" className="cursor-pointer p-2 rounded-2xl hover:bg-[#9BB8B9] transition duration-150">
                                 <X className="w-5 h-5"/>
                             </button>
                         </Dialog.Close>
@@ -72,11 +76,19 @@ const Profile: React.FC = () => {
                             </div>
                         )}
 
+                        {isAuthenticated && (
+                            <div>
+                                <button onClick = {handleHistory} className="bg-[#981026] text-white m-4 p-5     hover:bg-[#c31431] rounded-2xl cursor-pointer">
+                                    click here to view your history
+                                </button>
+                            </div>
+                        )}
+
                         <button
                             onClick={handleAuthClick}
 
                             className={`${
-                                isAuthenticated ? "bg-[#981026] text-white absolute bottom-0 right-0 m-4 w-1/3 hover:bg-[#c31431]" : "bg-[#ec4863] text-[#EBF4F9] hover:bg-[#981026]"
+                                isAuthenticated ? "cursor-pointer bg-[#981026] text-white absolute bottom-0 right-0 m-4 w-1/3 hover:bg-[#c31431]" : "cursor-pointer bg-[#ec4863] text-[#EBF4F9] hover:bg-[#981026]"
                             } rounded-full px-6 py-2 transition duration-230 text-base font-bold font-istok-web`}
                         >
                             {isAuthenticated ? "Logout" : "Login"}

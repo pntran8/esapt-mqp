@@ -104,22 +104,6 @@ import {AppSidebar} from "../components/AppSidebar.tsx";
 
         return (
             <div>
-                <button
-                    onClick={() => {
-                        navigate("/gem")
-                    }}
-                    className = "p-6 bg-amber-600 hover:bg-amber-700 transition duration-150"
-                >
-                    click here to open gemini
-                </button>
-                <button
-                    onClick={() => {
-                        navigate("/XMLgem")
-                    }}
-                    className = "p-6 bg-amber-600 hover:bg-amber-700 transition duration-150"
-                >
-                    click here to open XMLgemini
-                </button>
                 <Header />
                 {/*<AppSidebar />*/}
                 <ProcessXML
