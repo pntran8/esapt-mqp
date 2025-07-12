@@ -5,6 +5,8 @@ import logger from "morgan";
 //import dotenv from "dotenv";
 import examplePy from "./routes/examplePy";
 import getHistory from "./routes/getHistory";
+import insertUpload from "./routes/insertUpload";
+import viewUpload from "./routes/viewUpload";
 
 //dotenv.config();
 const app: Express = express(); // Set up the backend
@@ -19,13 +21,20 @@ const corsOptions = {
     ], // Whitelist the domains you want to allow
 };
 app.use(cors(corsOptions));
-app.use(express.json());
 
 const APP_ROUTES = {
     PYTHON: "/api/examplePy",
-    DB: "/api/getHistory"
+    DB: "/api/getHistory",
+    INSERT_DB: "/api/insertUpload",
+    VIEW_DB: "/api/viewUpload",
 };
 
+app.use(APP_ROUTES.INSERT_DB, insertUpload);
+
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
+app.use(APP_ROUTES.VIEW_DB, viewUpload);
 app.use(APP_ROUTES.PYTHON, examplePy);
 app.use(APP_ROUTES.DB, getHistory);
 
