@@ -7,6 +7,7 @@ import View from "../components/View.tsx";
 import {Auth0Provider} from '@auth0/auth0-react';
 import { useAuth0 } from '@auth0/auth0-react';
 import {useEffect} from 'react';
+import LogPage from "../components/LogPage.tsx";
 
 const App = () => {
     const domain = import.meta.env.VITE_AUTH0_DOMAIN;
@@ -38,6 +39,7 @@ const App = () => {
                     <Route path="/XMLgem" element={<SendXMLToGem />} />
                     <Route path="/imggem" element={<SendImgToGem />} />
                     <Route path="/viewHistory" element={<View />} />
+                    <Route path="/viewHistory/:userID" element={<LogPage />} />
                 </Routes>
             </Router>
         </Auth0Provider>
