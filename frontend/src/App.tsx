@@ -7,6 +7,7 @@ import View from "../components/View.tsx";
 import {Auth0Provider} from '@auth0/auth0-react';
 import { useAuth0 } from '@auth0/auth0-react';
 import {useEffect} from 'react';
+import Home from "../routes/Home.tsx"
 
 const App = () => {
     const domain = import.meta.env.VITE_AUTH0_DOMAIN;
@@ -33,7 +34,7 @@ const App = () => {
         >
             <Router>
                 <Routes>
-                    <Route path="/" element={<UploadImg />} />
+                    <Route path="/" element={<Home />} />
                     <Route path="/gem" element={<SendToGem />} />
                     <Route path="/XMLgem" element={<SendXMLToGem />} />
                     <Route path="/imggem" element={<SendImgToGem />} />

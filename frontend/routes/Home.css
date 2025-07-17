@@ -1,0 +1,9 @@
+.button {
+    background-color: maroon;
+    border: lightgray 1px solid;
+    padding: 20px;
+    display: inline-block;
+    margin: 4px 2px;
+}
+
+.roundbutton {border-radius: 50%}

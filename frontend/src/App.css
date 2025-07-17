@@ -10,6 +10,16 @@
   text-align: center;
 }
 
+.box {
+  min-height:25vh;
+  min-width:80vh;
+  padding-top:20px;
+  padding-left:20px;
+  padding-right:20px;
+  border: 2px solid black;
+  background-color: lightgray;
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;
@@ -161,3 +171,4 @@
     @apply bg-background text-foreground;
   }
 }
+
