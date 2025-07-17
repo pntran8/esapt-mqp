@@ -17,17 +17,7 @@ interface Message {
     message: string;
 }
 const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_LLM_API_KEY });
-/*const base64 = (f: File) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(f);
-    return new Promise((resolve, reject) =>{
-        console.log(f.toString());
-        reader.onload = () => {
-                resolve(reader.result?.toString());
-                reader.onerror = error => reject(error);
-            }
-        })
-}*/
+
 
 const SendImgToGem = () => {
     const [response, setResponse] = useState<Message[]>([]);
@@ -97,12 +87,37 @@ const SendImgToGem = () => {
 
     return (
         <>
+            <div id="input-container" style={{border:"2px light grey", borderRadius:"12px"}}>
+        <!--     <button onClick={handleClear} className="clear-btn">
+                    Clear
+                </button>1-->
+
+                {file !== null && responseString !== "" && (
+                    <button className="cursor-pointer clear-btn">
+                        <Save file={file} responseText={responseString} />
+                    </button>
+                )}
+
+                <input
+                    type="file"
+                    accept=".png,.jpg"
+                    onChange={handleFileUpload}
+                    className="chat-input"
+                />
+            </div>
             <Header />
-            <div className="chat-container">
+            <div id="chat-container" style={{
+                minHeight:"50vh",
+                minWidth:"80vh",
+                paddingTop:"20px",
+                paddingLeft:"20px",
+                paddingRight:"20px",
+                border: '2px solid red',
+                backgroundColor: "lightgray",}}>
                 {response.length === 0 ? (
                     <h1>Upload your image here</h1>
                 ) : (
-                    <div className="chat-history">
+                    <div className="chat-history" >
                         {response.map((msg, index) => (
                             <div key={index} className={`message ${msg.type}`}>
                                 <ReactMarkdown>{msg.message}</ReactMarkdown>
@@ -112,24 +127,7 @@ const SendImgToGem = () => {
                     </div>
                 )}
 
-                <div className="input-container">
-                    <button onClick={handleClear} className="clear-btn">
-                        Clear
-                    </button>
 
-                    {file !== null && responseString !== "" && (
-                        <button className="cursor-pointer clear-btn">
-                            <Save file={file} responseText={responseString} />
-                        </button>
-                    )}
-
-                    <input
-                        type="file"
-                        accept=".png,.jpg"
-                        onChange={handleFileUpload}
-                        className="chat-input"
-                    />
-                </div>
             </div>
         </>
     );
