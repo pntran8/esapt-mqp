@@ -85,12 +85,15 @@ const SendImgToGem = () => {
         setResponseString("");
     };
 
+    //
+    /*<!--     <button onClick={handleClear} className="clear-btn">
+                    Clear
+                </button>1-->*/
     return (
         <>
+            <Header />
             <div id="input-container" style={{border:"2px light grey", borderRadius:"12px"}}>
-        <!--     <button onClick={handleClear} className="clear-btn">
-                    Clear
-                </button>1-->
+
 
                 {file !== null && responseString !== "" && (
                     <button className="cursor-pointer clear-btn">
@@ -105,7 +108,7 @@ const SendImgToGem = () => {
                     className="chat-input"
                 />
             </div>
-            <Header />
+
             <div id="chat-container" style={{
                 minHeight:"50vh",
                 minWidth:"80vh",
