@@ -130,7 +130,7 @@ const SendImgToGem = () => {
                     <button className={"box-button"} style={{marginTop:'40px'}}>View</button>
                 </div>
                 <div className={"inner-page-box"} style={{width:"35vw", height:"25vh", float:"right", marginRight:'10vw'}}>
-                    <h2 style={{fontSize:"20px"}}>Display Code Explanation</h2>
+                    <h2 style={{fontSize:"20px"}}>Download Output.txt</h2>
                     <button className={"box-button"} style={{marginTop:'40px'}}></button>
                 </div>
             </div>
