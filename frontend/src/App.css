@@ -8,8 +8,26 @@
   text-align: center;
 }
 
-button:hover{
-  background-color: pink;
+.box-button:hover{
+  background-color: #D45959;
+}
+.box-button{
+  width: 200px;
+  height: 70px;
+  background-Color: #BD0A0A;
+  border-Radius: 5px;
+  color: white;
+}
+
+.circle-button:hover {
+  background-color: #D45959;
+}
+.circle-button{
+  border-radius:50%;
+  height:60px;
+  width:60px;
+  background-color:#BD0A0A;
+  margin:30px;
 }
 
 .box {
@@ -21,6 +39,16 @@ button:hover{
   padding-right:20px;
   margin-top:30px;
   border: 2px solid black;
+  background-color: #E7E7E7;
+}
+
+.inner-page-box {
+  justify-self: center;
+  margin-top:30px;
+  padding-top:20px;
+  padding-left:20px;
+  padding-right:20px;
+  border: 2px solid #BD0A0A;
   background-color: #E7E7E7;
 }
 

@@ -1,15 +1,15 @@
 import { useState, ChangeEvent } from "react";
-//import { generateContent } from "./Gemini";
 import ReactMarkdown from "react-markdown";
 import Header from "./Header";
+import Footer from "./Footer";
 import "./gem.css";
 import {
   GoogleGenAI,
   createUserContent,
   createPartFromUri,
 } from "@google/genai";
-//import * as fs from "node:fs";
 import Save from "./Save.tsx";
+import "../src/App.css"
 
 // Message type definition
 interface Message {
@@ -78,7 +78,7 @@ const SendImgToGem = () => {
         }
     }
     
-    const handleClear = () => {
+    /*const handleClear = () => {
         setResponse([]);
         setIsLoading(false);
         setFile(null);
@@ -92,7 +92,7 @@ const SendImgToGem = () => {
     return (
         <>
             <Header />
-            <div id="input-container" style={{border:"2px light grey", borderRadius:"12px"}}>
+            <div id="input-container" style={{border:"2px light grey", borderRadius:"12px", marginTop:"30px"}}>
 
 
                 {file !== null && responseString !== "" && (
@@ -109,14 +109,7 @@ const SendImgToGem = () => {
                 />
             </div>
 
-            <div id="chat-container" style={{
-                minHeight:"50vh",
-                minWidth:"80vh",
-                paddingTop:"20px",
-                paddingLeft:"20px",
-                paddingRight:"20px",
-                border: '2px solid red',
-                backgroundColor: "lightgray",}}>
+            <div className={"inner-page-box"} style={{width:"80vw", height:"80vh", overflow:"scroll"}}>
                 {response.length === 0 ? (
                     <h1>Upload your image here</h1>
                 ) : (
@@ -129,9 +122,23 @@ const SendImgToGem = () => {
                         {isLoading && <p className="loading-text">Generating response...</p>}
                     </div>
                 )}
-
-
             </div>
+
+            <div style={{height:'25vh', marginBottom:"60px"}}>
+                <div className={"inner-page-box"} style={{width:"35vw", height:"25vh", float:"left", marginLeft:'10vw'}}>
+                    <h2 style={{fontSize:"20px"}}>Display Code Explanation</h2>
+                    <button className={"box-button"} style={{marginTop:'40px'}}>View</button>
+                </div>
+                <div className={"inner-page-box"} style={{width:"35vw", height:"25vh", float:"right", marginRight:'10vw'}}>
+                    <h2 style={{fontSize:"20px"}}>Display Code Explanation</h2>
+                    <button className={"box-button"} style={{marginTop:'40px'}}></button>
+                </div>
+            </div>
+            <div className={"inner-page-box"} style={{width:'80vw', height:'35vh'}}>
+                <h2 style={{fontSize:'20px'}}>Log in to save your work</h2>
+                <button className={'box-button'} style={{marginTop:'40px'}}>Login</button>
+            </div>
+            <Footer/>
         </>
     );
 };
