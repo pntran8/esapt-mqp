@@ -23,25 +23,29 @@ const Home = () => {
                 <h3><br/>Text description of program goes here</h3>
                 <div className="box">
                     <div style ={{float:"left", marginLeft:"10vw"}}>
-                        <img
-                            src={download}
-                            alt={"A maroon button with a gray border and an icon with a download symbol."}
-                            style={{height:'80px', justifySelf:'center'}}
+
+                        <button
+                            className={'circle-button'}
                             onClick={() => {
                                 goToGem()
-                            }}/>
+                            }}>
+
+                        </button>
                         <h2 style={{fontSize:'20px'}}>ERD to Code</h2>
                         <h3>Generate SQL Code from conceptual ERD</h3>
                     </div>
                     <div style ={{float:"right", marginRight:"10vw"}}>
-                        <img src={upload} alt={("A maroon button with a gray border and an icon with an upload symbol.")} style={{height:'80px', justifySelf:'center'}}/>
-                        <h2 style={{fontSize:'20px'}}>Grade your code</h2>
+                        <button
+                            className={'circle-button'}>
+
+                        </button>
+                    <h2 style={{fontSize:'20px'}}>Grade your code</h2>
                         <h3>Let our AI tools compare your code to your goals!</h3>
                     </div>
                 </div>
                 <div className="box">
                     <h2 style={{fontSize:'20px', marginBottom:'30px'}}>Create an account to save <br/> your work</h2>
-                    <button style={{width:'200px', height:'70px', backgroundColor:'red', borderRadius:'5px', color:'white'}}>Login</button>
+                    <button className={'box-button'}>Login</button>
                 </div>
             <Footer />
         </>
