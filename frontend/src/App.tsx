@@ -4,14 +4,14 @@ import SendToGem from "../components/SendToGem.tsx"
 import SendXMLToGem from "../components/SendXMLToGem.tsx"
 import SendImgToGem from "../components/SendImgToGem.tsx"
 import CodeExplanation from "../components/CodeExplanation"
-import CodeEvaluation from "../components/CodeEvaluation"
 import View from "../components/View.tsx";
 import {Auth0Provider} from '@auth0/auth0-react';
 import { useAuth0 } from '@auth0/auth0-react';
 import {useEffect} from 'react';
 import LogPage from "../components/LogPage.tsx";
-import SessionImgToGem from "../components/SessionImgToGem.tsx";
 import Home from "../routes/Home.tsx"
+import SessionImgToGem from "../components/SessionImgToGem.tsx";
+import CodeEvaluation from "../components/CodeEvaluation.tsx";
 
 const App = () => {
     const domain = import.meta.env.VITE_AUTH0_DOMAIN;
@@ -44,6 +44,7 @@ const App = () => {
                     <Route path="/" element={<Home />} />
                     <Route path="/gem" element={<SendToGem />} />
                     <Route path="/XMLgem" element={<SendXMLToGem />} />
+                    <Route path="/imggem/session/:sessionID" element={<SessionImgToGem />} />
                     <Route
                         path="/imggem"
                         element={
