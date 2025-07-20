@@ -10,6 +10,8 @@ import {
 } from "@google/genai";
 //import * as fs from "node:fs";
 import Save from "./Save.tsx";
+import {useAuth0} from "@auth0/auth0-react";
+import StartSessionBtn from "./StartSessionBtn.tsx";
 
 // Message type definition
 interface Message {
@@ -17,23 +19,13 @@ interface Message {
     message: string;
 }
 const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_LLM_API_KEY });
-/*const base64 = (f: File) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(f);
-    return new Promise((resolve, reject) =>{
-        console.log(f.toString());
-        reader.onload = () => {
-                resolve(reader.result?.toString());
-                reader.onerror = error => reject(error);
-            }
-        })
-}*/
 
 const SendImgToGem = () => {
     const [response, setResponse] = useState<Message[]>([]);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [file, setFile] = useState<File | null>(null);
     const [responseString, setResponseString] = useState<string>("");
+    const { isAuthenticated } = useAuth0();
 
     const handleFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
 
@@ -87,7 +79,7 @@ const SendImgToGem = () => {
             }
         }
     }
-    
+
     const handleClear = () => {
         setResponse([]);
         setIsLoading(false);
@@ -113,15 +105,18 @@ const SendImgToGem = () => {
                 )}
 
                 <div className="input-container">
-                    <button onClick={handleClear} className="clear-btn">
+                    <button onClick={handleClear} className="clear-btn cursor-pointer">
                         Clear
                     </button>
 
-                    {file !== null && responseString !== "" && (
+                    {file !== null && responseString !== "" && isAuthenticated && (
                         <button className="cursor-pointer clear-btn">
                             <Save file={file} responseText={responseString} />
                         </button>
                     )}
+                    <button className="cursor-pointer clear-btn">
+                        <StartSessionBtn/>
+                    </button>
 
                     <input
                         type="file"
