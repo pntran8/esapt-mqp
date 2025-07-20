@@ -9,7 +9,7 @@ export default function Header() {
     }
     return (
         <>
-            <div className="relative mx-auto p-1 bg-[#c31432] flex items-center justify-between h-20">
+            <div className="relative mx-auto p-1 bg-[#BD0A0A] flex items-center justify-between h-20" style={{border:"2px solid black"}}>
                 <div className="cursor-pointer flex items-center z-10" onClick={handleClick}>
                     <img
                         className="h-12 mx-1 object-scale-down"

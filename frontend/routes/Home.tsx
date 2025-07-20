@@ -2,19 +2,33 @@ import Header from "../components/Header.tsx"
 import Footer from "../components/Footer.tsx"
 import './Home.css'
 import '../src/App.css'
-import upload from '../src/assets/upload.png'
-import download from'../src/assets/download.png'
 import {useNavigate} from "react-router-dom";
+import { useAuth0 } from "@auth0/auth0-react";
 
 
 
 const Home = () => {
-
+    const { isAuthenticated, user, loginWithRedirect, logout } = useAuth0();
     const navigate = useNavigate();
     const goToGem = () => {
         navigate("/imggem");
     }
-
+    const goToEval = () => {
+        navigate("/evaluation");
+    }
+    const handleAuthClick = async () => {
+        if (isAuthenticated) {
+            await logout({
+                logoutParams: { returnTo: window.location.origin }
+            });
+            navigate('/');
+        } else {
+            await loginWithRedirect();
+            console.log("profile icon authenticated");
+            setOpen(false);
+            navigate('/');
+        }
+    };
     return (
         <>
             <Header />
@@ -36,7 +50,10 @@ const Home = () => {
                     </div>
                     <div style ={{float:"right", marginRight:"10vw"}}>
                         <button
-                            className={'circle-button'}>
+                            className={'circle-button'}
+                            onClick={() => {
+                                goToEval()
+                            }}>
 
                         </button>
                     <h2 style={{fontSize:'20px'}}>Grade your code</h2>
