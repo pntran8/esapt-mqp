@@ -4,6 +4,7 @@ import './Home.css'
 import '../src/App.css'
 import {useNavigate} from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
+import * as React from "react";
 
 
 
@@ -16,6 +17,9 @@ const Home = () => {
     const goToEval = () => {
         navigate("/evaluation");
     }
+    const goToHistory = () => {
+        navigate('/viewHistory');
+    }
     const handleAuthClick = async () => {
         if (isAuthenticated) {
             await logout({
@@ -24,8 +28,7 @@ const Home = () => {
             navigate('/');
         } else {
             await loginWithRedirect();
-            console.log("profile icon authenticated");
-            setOpen(false);
+            console.log("homepage login button icon authenticated");
             navigate('/');
         }
     };
@@ -61,8 +64,16 @@ const Home = () => {
                     </div>
                 </div>
                 <div className="box">
-                    <h2 style={{fontSize:'20px', marginBottom:'30px'}}>Create an account to save <br/> your work</h2>
-                    <button className={'box-button'}>Login</button>
+                    {isAuthenticated ?
+                        <div>
+                            <h2 style={{fontSize:'20px', marginBottom:'30px'}}>Create an account to save <br/> your work</h2>
+                            <button className={'box-button'} onClick={handleAuthClick}>Login</button>
+                        </div> :
+                        <div>
+                            <h2 style={{fontSize:'20px', marginBottom:'30px'}}>Welcome, {user.sub?.slice(-8).toUpperCase()}! Click here to view <br/> your saved work</h2>
+                            <button className={'box-button'} onClick={goToHistory}>View History</button>
+                        </div>
+                    }
                 </div>
             <Footer />
         </>
