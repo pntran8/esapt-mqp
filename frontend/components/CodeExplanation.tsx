@@ -2,10 +2,15 @@ import Header from "./Header";
 import Footer from "./Footer";
 import "./gem.css";
 import "../src/App.css"
-import {useLocation} from "react-router-dom";
+import {useLocation, useNavigate} from "react-router-dom";
+import { useAuth0 } from "@auth0/auth0-react";
+
+
 
 const CodeExplanation = () => {
+    const { isAuthenticated, user, loginWithRedirect, logout } = useAuth0();
     const { state } = useLocation();
+    const navigate = useNavigate();
     /*const handleClear = () => {
         setResponse([]);
         setIsLoading(false);
@@ -17,6 +22,23 @@ const CodeExplanation = () => {
     /*<!--     <button onClick={handleClear} className="clear-btn">
                     Clear
                 </button>1-->*/
+
+    const handleAuthClick = async () => {
+        if (isAuthenticated) {
+            await logout({
+                logoutParams: { returnTo: window.location.origin }
+            });
+            navigate('/');
+        } else {
+            await loginWithRedirect();
+            console.log("homepage login button icon authenticated");
+            navigate('/');
+        }
+    };
+    const goToHistory = () => {
+        navigate('/viewHistory');
+    }
+
     return (
         <>
             <Header />
@@ -38,13 +60,21 @@ const CodeExplanation = () => {
                 </div>
             </div>
             <div style={{height:'25vh', marginBottom:"10vh"}}>
-                <div className={"inner-page-box"} style={{width:"35vw", height:"25vh", float:"left", marginLeft:'10vw'}}>
-                    <h2 style={{fontSize:'20px'}}>Log in to save your work</h2>
-                    <button className={'box-button'} style={{marginTop:'40px'}}>Login</button>
-                </div>
+                { isAuthenticated ?
+                    <div className={"inner-page-box"} style={{width:"35vw", height:"25vh", float:"left", marginLeft:'10vw'}}>
+                        <h2 style={{fontSize:'20px'}}>Log in to save your work</h2>
+                        <button className={'box-button'} style={{marginTop:'40px'}} onClick={handleAuthClick}>Login</button>
+                    </div> :
+                    <div>
+                        <h2 style={{fontSize:'20px', marginBottom:'30px'}}>Welcome, {user?.sub?.slice(-8).toUpperCase()}! Click here to view <br/> your saved work</h2>
+                        <button className={'box-button'} onClick={goToHistory}>View History</button>
+                    </div>
+                }
                 <div className={"inner-page-box"} style={{width:"35vw", height:"25vh", float:"right", marginRight:'10vw'}}>
-                    <h2 style={{fontSize:"20px"}}>Download Output.txt</h2>
-                    <button className={"box-button"} style={{marginTop:'40px'}}></button>
+                    <div>
+                        <h2 style={{fontSize:"20px"}}>Download Output.txt</h2>
+                        <button className={"box-button"} style={{marginTop:'40px'}}></button>
+                    </div>
                 </div>
             </div>
 

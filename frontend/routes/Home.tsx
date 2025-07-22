@@ -70,7 +70,7 @@ const Home = () => {
                             <button className={'box-button'} onClick={handleAuthClick}>Login</button>
                         </div> :
                         <div>
-                            <h2 style={{fontSize:'20px', marginBottom:'30px'}}>Welcome, {user.sub?.slice(-8).toUpperCase()}! Click here to view <br/> your saved work</h2>
+                            <h2 style={{fontSize:'20px', marginBottom:'30px'}}>Welcome, {user?.sub?.slice(-8).toUpperCase()}! Click here to view <br/> your saved work</h2>
                             <button className={'box-button'} onClick={goToHistory}>View History</button>
                         </div>
                     }
