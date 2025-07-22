@@ -10,6 +10,7 @@ import {
 } from "@google/genai";
 import Save from "./Save.tsx";
 import "../src/App.css"
+import {useNavigate} from "react-router-dom";
 
 // Message type definition
 interface Message {
@@ -24,12 +25,27 @@ const SendImgToGem = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [file, setFile] = useState<File | null>(null);
     const [responseString, setResponseString] = useState<string>("");
-
+    const [code, setCode] = useState<string>("");
+    const [explanation, setExplanation] = useState<string>("");
+    const navigate = useNavigate();
+    const goToExp = (code:string, explanation:string) => {
+        console.log(code);
+        console.log(explanation);
+        navigate("/explanation"),
+            {
+                state: {
+                    code: code,
+                    explanation: explanation,
+                }
+            }
+    }
     const handleFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
 
         const file = e.target.files?.[0];
         if (!file) return;
         setFile(file);
+        let resStr = "";
+
 
         setIsLoading(true);
 
@@ -49,8 +65,11 @@ const SendImgToGem = () => {
       "Return that diagram translated into SQL code. " +
       "Look at the lines between relationships and tables, and build extra tables if those lines have the features of a many-to-many relationship in either notation. " +
       "Do not make assumptions about relationships or attributes based on names, solely consider the picture. " +
-      "Remember that in Chen notation, a 1 cardinality means one, and a letter cardinality means many, so 1 to M is one-to-many. " +
-      "Also remember that primary keys are signified by underlined text, and partial keys are signified by text underlined with a dashed line. Do not assume anything is a primary or partial key unless it is underlined. ",
+      "Remember that in Chen notation, a 1 cardinality means one, and a letter cardinality means many, so 1 to M is one-to-many. Relationships are represented as diamonds, connected to the the entities they are relating." +
+      "Also remember that primary keys are signified by underlined text, and partial keys are signified by text underlined with a dashed line. " +
+      "Pay close attention to whether the text is underlined or not because the space between the text and underline may be small. " +
+      "Do not assume anything is a primary or partial key unless it is underlined. " +
+      "Print out the SQL code, then '----------' on a new line, then an explanation for the logic behind the code.",
                         ]),
                     });
 
@@ -59,20 +78,25 @@ const SendImgToGem = () => {
 
                     setResponse((prev) => [
                         ...prev,
-                { type: "user", message: `[Uploaded file: ${file.name}]` },
-                { type: "bot", message: response.text!.toString() },
+                { type: "bot", message: response.text!.split('----------')[0].toString() },
                     ]);
 
-                    const resStr = response.text ?? "No bot response available";
-                    setResponseString(resStr);
-                    setIsLoading(false);
+                    resStr = response.text ?? "No bot response available";
+                    const resParts = resStr.split('----------');
+                    setCode(resParts[0]);
+                    setExplanation(resParts[1]);
+                    console.log(code);
+                    console.log(explanation);
+                    //setResponseString(resParts[0]);
+                    //setIsLoading(false);
+
 
                 } catch (err) {
                     console.error("Gemini error:", err);
-                    setResponse((prev) => [
+                    /*setResponse((prev) => [
                         ...prev,
                         {type: "system", message: "Failed to read or process the file."}
-                    ]);
+                    ]);*/
                 }
             }
         }
@@ -113,13 +137,12 @@ const SendImgToGem = () => {
                 {response.length === 0 ? (
                     <h1>Upload your image here</h1>
                 ) : (
-                    <div className="chat-history" >
+                    <div>
                         {response.map((msg, index) => (
-                            <div key={index} className={`message ${msg.type}`}>
+                            <div key={index} >
                                 <ReactMarkdown>{msg.message}</ReactMarkdown>
                             </div>
                         ))}
-                        {isLoading && <p className="loading-text">Generating response...</p>}
                     </div>
                 )}
             </div>
@@ -127,7 +150,13 @@ const SendImgToGem = () => {
             <div style={{height:'25vh', marginBottom:"60px"}}>
                 <div className={"inner-page-box"} style={{width:"35vw", height:"25vh", float:"left", marginLeft:'10vw'}}>
                     <h2 style={{fontSize:"20px"}}>Display Code Explanation</h2>
-                    <button className={"box-button"} style={{marginTop:'40px'}}>View</button>
+                    <button
+                        className={"box-button"}
+                        style={{marginTop:'40px'}}
+                        onClick={() => {
+                            goToExp(code, explanation)
+                        }}
+                    >View</button>
                 </div>
                 <div className={"inner-page-box"} style={{width:"35vw", height:"25vh", float:"right", marginRight:'10vw'}}>
                     <h2 style={{fontSize:"20px"}}>Download Output.txt</h2>
