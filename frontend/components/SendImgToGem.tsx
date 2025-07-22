@@ -11,6 +11,8 @@ import {
 import Save from "./Save.tsx";
 import "../src/App.css"
 import {useNavigate} from "react-router-dom";
+import * as React from "react";
+import {useAuth0} from "@auth0/auth0-react";
 
 // Message type definition
 interface Message {
@@ -22,12 +24,16 @@ const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_LLM_API_KEY });
 
 const SendImgToGem = () => {
     const [response, setResponse] = useState<Message[]>([]);
+    const { isAuthenticated, user, logout, loginWithRedirect} = useAuth0();
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [file, setFile] = useState<File | null>(null);
     const [responseString, setResponseString] = useState<string>("");
     const [code, setCode] = useState<string>("");
     const [explanation, setExplanation] = useState<string>("");
     const navigate = useNavigate();
+    const goToHistory = () => {
+        navigate('/viewHistory');
+    }
     const goToExp = (code:string, explanation:string) => {
         console.log(code);
         console.log(explanation);
@@ -39,6 +45,18 @@ const SendImgToGem = () => {
                 }
             }
     }
+    const handleAuthClick = async () => {
+        if (isAuthenticated) {
+            await logout({
+                logoutParams: { returnTo: window.location.origin }
+            });
+            navigate('/imggem');
+        } else {
+            await loginWithRedirect();
+            console.log("sendtogem login button icon authenticated");
+            navigate('/imggem');
+        }
+    };
     const handleFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
 
         const file = e.target.files?.[0];
@@ -164,8 +182,16 @@ const SendImgToGem = () => {
                 </div>
             </div>
             <div className={"inner-page-box"} style={{width:'80vw', height:'35vh'}}>
-                <h2 style={{fontSize:'20px'}}>Log in to save your work</h2>
-                <button className={'box-button'} style={{marginTop:'40px'}}>Login</button>
+                {isAuthenticated ?
+                <div>
+                    <h2 style={{fontSize:'20px'}}>Log in to save your work</h2>
+                    <button className={'box-button'} style={{marginTop:'40px'}} onClick={handleAuthClick}>Login</button>
+                </div> :
+                    <div>
+                        <h2 style={{fontSize:'20px', marginBottom:'30px'}}>Welcome, {user?.sub?.slice(-8).toUpperCase()}! Click here to view <br/> your saved work</h2>
+                        <button className={'box-button'} onClick={goToHistory}>View History</button>
+                    </div>
+                }
             </div>
             <Footer/>
         </>
