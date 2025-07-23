@@ -21,15 +21,21 @@ interface Message {
 }
 const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_LLM_API_KEY });
 
+interface Props {
+    code: string;
+    setCode: (code: string) => void;
+    explanation: string;
+    setExplanation: (exp: string) => void;
+    imageUrl: string | null;
+    setImageUrl: (url: string) => void;
+}
 
-const SendImgToGem = () => {
+const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, explanation, setExplanation }) => {
     const [response, setResponse] = useState<Message[]>([]);
     const { isAuthenticated, user, logout, loginWithRedirect} = useAuth0();
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [file, setFile] = useState<File | null>(null);
     const [responseString, setResponseString] = useState<string>("");
-    const [code, setCode] = useState<string>("");
-    const [explanation, setExplanation] = useState<string>("");
     const navigate = useNavigate();
     const goToHistory = () => {
         navigate('/viewHistory');
@@ -62,8 +68,10 @@ const SendImgToGem = () => {
         const file = e.target.files?.[0];
         if (!file) return;
         setFile(file);
-        let resStr = "";
+        const localUrl = URL.createObjectURL(file);
+        setImageUrl(localUrl);
 
+        let resStr = "";
 
         setIsLoading(true);
 
@@ -105,7 +113,7 @@ const SendImgToGem = () => {
                     setExplanation(resParts[1]);
                     console.log(code);
                     console.log(explanation);
-                    //setResponseString(resParts[0]);
+                    setResponseString(resStr);
                     //setIsLoading(false);
 
 
@@ -136,12 +144,10 @@ const SendImgToGem = () => {
             <Header />
             <div id="input-container" style={{border:"2px light grey", borderRadius:"12px", marginTop:"30px"}}>
 
-
                 {file !== null && responseString !== "" && (
-                    <button className="cursor-pointer clear-btn">
-                        <Save file={file} responseText={responseString} />
-                    </button>
+                    <Save file={file} responseText={responseString} />
                 )}
+
 
                 <input
                     type="file"
@@ -210,6 +216,7 @@ const SendImgToGem = () => {
                     </div>
                 }
             </div>
+
             <Footer/>
         </>
     );
