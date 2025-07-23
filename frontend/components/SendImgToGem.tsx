@@ -178,7 +178,24 @@ const SendImgToGem = () => {
                 </div>
                 <div className={"inner-page-box"} style={{width:"35vw", height:"25vh", float:"right", marginRight:'10vw'}}>
                     <h2 style={{fontSize:"20px"}}>Download Output.txt</h2>
-                    <button className={"box-button"} style={{marginTop:'40px'}}></button>
+                    <button
+                        className={"box-button"}
+                        style={{ marginTop: '40px' }}
+                        onClick={() => {
+                            const blob = new Blob([code], { type: 'text/plain' });
+                            const url = URL.createObjectURL(blob);
+                            const link = document.createElement('a');
+                            link.href = url;
+                            link.download = 'Output.txt';
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            URL.revokeObjectURL(url);
+                        }}
+                    >
+                        Download
+                    </button>
+
                 </div>
             </div>
             <div className={"inner-page-box"} style={{width:'80vw', height:'35vh'}}>
