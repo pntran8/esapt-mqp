@@ -4,7 +4,7 @@ import SendToGem from "../components/SendToGem.tsx"
 import SendXMLToGem from "../components/SendXMLToGem.tsx"
 import SendImgToGem from "../components/SendImgToGem.tsx"
 import CodeExplanation from "../components/CodeExplanation"
-/*import CodeEvaluation from "../components/CodeEvaluation"*/
+import CodeEvaluation from "../components/CodeEvaluation"
 import View from "../components/View.tsx";
 import {Auth0Provider} from '@auth0/auth0-react';
 import { useAuth0 } from '@auth0/auth0-react';
@@ -70,7 +70,7 @@ const App = () => {
                             />
                         }
                     />
-{/*                    <Route path="/evaluation" element={<CodeEvaluation />} />*/}
+                  <Route path="/evaluation" element={<CodeEvaluation />} />
                 </Routes>
             </Router>
         </Auth0Provider>
