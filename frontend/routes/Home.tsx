@@ -5,7 +5,8 @@ import '../src/App.css'
 import {useNavigate} from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
 import * as React from "react";
-
+import download from "../src/assets/download.png"
+import upload from "../src/assets/upload.png"
 
 
 const Home = () => {
@@ -46,7 +47,7 @@ const Home = () => {
                             onClick={() => {
                                 goToGem()
                             }}>
-
+                            <img src={download} alt="" style={{justifySelf:"center", width: '70%'}}/>
                         </button>
                         <h2 style={{fontSize:'20px'}}>ERD to Code</h2>
                         <h3>Generate SQL Code from conceptual ERD</h3>
@@ -57,7 +58,7 @@ const Home = () => {
                             onClick={() => {
                                 goToEval()
                             }}>
-
+                            <img src={upload} alt="" style={{justifySelf:"center", width: '70%'}} />
                         </button>
                     <h2 style={{fontSize:'20px'}}>Grade your code</h2>
                         <h3>Let our AI tools compare your code to your goals!</h3>
