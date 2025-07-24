@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import Header from "./Header.tsx";
 import ReactMarkdown from "react-markdown";
+import { useNavigate } from "react-router-dom";
+
 
 interface UploadEntry {
     id: number;
@@ -16,6 +18,7 @@ const View: React.FC = () => {
     const [entries, setEntries] = useState<UploadEntry[]>([]);
     const [openEntryId, setOpenEntryId] = useState(0);
     const openEntry = entries.find((e) => e.id === openEntryId) || null;
+    const navigate = useNavigate();
 
     function parseText(input: string): string {
         try {
@@ -84,12 +87,22 @@ const View: React.FC = () => {
                         onClick={(e) => e.stopPropagation()}
                         className="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-full overflow-auto p-6 flex flex-col items-center"
                     >
-                        <button
-                            onClick={() => setOpenEntryId(0)}
-                            className="cursor-pointer self-end text-gray-600 hover:text-gray-900 mb-4"
-                        >
-                            ✕
-                        </button>
+                        <div className="w-full flex justify-between items-center mb-4">
+                            <button
+                                onClick={() =>
+                                    navigate(`/viewHistory/${user?.sub?.slice(-8).toUpperCase()}?id=${openEntry.id}&timeCreated=${encodeURIComponent(openEntry.timeCreated)}`)
+                                }
+                                className="bg-[#981026] text-white p-2 hover:bg-[#c31431] rounded-2xl cursor-pointer"
+                            >
+                                Share Log
+                            </button>
+                            <button
+                                onClick={() => setOpenEntryId(0)}
+                                className="cursor-pointer text-lg text-gray-600 hover:text-gray-900"
+                            >
+                                ✕
+                            </button>
+                        </div>
                         <img
                             src={openEntry.decodedImage}
                             alt="Upload preview large"
