@@ -16,7 +16,8 @@ import Home from "../routes/Home.tsx"
 const App = () => {
     const domain = import.meta.env.VITE_AUTH0_DOMAIN;
     const clientID = import.meta.env.VITE_AUTH0_CLIENT_ID;
-    const { isAuthenticated, isLoading, user } = useAuth0();    const [code, setCode] = useState<string>("");
+    const { isAuthenticated, isLoading, user } = useAuth0();
+    const [code, setCode] = useState<string>("");
     const [explanation, setExplanation] = useState<string>("");
     const [imageUrl, setImageUrl] = useState<string | null>(null);
 
@@ -56,7 +57,14 @@ const App = () => {
                             />
                         }
                     />
-                    <Route path="/imggem" element={<SendImgToGem />} />
+                    <Route path="/imggem" element={<SendImgToGem
+                                                        code={code}
+                                                        setCode={setCode}
+                                                        explanation={explanation}
+                                                        setExplanation={setExplanation}
+                                                        imageUrl={imageUrl}
+                                                        setImageUrl={setImageUrl}
+                                                    />} />
                     <Route path="/imggem/session/:sessionID" element={<SessionImgToGem />} />
                     <Route path="/viewHistory" element={<View />} />
                     <Route path="/viewHistory/:userID" element={<LogPage />} />

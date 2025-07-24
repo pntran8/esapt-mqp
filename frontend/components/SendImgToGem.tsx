@@ -35,23 +35,18 @@ interface Props {
 const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, explanation, setExplanation }) => {
     const [response, setResponse] = useState<Message[]>([]);
     const { isAuthenticated, user, logout, loginWithRedirect} = useAuth0();
-    const [isLoading, setIsLoading] = useState<boolean>(false);
+    //this can be used later if we add a loading animation for gemini
+    //const [isLoading, setIsLoading] = useState<boolean>(false);
     const [file, setFile] = useState<File | null>(null);
     const [responseString, setResponseString] = useState<string>("");
     const navigate = useNavigate();
     const goToHistory = () => {
         navigate('/viewHistory');
     }
-    const goToExp = (code:string, explanation:string) => {
+    const goToExp = () => {
         console.log(code);
         console.log(explanation);
-        navigate("/explanation"),
-            {
-                state: {
-                    code: code,
-                    explanation: explanation,
-                }
-            }
+        navigate("/explanation");
     }
     const handleAuthClick = async () => {
         if (isAuthenticated) {
@@ -75,7 +70,7 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
 
         let resStr = "";
 
-        setIsLoading(true);
+        //setIsLoading(true);
 
         if (e.target.files?.[0] != undefined) {
             const myfile = await ai.files.upload({
@@ -187,7 +182,7 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
                         className={"box-button"}
                         style={{marginTop:'4vh'}}
                         onClick={() => {
-                            goToExp(code, explanation)
+                            goToExp()
                         }}
                     >View</button>
                 </div>
