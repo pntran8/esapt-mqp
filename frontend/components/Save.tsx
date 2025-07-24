@@ -83,11 +83,11 @@ const Save: React.FC<SaveProps> = ({ file, responseText }) => {
 
     return (
         <div>
-            <div onClick={() => {
+            <button onClick={() => {
                 if (!isSaving) handleSave();
-            }} className="cursor-pointer">
+            }} className="box-button">
                 {isSaving ? "Saving..." : "Save to Database"}
-            </div>
+            </button>
             {success &&
                 <p className="text-green-600">
                     Saved successfully!

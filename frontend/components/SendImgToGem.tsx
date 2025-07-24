@@ -13,6 +13,7 @@ import "../src/App.css"
 import {useNavigate} from "react-router-dom";
 import * as React from "react";
 import {useAuth0} from "@auth0/auth0-react";
+import download from "../src/assets/download.png";
 
 // Message type definition
 interface Message {
@@ -142,11 +143,7 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
     return (
         <>
             <Header />
-            <div id="input-container" style={{border:"2px light grey", borderRadius:"12px", marginTop:"30px"}}>
-
-                {file !== null && responseString !== "" && (
-                    <Save file={file} responseText={responseString} />
-                )}
+            <div id="input-container" style={{border:"1vh light grey", borderRadius:"2vh", marginTop:"3vh"}}>
 
 
                 <input
@@ -154,12 +151,13 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
                     accept=".png,.jpg"
                     onChange={handleFileUpload}
                     className="chat-input"
+                    style={{fontSize:'2vh'}}
                 />
             </div>
 
-            <div className={"inner-page-box"} style={{width:"80vw", height:"80vh", overflow:"scroll"}}>
+            <div className={"inner-page-box"} style={{width:"80vw", height:"70vh", overflow:"scroll"}}>
                 {response.length === 0 ? (
-                    <h1>Upload your image here</h1>
+                    <h1 style={{fontSize:'2.5vh'}}>Upload your image to see code</h1>
                 ) : (
                     <div>
                         {response.map((msg, index) => (
@@ -171,22 +169,22 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
                 )}
             </div>
 
-            <div style={{height:'25vh', marginBottom:"60px"}}>
+            <div style={{height:'25vh', marginBottom:"6vh"}}>
                 <div className={"inner-page-box"} style={{width:"35vw", height:"25vh", float:"left", marginLeft:'10vw'}}>
-                    <h2 style={{fontSize:"20px"}}>Display Code Explanation</h2>
+                    <h2 style={{fontSize:'2.5vh'}}>Display Code Explanation</h2>
                     <button
                         className={"box-button"}
-                        style={{marginTop:'40px'}}
+                        style={{marginTop:'4vh'}}
                         onClick={() => {
                             goToExp(code, explanation)
                         }}
                     >View</button>
                 </div>
                 <div className={"inner-page-box"} style={{width:"35vw", height:"25vh", float:"right", marginRight:'10vw'}}>
-                    <h2 style={{fontSize:"20px"}}>Download Output.txt</h2>
+                    <h2 style={{fontSize:'2.5vh'}}>Download Output.txt</h2>
                     <button
                         className={"box-button"}
-                        style={{ marginTop: '40px' }}
+                        style={{ marginTop: '4vh' }}
                         onClick={() => {
                             const blob = new Blob([code], { type: 'text/plain' });
                             const url = URL.createObjectURL(blob);
@@ -199,21 +197,29 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
                             URL.revokeObjectURL(url);
                         }}
                     >
-                        Download
+                        <img src={download} alt="Download" style={{justifySelf:"center", width: '25%'}} />
                     </button>
 
                 </div>
             </div>
             <div className={"inner-page-box"} style={{width:'80vw', height:'35vh'}}>
                 {isAuthenticated ?
-                <div>
-                    <h2 style={{fontSize:'20px'}}>Log in to save your work</h2>
-                    <button className={'box-button'} style={{marginTop:'40px'}} onClick={handleAuthClick}>Login</button>
-                </div> :
-                    <div>
-                        <h2 style={{fontSize:'20px', marginBottom:'30px'}}>Welcome, {user?.sub?.slice(-8).toUpperCase()}! Click here to view <br/> your saved work</h2>
-                        <button className={'box-button'} onClick={goToHistory}>View History</button>
+                    <div style={{marginTop:"10vh"}}>
+                        {file !== null && responseString !== "" ?
+                            <Save file={file} responseText={responseString} />
+                        :
+                            <div>
+                                <h2 style={{fontSize:'2.5vh', marginTop:'4vh'}}>Welcome, {user?.sub?.slice(-8).toUpperCase()}! Click here to view <br/> your saved work</h2>
+                                <button className={'box-button'} onClick={goToHistory}>View History</button>
+                            </div>
+                        }
                     </div>
+                    :
+                    <div>
+                        <h2 style={{fontSize:'2.5vh', marginTop:'5vh'}}>Log in to save your work</h2>
+                        <button className={'box-button'} style={{marginTop:'4vh'}} onClick={handleAuthClick}>Login</button>
+                    </div>
+
                 }
             </div>
 
