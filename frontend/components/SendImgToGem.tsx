@@ -13,6 +13,7 @@ import "../src/App.css"
 import {useNavigate} from "react-router-dom";
 import * as React from "react";
 import {useAuth0} from "@auth0/auth0-react";
+import StartSessionBtn from "./StartSessionBtn.tsx";
 
 // Message type definition
 interface Message {
@@ -144,10 +145,14 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
             <Header />
             <div id="input-container" style={{border:"2px light grey", borderRadius:"12px", marginTop:"30px"}}>
 
-                {file !== null && responseString !== "" && (
-                    <Save file={file} responseText={responseString} />
-                )}
-
+                    {file !== null && responseString !== "" && isAuthenticated && (
+                        <button className="cursor-pointer clear-btn">
+                            <Save file={file} responseText={responseString} />
+                        </button>
+                    )}
+                    <button className="cursor-pointer clear-btn">
+                        <StartSessionBtn/>
+                    </button>
 
                 <input
                     type="file"
