@@ -46,8 +46,17 @@ const CodeExplanation: React.FC<Props> = ({imageUrl, code, explanation}) => {
     return (
         <>
             <Header />
-            <div className={"inner-page-box"} style={{width:'80vw', height:'35vh'}}>
-                <h2 style={{fontSize:'20px'}}>Your ERD is displayed here</h2>
+            <div className="inner-page-box" style={{ width: '80vw', height: '35vh' }}>
+                <h2 style={{ fontSize: '20px' }}>Your ERD is displayed here</h2>
+                {imageUrl ? (
+                    <img
+                        src={imageUrl}
+                        alt="ERD Preview"
+                        style={{ maxWidth: '100%', maxHeight: '30vh', objectFit: 'contain' }}
+                    />
+                ) : (
+                    <p>No image available.</p>
+                )}
             </div>
             <div style={{height:'80vh', marginTop:'30px', paddingLeft:'10vw', paddingRight:'10vw'}}>
                 <div style={{float:'left'}}>
