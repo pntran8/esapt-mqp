@@ -78,7 +78,10 @@ const Profile: React.FC = () => {
 
                         {isAuthenticated && (
                             <div>
-                                <button onClick = {handleHistory} className="bg-[#981026] text-white m-4 p-5     hover:bg-[#c31431] rounded-2xl cursor-pointer">
+                                <button
+                                    onClick = {handleHistory}
+                                    className="bg-[#981026] text-white m-4 p-5 hover:bg-[#c31431] rounded-2xl cursor-pointer"
+                                >
                                     click here to view your history
                                 </button>
                             </div>
