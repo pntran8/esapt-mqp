@@ -66,8 +66,6 @@ const App = () => {
                                                         setImageUrl={setImageUrl}
                                                     />} />
                     <Route path="/imggem/session/:sessionID" element={<SessionImgToGem />} />
-                    <Route path="/imggem" element={<SendImgToGem />} />
-                    <Route path="/imggem/session/:sessionID" element={<SessionImgToGem />} />
                     <Route path="/viewHistory" element={<View />} />
                     <Route path="/viewHistory/:userID" element={<LogPage />} />
                     <Route
