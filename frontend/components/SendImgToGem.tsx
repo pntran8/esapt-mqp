@@ -176,11 +176,10 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
             </div>
 
             <div style={{height:'25vh', marginBottom:"6vh"}}>
-                <div className={"inner-page-box"} style={{width:"35vw", height:"25vh", float:"left", marginLeft:'10vw'}}>
+                <div className={"inner-page-box w-[35vw] h-[25vh] mr-[10vw] float-left"}>
                     <h2 style={{fontSize:'2.5vh'}}>Display Code Explanation</h2>
                     <button
-                        className={"box-button"}
-                        style={{marginTop:'4vh'}}
+                        className={"box-button mt-[4vh]"}
                         onClick={() => {
                             goToExp()
                         }}
@@ -189,8 +188,7 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
                 <div className={"inner-page-box w-[35vw] h-[25vh] mr-[10vw] float-right"} >
                     <h2 style={{fontSize:'2.5vh'}}>Download Output.txt</h2>
                     <button
-                        className={"box-button"}
-                        style={{ marginTop: '4vh' }}
+                        className={"box-button mt-[4vh]"}
                         onClick={() => {
                             const blob = new Blob([code], { type: 'text/plain' });
                             const url = URL.createObjectURL(blob);
@@ -208,7 +206,7 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
 
                 </div>
             </div>
-            <div className={"inner-page-box"} style={{width:'80vw', height:'35vh'}}>
+            <div className={"inner-page-box w-[80vw] h-[35vh]"}>
                 {isAuthenticated ?
                     <div style={{marginTop:"10vh"}}>
                         {file !== null && responseString !== "" ?
@@ -223,7 +221,7 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
                     :
                     <div>
                         <h2 style={{fontSize:'2.5vh', marginTop:'5vh'}}>Log in to save your work</h2>
-                        <button className={'box-button'} style={{marginTop:'4vh'}} onClick={handleAuthClick}>Login</button>
+                        <button className={'box-button mt-[4vh]'} onClick={handleAuthClick}>Login</button>
                     </div>
 
                 }
