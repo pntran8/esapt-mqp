@@ -9,18 +9,19 @@ export default function Header() {
     }
     return (
         <>
-            <div className="relative mx-auto p-1 bg-[#BD0A0A] flex items-center justify-between h-20" style={{border:"2px solid black"}}>
+            <div className='relative mx-auto p-1 bg-[#BD0A0A] flex items-center justify-between' style={{border:'0.25vh solid black', height:'8vh', minHeight:'25px'}}>
                 <div className="cursor-pointer flex items-center z-10" onClick={handleClick}>
                     <img
-                        className="h-12 mx-1 object-scale-down"
+                        className='mx-1 object-scale-down'
                         src={wpiLogo}
                         alt="WPI Logo"
+                        style={{height:'6vh', minHeight:'20px'}}
                     />
-                    <div className="text-5xl font-bold text-white font-serif">
+                    <div className='text-5xl font-bold text-white font-serif' style={{fontSize:'max(15px, 5vh)'}}>
                         WPI
                     </div>
                 </div>
-                <h1 className="mt-0 left-1/2 transform -translate-x-1/2 text-5xl font-bold text-white font-serif tracking-wide">
+                <h1 className='mt-0 left-1/2 transform -translate-x-1/2 text-5xl font-bold text-white font-serif tracking-wide' style={{fontSize:'max(15px, 6vh)' }}>
                     ESAPT
                 </h1>
                 <Profile />

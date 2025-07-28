@@ -52,6 +52,18 @@
   background-color: #E7E7E7;
 }
 
+.send-page-code-box {
+    width:80vw;
+    height:70vh;
+    overflow:scroll;
+}
+
+
+
+.send-page-account-box {
+
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;
