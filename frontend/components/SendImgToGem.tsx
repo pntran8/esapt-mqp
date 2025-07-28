@@ -161,9 +161,9 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
                 />
             </div>
 
-            <div className={"inner-page-box"} style={{width:"80vw", height:"70vh", overflow:"scroll"}}>
+            <div className={"inner-page-box send-page-code-box"}>
                 {response.length === 0 ? (
-                    <h1 style={{fontSize:'2.5vh'}}>Upload your image to see code</h1>
+                    <h1 style={{fontSize:'max(15px, 2.5vh)'}}>Upload your image to see code</h1>
                 ) : (
                     <div>
                         {response.map((msg, index) => (
@@ -186,7 +186,7 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
                         }}
                     >View</button>
                 </div>
-                <div className={"inner-page-box"} style={{width:"35vw", height:"25vh", float:"right", marginRight:'10vw'}}>
+                <div className={"inner-page-box w-[35vw] h-[25vh] mr-[10vw] float-right"} >
                     <h2 style={{fontSize:'2.5vh'}}>Download Output.txt</h2>
                     <button
                         className={"box-button"}
