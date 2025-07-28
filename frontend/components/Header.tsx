@@ -21,9 +21,7 @@ export default function Header() {
                         WPI
                     </div>
                 </div>
-                <h1 className='mt-0 left-1/2 transform -translate-x-1/2 text-5xl font-bold text-white font-serif tracking-wide' style={{fontSize:'max(15px, 6vh)' }}>
-                    ESAPT
-                </h1>
+
                 <Profile />
             </div>
         </>
