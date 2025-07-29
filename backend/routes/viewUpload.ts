@@ -29,4 +29,30 @@ router.get("/", async (req: Request, res: Response) => {
     }
 });
 
+router.get("/getLog", async (req: Request, res: Response) => {
+    const userID = req.query.userID as string;
+    const timeCreated = req.query.timeCreated as string;
+    const id = parseInt(req.query.id as string);
+
+    if (!userID || !timeCreated || isNaN(id)) {
+        res.send("didn't pass in a user id or time created.");
+    }
+
+    try {
+        const uploads = await prisma.accounts.findMany({
+            where: { userID, timeCreated: new Date(timeCreated), id},
+        });
+
+        const processed = uploads.map((entry) => ({
+            ...entry,
+            decodedImage: `data:image/jpeg;base64,${entry.imageFile}`,
+        }));
+
+        res.json(processed);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "error sending back db info" });
+    }
+});
+
 export default router;
