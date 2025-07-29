@@ -92,6 +92,7 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
       "Also remember that primary keys are signified by underlined text, and partial keys are signified by text underlined with a dashed line. " +
       "Pay close attention to whether the text is underlined or not because the space between the text and underline may be small. " +
       "Do not assume anything is a primary or partial key unless it is underlined. " +
+      "Do not create foreign keys unless there is a relationship between entities" +
       "Print out the SQL code, then '----------' on a new line, then an explanation for the logic behind the code.",
                         ]),
                     });
@@ -166,7 +167,7 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
                     <img
                         src={imageUrl}
                         alt="ERD Preview"
-                        style={{ maxWidth: '100%', maxHeight: '30vh', objectFit: 'contain' }}
+                        style={{ maxWidth: '90%', maxHeight: '27vh', objectFit: 'contain', justifySelf:'center'}}
                     />
                 ) : (
                     <p>No image available.</p>
@@ -187,7 +188,7 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
             </div>
 
             <div style={{height:'25vh', marginBottom:"6vh"}}>
-                <div className={"inner-page-box w-[35vw] h-[25vh] mr-[10vw] float-left"}>
+                <div className={"inner-page-box w-[35vw] h-[25vh] ml-[10vw] float-left"}>
                     <h2 style={{fontSize:'2.5vh'}}>Display Code Explanation</h2>
                     <button
                         className={"box-button mt-[4vh]"}
