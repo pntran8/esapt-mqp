@@ -160,8 +160,19 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
                     style={{fontSize:'2vh'}}
                 />
             </div>
-
-            <div className={"inner-page-box send-page-code-box"}>
+            <div className="inner-page-box" style={{ width: '80vw', height: '35vh' }}>
+                <h2 style={{ fontSize: '20px' }}>Your ERD is displayed here</h2>
+                {imageUrl ? (
+                    <img
+                        src={imageUrl}
+                        alt="ERD Preview"
+                        style={{ maxWidth: '100%', maxHeight: '30vh', objectFit: 'contain' }}
+                    />
+                ) : (
+                    <p>No image available.</p>
+                )}
+            </div>
+            <div className={"inner-page-box"} style={{width:"80vw", height:"70vh", overflow:"scroll"}}>
                 {response.length === 0 ? (
                     <h1 style={{fontSize:'max(15px, 2.5vh)'}}>Upload your image to see code</h1>
                 ) : (
