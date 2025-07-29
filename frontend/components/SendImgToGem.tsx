@@ -92,7 +92,7 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
       "Also remember that primary keys are signified by underlined text, and partial keys are signified by text underlined with a dashed line. " +
       "Pay close attention to whether the text is underlined or not because the space between the text and underline may be small. " +
       "Do not assume anything is a primary or partial key unless it is underlined. " +
-      "Do not create foreign keys unless there is a relationship between entities" +
+      "Do not create foreign keys or addtional tables unless there is a relationship between entities" +
       "Print out the SQL code, then '----------' on a new line, then an explanation for the logic behind the code.",
                         ]),
                     });

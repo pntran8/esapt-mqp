@@ -67,13 +67,15 @@ const Home = () => {
                 <div className="box">
                     {isAuthenticated ?
                         <div>
-                            <h2 style={{fontSize:'2.5vh', marginBottom:'3vh'}}>Create an account to save <br/> your work</h2>
-                            <button className={'box-button'} onClick={handleAuthClick}>Login</button>
-                        </div> :
-                        <div>
                             <h2 style={{fontSize:'2.5vh', marginBottom:'3vh'}}>Welcome, {user?.sub?.slice(-8).toUpperCase()}! Click here to view <br/> your saved work</h2>
                             <button className={'box-button'} onClick={goToHistory}>View History</button>
                         </div>
+                        :
+                        <div>
+                            <h2 style={{fontSize:'2.5vh', marginBottom:'3vh'}}>Create an account to save <br/> your work</h2>
+                            <button className={'box-button'} onClick={handleAuthClick}>Login</button>
+                        </div>
+
                     }
                 </div>
             <Footer />
