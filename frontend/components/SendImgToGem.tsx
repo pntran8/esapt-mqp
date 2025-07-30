@@ -92,6 +92,7 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
       "Also remember that primary keys are signified by underlined text, and partial keys are signified by text underlined with a dashed line. " +
       "Pay close attention to whether the text is underlined or not because the space between the text and underline may be small. " +
       "Do not assume anything is a primary or partial key unless it is underlined. " +
+      "Do not create foreign keys or addtional tables unless there is a relationship between entities" +
       "Print out the SQL code, then '----------' on a new line, then an explanation for the logic behind the code.",
                         ]),
                     });
@@ -166,7 +167,7 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
                     <img
                         src={imageUrl}
                         alt="ERD Preview"
-                        style={{ maxWidth: '100%', maxHeight: '30vh', objectFit: 'contain' }}
+                        style={{ maxWidth: '90%', maxHeight: '27vh', objectFit: 'contain', justifySelf:'center'}}
                     />
                 ) : (
                     <p>No image available.</p>
@@ -174,7 +175,7 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
             </div>
             <div className={"inner-page-box"} style={{width:"80vw", height:"70vh", overflow:"scroll"}}>
                 {response.length === 0 ? (
-                    <h1 style={{fontSize:'2.5vh'}}>Upload your image to see code</h1>
+                    <h1 style={{fontSize:'max(15px, 2.5vh)'}}>Upload your image to see code</h1>
                 ) : (
                     <div>
                         {response.map((msg, index) => (
@@ -187,21 +188,19 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
             </div>
 
             <div style={{height:'25vh', marginBottom:"6vh"}}>
-                <div className={"inner-page-box"} style={{width:"35vw", height:"25vh", float:"left", marginLeft:'10vw'}}>
+                <div className={"inner-page-box w-[35vw] h-[25vh] ml-[10vw] float-left"}>
                     <h2 style={{fontSize:'2.5vh'}}>Display Code Explanation</h2>
                     <button
-                        className={"box-button"}
-                        style={{marginTop:'4vh'}}
+                        className={"box-button mt-[4vh]"}
                         onClick={() => {
                             goToExp()
                         }}
                     >View</button>
                 </div>
-                <div className={"inner-page-box"} style={{width:"35vw", height:"25vh", float:"right", marginRight:'10vw'}}>
+                <div className={"inner-page-box w-[35vw] h-[25vh] mr-[10vw] float-right"} >
                     <h2 style={{fontSize:'2.5vh'}}>Download Output.txt</h2>
                     <button
-                        className={"box-button"}
-                        style={{ marginTop: '4vh' }}
+                        className={"box-button mt-[4vh]"}
                         onClick={() => {
                             const blob = new Blob([code], { type: 'text/plain' });
                             const url = URL.createObjectURL(blob);
@@ -219,7 +218,7 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
 
                 </div>
             </div>
-            <div className={"inner-page-box"} style={{width:'80vw', height:'35vh'}}>
+            <div className={"inner-page-box w-[80vw] h-[35vh]"}>
                 {isAuthenticated ?
                     <div style={{marginTop:"10vh"}}>
                         {file !== null && responseString !== "" ?
@@ -234,7 +233,7 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
                     :
                     <div>
                         <h2 style={{fontSize:'2.5vh', marginTop:'5vh'}}>Log in to save your work</h2>
-                        <button className={'box-button'} style={{marginTop:'4vh'}} onClick={handleAuthClick}>Login</button>
+                        <button className={'box-button mt-[4vh]'} onClick={handleAuthClick}>Login</button>
                     </div>
 
                 }
