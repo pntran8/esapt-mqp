@@ -37,7 +37,7 @@ const View: React.FC = () => {
         const fetchUploads = async () => {
             try {
                 const res = await fetch(
-                    `http://localhost:3001/api/viewUpload?userID=${user?.sub?.slice(-8).toUpperCase()}`
+                    `https://esapt2025-gck2pz7lo-pntran8s-projects.vercel.app/api/viewUpload?userID=${user?.sub?.slice(-8).toUpperCase()}`
                 );
                 const data = await res.json();
                 console.log(data);

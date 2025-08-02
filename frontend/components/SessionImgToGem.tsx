@@ -17,7 +17,7 @@ interface Message {
     message: string;
 }
 
-const socket = io("http://localhost:3001", { withCredentials: true });
+const socket = io("http://https://esapt2025-gck2pz7lo-pntran8s-projects.vercel.app", { withCredentials: true });
 const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_LLM_API_KEY });
 
 const SessionImgToGem = () => {

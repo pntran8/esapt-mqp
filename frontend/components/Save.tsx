@@ -66,7 +66,7 @@ const Save: React.FC<SaveProps> = ({ file, responseText }) => {
             formData.append("userID", uID);
             formData.append("textFile", JSON.stringify({ text: responseText }));
 
-            const res = await fetch("http://localhost:3001/api/insertUpload", {
+            const res = await fetch("https://esapt2025-gck2pz7lo-pntran8s-projects.vercel.app/api/insertUpload", {
                 method: "POST",
                 body: formData,
             });
