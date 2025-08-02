@@ -6,9 +6,9 @@ import cors from "cors";
 
 // Route imports
 import examplePy from "./routes/examplePy";
-import getHistory from "@/routes/api/getHistory.ts";
-import insertUpload from "@/routes/api/insertUpload.ts";
-import viewUpload from "@/routes/api/viewUpload.ts";
+import getHistory from "../api/getHistory.ts";
+import insertUpload from "../api/insertUpload.ts";
+import viewUpload from "../api/viewUpload.ts";
 
 const app: Express = express();
 
