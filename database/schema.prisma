@@ -1,13 +1,13 @@
 generator client {
   provider        = "prisma-client-js"
-  output          = "@prisma/client"
+  output          = "../.prisma/client"
   previewFeatures = ["relationJoins"]
   engineType      = "binary"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("NEON_POSTGRES_DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
 model Accounts {

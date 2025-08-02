@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../.prisma/client";
 import formidable from "formidable";
 import { IncomingMessage, ServerResponse } from "http";
 import { promises as fs } from "fs";
