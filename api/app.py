@@ -12,17 +12,10 @@ import re
 
 
 app = Flask(__name__)
-CORS(app, resources={
-    r"/*": {
-        "origins": ["http://localhost:3000", "http://localhost:3001", "https://esapt2025-gck2pz7lo-pntran8s-projects.vercel.app"]
-    }
-})
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 logging.basicConfig(level=logging.DEBUG)
 
-print("Hello from Flask!")
-print("FLASK SERVER STARTED", file=sys.stdout)
-sys.stdout.flush()
 
 @app.route('/api/compare', methods=['POST'])
 def compare_schemas():
@@ -171,20 +164,5 @@ def compare_schemas():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
-
-@app.route('/api/examplePy', methods=['GET'])
-def examplePy():
-    logging.debug("R")
-    print('p', flush=True )
-    logging.warning("")
-    print("pe", file=sys.stderr )
-    print("w", file=sys.stdout )
-    sys.stderr.write("sy!\n")
-    print("e", file=sys.stderr, flush=True)
-
-    return "hello world"
-
-
-if __name__ == "__main__":
-    app.run(port=8080, debug=True)
+def handler(environ, start_response):
+    return app(environ, start_response)
