@@ -17,7 +17,7 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 logging.basicConfig(level=logging.DEBUG)
 
 
-@app.route('/compare', methods=['POST'])
+@app.route('/', methods=['POST'])
 def compare_schemas():
 
     def compare_attributes(expr, expr2):
