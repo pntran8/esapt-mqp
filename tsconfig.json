@@ -18,6 +18,6 @@
     "strict": true
   },
   "include": [
-    "tailwind.config.ts"
+    "tailwind.config.ts", "api", "frontend", "database"
   ]
 }
