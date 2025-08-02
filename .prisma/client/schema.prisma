@@ -1,8 +1,8 @@
 generator client {
   provider        = "prisma-client-js"
   output          = "../.prisma/client"
+  previewFeatures = ["relationJoins"]
   engineType      = "binary"
-  previewFeatures = ["relationJoins"] // Allows for joins to be used
 }
 
 datasource db {

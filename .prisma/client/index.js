@@ -166,6 +166,7 @@ const config = {
     "db"
   ],
   "activeProvider": "postgresql",
+  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {
@@ -174,8 +175,8 @@ const config = {
       }
     }
   },
-  "inlineSchema": "generator client {\n  provider        = \"prisma-client-js\"\n  output          = \"../.prisma/client\"\n  engineType      = \"binary\"\n  previewFeatures = [\"relationJoins\"] // Allows for joins to be used\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel Accounts {\n  id          Int      @id @default(autoincrement())\n  userID      String\n  imageFile   String\n  textFile    String?\n  timeCreated DateTime\n}\n",
-  "inlineSchemaHash": "eb6a069d2c6df3a72c3acfdb9c7dad725a39011f5be03e394ceb4f5e004a84e6",
+  "inlineSchema": "generator client {\n  provider        = \"prisma-client-js\"\n  output          = \"../.prisma/client\"\n  previewFeatures = [\"relationJoins\"]\n  engineType      = \"binary\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel Accounts {\n  id          Int      @id @default(autoincrement())\n  userID      String\n  imageFile   String\n  textFile    String?\n  timeCreated DateTime\n}\n",
+  "inlineSchemaHash": "44d7c05c512454b64c5ecd78c76d33f1479cf53240696fcea2c66091d768f823",
   "copyEngine": true
 }
 
