@@ -1,0 +1,12 @@
+{
+  "functions": {
+    "api/**/*.ts": {
+      "memory": 512,
+      "maxDuration": 10,
+      "includeFiles": [
+        "node_modules/@prisma/client/**",
+        "node_modules/.prisma/**"
+      ]
+    }
+  }
+}
