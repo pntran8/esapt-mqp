@@ -13,77 +13,6 @@ import insertUpload from "./routes/insertUpload";
 import viewUpload from "./routes/viewUpload";
 
 const app: Express = express();
-const httpServer = createServer(app);
-
-// Set up Socket.IO server
-const io = new Server(httpServer, {
-    cors: {
-        origin: ["http://localhost:3000"],
-        credentials: true,
-    },
-});
-
-// Socket.IO event handlers
-const sessionHosts = new Map(); // Maps sessionID to hostID (user.sub)
-const socketToUser = new Map(); // Maps socket.id to user.sub
-
-io.on("connection", (socket) => {
-    console.log(`User connected: ${socket.id}`);
-
-    socket.on("join-session", ({ sessionID, hostID }) => {
-        socket.join(sessionID);
-
-        // Store the mapping of socket to user
-        if (hostID) {
-            socketToUser.set(socket.id, hostID);
-        }
-
-        // Set host if this session doesn't have one yet and hostID is provided
-        if (!sessionHosts.has(sessionID) && hostID) {
-            sessionHosts.set(sessionID, hostID);
-            console.log(`Set ${hostID} as host for session ${sessionID}`);
-        }
-
-        const sessionHost = sessionHosts.get(sessionID);
-
-        // Send session info back to the client
-        socket.emit("session-info", { hostID: sessionHost });
-        console.log(`${socket.id} joined session ${sessionID}, host: ${sessionHost}`);
-    });
-
-    socket.on("update", ({ sessionID, fileName, responseText }) => {
-        console.log(`Broadcasting update to session ${sessionID}: ${fileName}`);
-        // Broadcast to all OTHER clients in the session (not the sender)
-        socket.to(sessionID).emit("receive-update", { fileName, responseText });
-    });
-
-    socket.on("clear-image", (sessionID) => {
-        console.log(`Broadcasting clear to session ${sessionID}`);
-        // Broadcast to all OTHER clients in the session (not the sender)
-        socket.to(sessionID).emit("image-cleared");
-    });
-
-    socket.on("disconnect", () => {
-        console.log(`User disconnected: ${socket.id}`);
-
-        // Get the user ID for this socket
-        const userID = socketToUser.get(socket.id);
-
-        if (userID) {
-            // Check if this user was hosting any sessions
-            for (const [sessionID, hostID] of sessionHosts.entries()) {
-                if (hostID === userID) {
-                    sessionHosts.delete(sessionID);
-                    io.to(sessionID).emit("host-disconnected");
-                    console.log(`Host ${userID} disconnected from session ${sessionID}`);
-                }
-            }
-
-            // Clean up the socket mapping
-            socketToUser.delete(socket.id);
-        }
-    });
-});
 
 // Define the CORS options
 const corsOptions = {
@@ -157,12 +86,6 @@ app.use((err: HttpError, req: Request, res: Response) => {
     res.statusMessage = err.message;
     res.locals.error = req.app.get("env") === "development" ? err : {};
     res.status(err.status || 500).json({ error: err.message });
-});
-
-// Start the HTTP + WebSocket server
-const PORT = 3001;
-httpServer.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
 });
 
 export default app;
