@@ -136,7 +136,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "C:\\Users\\books\\WebstormProjects\\snapt2025\\.prisma\\client",
+      "value": "C:\\Users\\books\\OneDrive\\Desktop\\WPI\\MQP\\.prisma\\client",
       "fromEnvVar": null
     },
     "config": {
@@ -152,7 +152,7 @@ const config = {
     "previewFeatures": [
       "relationJoins"
     ],
-    "sourceFilePath": "C:\\Users\\books\\WebstormProjects\\snapt2025\\database\\schema.prisma",
+    "sourceFilePath": "C:\\Users\\books\\OneDrive\\Desktop\\WPI\\MQP\\database\\schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
@@ -166,17 +166,16 @@ const config = {
     "db"
   ],
   "activeProvider": "postgresql",
-  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {
-        "fromEnvVar": "POSTGRES_URL",
+        "fromEnvVar": "DATABASE_URL",
         "value": null
       }
     }
   },
-  "inlineSchema": "generator client {\n  provider        = \"prisma-client-js\"\n  output          = \"../.prisma/client\"\n  engineType      = \"binary\"\n  previewFeatures = [\"relationJoins\"] // Allows for joins to be used\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"POSTGRES_URL\")\n}\n\nmodel Accounts {\n  id          Int      @id @default(autoincrement())\n  userID      String\n  imageFile   String\n  textFile    String?\n  timeCreated DateTime\n}\n",
-  "inlineSchemaHash": "4bcb53e8f4fd342da28c71325efbd4604bcfdc4431ba920d4f660509b0465da0",
+  "inlineSchema": "generator client {\n  provider        = \"prisma-client-js\"\n  output          = \"../.prisma/client\"\n  engineType      = \"binary\"\n  previewFeatures = [\"relationJoins\"] // Allows for joins to be used\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel Accounts {\n  id          Int      @id @default(autoincrement())\n  userID      String\n  imageFile   String\n  textFile    String?\n  timeCreated DateTime\n}\n",
+  "inlineSchemaHash": "eb6a069d2c6df3a72c3acfdb9c7dad725a39011f5be03e394ceb4f5e004a84e6",
   "copyEngine": true
 }
 
