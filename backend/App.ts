@@ -3,8 +3,6 @@ import express, { Express, NextFunction, Request, Response } from "express";
 import cookieParser from "cookie-parser";
 import logger from "morgan";
 import cors from "cors";
-import { createServer } from "http";
-import { Server } from "socket.io";
 
 // Route imports
 import examplePy from "./routes/examplePy";
