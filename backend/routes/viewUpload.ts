@@ -9,7 +9,8 @@ router.get("/", async (req: Request, res: Response) => {
     const userID = req.query.userID as string;
 
     if (!userID) {
-        res.send("didn't pass in a user id.");
+        res.status(400).send("didn't pass in a user id.");
+        return;
     }
 
     try {
