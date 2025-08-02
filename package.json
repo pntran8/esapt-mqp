@@ -6,7 +6,7 @@
     "dev:server": "nodemon --exec ts-node backend/App.ts",
     "dev:client": "vite",
     "dev:python": "python backend/python/app.py",
-    "dev": "concurrently --names \"client,server\" --prefix-colors \"yellow,cyan\" \"npm run dev:client\" \"npm run dev:server\"",
+    "dev": "concurrently --names \"python,client,server\" --prefix-colors \"purple,yellow,cyan\" \"npm run dev:python\" \"npm run dev:client\" \"npm run dev:server\"",
     "build": "tsc -b && vite build",
     "lint": "eslint untitled",
     "preview": "vite preview"
@@ -31,6 +31,8 @@
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "express-openid-connect": "^2.18.1",
+    "flask": "^0.2.10",
+    "flask-cors": "^0.0.1",
     "http-errors": "^2.0.0",
     "lucide-react": "^0.522.0",
     "morgan": "^1.10.0",

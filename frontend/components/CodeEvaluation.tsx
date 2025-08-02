@@ -29,6 +29,7 @@ const CodeEvaluation = () => {
     const [response, setResponse] = useState<Message[]>([]);
     const { isAuthenticated, user, logout, loginWithRedirect} = useAuth0();
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [userSchema, setUserSchema] = useState('');
     const [file, setFile] = useState<File | null>(null);
     const [responseString, setResponseString] = useState<string>("");
     const navigate = useNavigate();
@@ -120,6 +121,66 @@ const CodeEvaluation = () => {
     /*<!--     <button onClick={handleClear} className="clear-btn">
                     Clear
                 </button>1-->*/
+
+
+    const handleUserSchema = (e) => {
+        setUserSchema(e.target.value);
+    }
+
+    const [diffResult, setDiffResult] = useState(null);
+    const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(false);
+
+
+
+    const handleCompare = async () => {
+        setLoading(true);
+        setError(null);
+        setDiffResult(null);
+
+        const schema1 = response.length > 0 ? response[0].message : "";
+        schema1.replace("sql", "")
+        schema1.replace("`", "")
+
+        console.log(schema1);
+        console.log(userSchema);
+        const cleanedSchema = schema1
+            .replace(/^```sql\s*/, '')
+            .replace("```", '')
+            .trim();
+
+        console.log(cleanedSchema)
+        try {
+            const res = await fetch("http://localhost:8080/api/compare", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    schema1: userSchema,
+                    schema2: cleanedSchema
+                })
+            });
+
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.error || "Compare failed");
+            }
+
+            const data = await res.json();
+            setDiffResult(data.diff);
+            console.log("here", data.diff);
+            console.log("there", diffResult);
+        } catch (e) {
+            console.log("here???")
+            setError(e.message);
+        } finally {
+            setLoading(false);
+        }
+
+    };
+
+
     return (
         <>
             <Header />
@@ -159,14 +220,49 @@ const CodeEvaluation = () => {
                     )}
                 </div>
                 <div className={"inner-page-box"} style={{width:"35vw", height:"70vh", overflow:"scroll", float:"right", marginRight:"20vh"}}>
-                    <h1 style={{fontSize:'2.5vh'}}>Insert code here(this is currently just a h1)</h1>
+                    <textarea value={userSchema} onChange={handleUserSchema} placeholder={"Enter your schema"} style={{ width: "100%", height: "100%", boxSizing: "border-box", border:0, outline:0 }}></textarea>
                 </div>
             </div>
 
+            <button
+                className={"inner-page-box"}
+                style={{
+                    width: "80vw",
+                    height: "10vh",
+                    backgroundColor: "#BD0A0A",
+                    color: "white",
+                    fontSize: "24px",
+                    fontWeight: "bold",
+                    paddingTop: "0.5vh",
+                    cursor: "pointer",
+                }}
+                onClick={handleCompare}
+                disabled={loading}
+            >
+                {loading ? "Comparing..." : "Compare"}
+            </button>
 
-            <div className={"inner-page-box"} style={{width:"80vw", height:"30vh"}}>
-                <h2 style={{fontSize:'2.5vh'}}>LLM outputs explanation of what it finds here</h2>
-
+            <div className={"inner-page-box"} style={{ width: "80vw", height: "35vh" }}>
+                <h2 style={{ fontSize: "2.5vh" }}>
+                    {error
+                        ? `Error: ${error}`
+                        : diffResult
+                            ? "Comparison Result:"
+                            : "Click Compare After Uploading Your ERD And SQL Code To See Results"}
+                </h2>
+                {diffResult && (
+                    <pre
+                        style={{
+                            whiteSpace: "pre-wrap",
+                            wordWrap: "break-word",
+                            fontSize: "1.2vh",
+                            maxHeight: "25vh",
+                            overflowY: "auto",
+                        }}
+                    >
+            {JSON.stringify(diffResult, null, 2)}
+          </pre>
+                )}
             </div>
 
             <div className={"inner-page-box"} style={{width:'80vw', height:'35vh'}}>
