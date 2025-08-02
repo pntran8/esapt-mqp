@@ -1,15 +1,9 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from sqlglot import parse_one, diff, parse
 import logging
-import sys
-from sqlglot import parse_one, parse
 from sqlglot import diff, parse
 from sqlglot.expressions import Expression, Create
-from sqlglot.diff import Insert, Remove, Keep
 from sqlglot.expressions import DataType, DataTypeParam, Literal, ColumnDef, Constraint, PrimaryKey, ForeignKey, PrimaryKeyColumnConstraint
-import re
-
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
