@@ -16,4 +16,6 @@ model Accounts {
   imageFile   String
   textFile    String?
   timeCreated DateTime
+
+  @@map("Accounts")
 }
