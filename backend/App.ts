@@ -88,7 +88,17 @@ io.on("connection", (socket) => {
 // Define the CORS options
 const corsOptions = {
     credentials: true,
-    origin: ["http://localhost:3000", "http://localhost:3001", "https://esapt2025.vercel.app"],
+    origin: (origin, callback) => {
+        if (
+            !origin ||
+            origin.startsWith("http://localhost") ||
+            /^https:\/\/esapt2025-.*-pntran8s-projects\.vercel\.app$/.test(origin)
+        ) {
+            callback(null, true);
+        } else {
+            callback(new Error("Not allowed by CORS"));
+        }
+    },
 };
 app.use(cors(corsOptions));
 app.use(express.json({ limit: "10mb" }));
