@@ -31,7 +31,7 @@ const LogPage: React.FC = () => {
         const fetchUploads = async () => {
             try {
                 const res = await fetch(
-                    `https://esapt2025-gck2pz7lo-pntran8s-projects.vercel.app/api/viewUpload/getLog?userID=${userID}&id=${id}&timeCreated=${encodeURIComponent(timeCreated)}`
+                    `/api/viewUpload/getLog?userID=${userID}&id=${id}&timeCreated=${encodeURIComponent(timeCreated)}`
                 );
 
                 const data = await res.json();

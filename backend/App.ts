@@ -16,8 +16,8 @@ const app: Express = express();
 
 // Define the CORS options
 const corsOptions = {
-    credentials: true,
     origin: (origin, callback) => {
+        // Allow requests from localhost and your Vercel subdomains
         if (
             !origin ||
             origin.startsWith("http://localhost") ||
@@ -28,6 +28,7 @@ const corsOptions = {
             callback(new Error("Not allowed by CORS"));
         }
     },
+    credentials: true,
 };
 app.use(cors(corsOptions));
 app.use(express.json({ limit: "10mb" }));
