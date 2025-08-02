@@ -6,9 +6,10 @@
       "includeFiles": "node_modules/@prisma/client/**"
     },
     "api/**/*.py": {
-      "runtime": "python3.10",
+      "runtime": "python3",
       "memory": 512,
       "maxDuration": 10
     }
   }
 }
+
