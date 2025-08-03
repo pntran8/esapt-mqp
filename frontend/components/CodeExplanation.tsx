@@ -73,9 +73,9 @@ const CodeExplanation: React.FC<Props> = ({imageUrl, code, explanation}) => {
                     </div>
                 </div>
             </div>
-            <div style={{height:'25vh', marginBottom:"10vh"}}>
+            <div style={{height:'30vh', marginBottom:"10vh"}}>
                 { isAuthenticated ?
-                    <div>
+                    <div className={"inner-page-box"} style={{width:"35vw", height:"25vh", float:"left", marginLeft:'10vw'}}>
                         <h2 style={{fontSize:'20px', marginBottom:'30px'}}>Welcome, {user?.sub?.slice(-8).toUpperCase()}! Click here to view <br/> your saved work</h2>
                         <button className={'box-button'} onClick={goToHistory}>View History</button>
                     </div>
