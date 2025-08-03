@@ -1340,6 +1340,11 @@
     typescript "4.9.5"
     undici "5.28.4"
 
+"@vercel/python@^5.0.0":
+  version "5.0.0"
+  resolved "https://registry.npmjs.org/@vercel/python/-/python-5.0.0.tgz"
+  integrity sha512-JHpYKQ8d478REzmF7NcJTJcncFziJhVOwzan8wW4F1RJOHGDBTPkATAgi4CPQIijToRamPCkgeECzNOvLUDR+w==
+
 "@vercel/static-config@3.1.1":
   version "3.1.1"
   resolved "https://registry.npmjs.org/@vercel/static-config/-/static-config-3.1.1.tgz"
