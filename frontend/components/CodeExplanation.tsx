@@ -4,6 +4,7 @@ import "./gem.css";
 import "../src/App.css"
 import { useNavigate} from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
+import download from "../src/assets/download.png"
 import * as React from "react";
 
 interface Props {
@@ -52,7 +53,7 @@ const CodeExplanation: React.FC<Props> = ({imageUrl, code, explanation}) => {
                     <img
                         src={imageUrl}
                         alt="ERD Preview"
-                        style={{ maxWidth: '100%', maxHeight: '30vh', objectFit: 'contain' }}
+                        style={{ maxWidth: '90%', maxHeight: '27vh', objectFit: 'contain', justifySelf:'center' }}
                     />
                 ) : (
                     <p>No image available.</p>
@@ -62,13 +63,13 @@ const CodeExplanation: React.FC<Props> = ({imageUrl, code, explanation}) => {
                 <div style={{float:'left'}}>
                     <h1>Code Output</h1>
                     <div className={"inner-page-box"} style={{width:'35vw', height:'80vh', overflow:'scroll', float:'left'}}>
-                        <h2 style={{fontSize:'20px'}}>{code}</h2>
+                        <h2 style={{fontSize:'20px', justifySelf:'left'}}>{code}</h2>
                     </div>
                 </div>
                 <div style={{float:'right'}}>
                     <h1>AI Explanation</h1>
                     <div className={"inner-page-box"} style={{width:"35vw", height:"80vh", overflow:"scroll", float:'right'}}>
-                        <h2 style={{fontSize:'20px'}}>{explanation}</h2>
+                        <h2 style={{fontSize:'20px', justifySelf:'left'}}>{explanation}</h2>
                     </div>
                 </div>
             </div>
@@ -87,7 +88,9 @@ const CodeExplanation: React.FC<Props> = ({imageUrl, code, explanation}) => {
                 <div className={"inner-page-box"} style={{width:"35vw", height:"25vh", float:"right", marginRight:'10vw'}}>
                     <div>
                         <h2 style={{fontSize:"20px"}}>Download Output.txt</h2>
-                        <button className={"box-button"} style={{marginTop:'40px'}}></button>
+                        <button className={"box-button"} style={{marginTop:'40px'}}>
+                            <img src={download} alt="Download" style={{justifySelf:"center", width: '25%'}} />
+                        </button>
                     </div>
                 </div>
             </div>

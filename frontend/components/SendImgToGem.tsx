@@ -44,8 +44,8 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
         navigate('/viewHistory');
     }
     const goToExp = () => {
-        console.log(code);
-        console.log(explanation);
+        //console.log(code);
+        //console.log(explanation);
         navigate("/explanation");
     }
     const handleAuthClick = async () => {
@@ -142,11 +142,6 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
             <Header />
             <div id="input-container" style={{border:"1vh light grey", borderRadius:"2vh", marginTop:"3vh"}}>
 
-                    {file !== null && responseString !== "" && isAuthenticated && (
-                        <button className="cursor-pointer clear-btn">
-                            <Save file={file} responseText={responseString} />
-                        </button>
-                    )}
                     <button className="cursor-pointer clear-btn">
                         <StartSessionBtn/>
                     </button>
@@ -179,7 +174,7 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
                 ) : (
                     <div>
                         {response.map((msg, index) => (
-                            <div key={index} >
+                            <div key={index}>
                                 <ReactMarkdown>{msg.message}</ReactMarkdown>
                             </div>
                         ))}
