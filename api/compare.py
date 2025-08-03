@@ -1,12 +1,8 @@
-from flask import Flask, jsonify, request
-from flask_cors import CORS
+import json
 from sqlglot import parse
 from sqlglot.expressions import (
     Create, ColumnDef, Constraint, PrimaryKey, ForeignKey, PrimaryKeyColumnConstraint
 )
-
-app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
 
 def compare_attributes(expr1, expr2):
     attributes1 = [col.this.this for col in expr1.find_all(ColumnDef)]
@@ -73,7 +69,7 @@ def get_create_node_for_table(ast, table_name):
     return None
 
 def compare_schemas_logic(schema1_str, schema2_str):
-    """Extracted logic for schema comparison"""
+    """Core schema comparison logic"""
     if not schema1_str or not schema2_str:
         raise ValueError("Both schema1 and schema2 are required")
 
@@ -128,21 +124,74 @@ def compare_schemas_logic(schema1_str, schema2_str):
 
     return results
 
-@app.route('/', methods=['POST'])
-def compare_schemas():
+# Vercel serverless function handler
+def handler(request, context):
+    """Vercel serverless function entry point"""
     try:
-        data = request.get_json()
+        # Handle CORS preflight requests
+        if request.get('httpMethod') == 'OPTIONS':
+            return {
+                'statusCode': 200,
+                'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
+                'body': ''
+            }
+
+        # Only allow POST requests
+        if request.get('httpMethod') != 'POST':
+            return {
+                'statusCode': 405,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps({"error": "Method not allowed"})
+            }
+
+        # Parse request body
+        body = request.get('body', '')
+        if request.get('isBase64Encoded', False):
+            import base64
+            body = base64.b64decode(body).decode('utf-8')
+
+        try:
+            data = json.loads(body) if body else {}
+        except json.JSONDecodeError:
+            return {
+                'statusCode': 400,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps({"error": "Invalid JSON"})
+            }
+
         schema1_str = data.get("schema1", "")
         schema2_str = data.get("schema2", "")
 
+        # Run the comparison logic
         results = compare_schemas_logic(schema1_str, schema2_str)
-        return jsonify({"diff": results})
+
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'POST, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type'
+            },
+            'body': json.dumps({"diff": results})
+        }
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-# Vercel serverless function handler
-def handler(request):
-    """Vercel serverless function entry point"""
-    with app.app_context():
-        return app.full_dispatch_request()
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({"error": str(e)})
+        }
