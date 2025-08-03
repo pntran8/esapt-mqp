@@ -1,10 +1,6 @@
 import json
-import logging
-from sqlglot import diff, parse
-from sqlglot.expressions import Expression, Create
-from sqlglot.expressions import DataType, DataTypeParam, Literal, ColumnDef, Constraint, PrimaryKey, ForeignKey, PrimaryKeyColumnConstraint
-
-logging.basicConfig(level=logging.DEBUG)
+from sqlglot import parse
+from sqlglot.expressions import Create, ColumnDef, Constraint, PrimaryKey, ForeignKey, PrimaryKeyColumnConstraint
 
 def compare_attributes(expr, expr2):
     """Compare attributes between two table expressions"""
@@ -148,134 +144,72 @@ def compare_schemas_logic(schema1_str, schema2_str):
 
     return results
 
-def handler(request):
-    """Vercel serverless function handler"""
-    # Set CORS headers
-    headers = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Content-Type': 'application/json'
-    }
+def handler(event, context):
+    """AWS Lambda / Vercel handler"""
 
-    # Handle preflight OPTIONS request
-    if request.method == 'OPTIONS':
+    # Handle preflight CORS request
+    if event.get('httpMethod') == 'OPTIONS' or event.get('requestContext', {}).get('http', {}).get('method') == 'OPTIONS':
         return {
             'statusCode': 200,
-            'headers': headers,
+            'headers': {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'POST, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type',
+                'Content-Type': 'application/json'
+            },
             'body': ''
         }
 
-    # Only allow POST requests
-    if request.method != 'POST':
-        return {
-            'statusCode': 405,
-            'headers': headers,
-            'body': json.dumps({'error': 'Method not allowed. Use POST.'})
-        }
-
     try:
-        # Parse request body
-        if hasattr(request, 'get_json'):
-            data = request.get_json()
-        elif hasattr(request, 'json'):
-            data = request.json
-        else:
-            # Fallback for different request formats
-            body = request.body if hasattr(request, 'body') else request.data
-            if isinstance(body, bytes):
-                body = body.decode('utf-8')
+        # Parse the request body
+        body = event.get('body', '{}')
+        if isinstance(body, str):
             data = json.loads(body)
+        else:
+            data = body
 
-        # Validate input
-        if not data:
-            return {
-                'statusCode': 400,
-                'headers': headers,
-                'body': json.dumps({'error': 'No JSON data provided'})
-            }
-
+        # Validate required fields
         schema1_str = data.get("schema1", "")
         schema2_str = data.get("schema2", "")
 
         if not schema1_str or not schema2_str:
             return {
                 'statusCode': 400,
-                'headers': headers,
+                'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Content-Type': 'application/json'
+                },
                 'body': json.dumps({'error': 'Both schema1 and schema2 are required'})
             }
 
         # Process schemas
         result = compare_schemas_logic(schema1_str, schema2_str)
 
-        # Return successful response
+        # Return success response
         return {
             'statusCode': 200,
-            'headers': headers,
+            'headers': {
+                'Access-Control-Allow-Origin': '*',
+                'Content-Type': 'application/json'
+            },
             'body': json.dumps({'diff': result})
         }
 
     except json.JSONDecodeError:
         return {
             'statusCode': 400,
-            'headers': headers,
+            'headers': {
+                'Access-Control-Allow-Origin': '*',
+                'Content-Type': 'application/json'
+            },
             'body': json.dumps({'error': 'Invalid JSON in request body'})
         }
     except Exception as e:
-        logging.error(f"Error processing request: {str(e)}")
         return {
             'statusCode': 500,
-            'headers': headers,
+            'headers': {
+                'Access-Control-Allow-Origin': '*',
+                'Content-Type': 'application/json'
+            },
             'body': json.dumps({'error': f'Internal server error: {str(e)}'})
         }
-
-# Alternative entry point for different Vercel configurations
-def app(environ, start_response):
-    """WSGI-compatible entry point"""
-    try:
-        # Extract method and body from WSGI environ
-        method = environ['REQUEST_METHOD']
-
-        # Create a mock request object
-        class MockRequest:
-            def __init__(self, method, environ):
-                self.method = method
-
-                # Read body
-                try:
-                    content_length = int(environ.get('CONTENT_LENGTH', 0))
-                except (ValueError, TypeError):
-                    content_length = 0
-
-                if content_length > 0:
-                    body = environ['wsgi.input'].read(content_length)
-                    self.body = body
-                    if isinstance(body, bytes):
-                        try:
-                            self.json = json.loads(body.decode('utf-8'))
-                        except:
-                            self.json = {}
-                    else:
-                        self.json = {}
-                else:
-                    self.body = b''
-                    self.json = {}
-
-        request = MockRequest(method, environ)
-        response = handler(request)
-
-        status = f"{response['statusCode']} OK"
-        response_headers = [(k, v) for k, v in response['headers'].items()]
-
-        start_response(status, response_headers)
-        return [response['body'].encode('utf-8')]
-
-    except Exception as e:
-        status = '500 Internal Server Error'
-        response_headers = [
-            ('Content-Type', 'application/json'),
-            ('Access-Control-Allow-Origin', '*')
-        ]
-        start_response(status, response_headers)
-        error_response = json.dumps({'error': str(e)})
-        return [error_response.encode('utf-8')]
