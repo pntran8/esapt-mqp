@@ -10,11 +10,5 @@
       "memory": 512,
       "maxDuration": 10
     }
-  },
-  "builds": [
-    {
-      "src": "api/compare.py",
-      "use": "@vercel/python"
-    }
-  ]
+  }
 }
