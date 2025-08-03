@@ -6,7 +6,7 @@
       "includeFiles": "node_modules/@prisma/client/**"
     },
     "api/compare.py": {
-      "runtime": "python3.9",
+      "runtime": "vercel-python@0.7.3",
       "memory": 512,
       "maxDuration": 10
     }
