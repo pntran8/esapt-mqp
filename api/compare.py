@@ -1,20 +1,127 @@
-from flask import Flask, jsonify, request
-from flask_cors import CORS
+from http.server import BaseHTTPRequestHandler
+import json
 import logging
+from urllib.parse import urlparse, parse_qs
 from sqlglot import diff, parse
 from sqlglot.expressions import Expression, Create
 from sqlglot.expressions import DataType, DataTypeParam, Literal, ColumnDef, Constraint, PrimaryKey, ForeignKey, PrimaryKeyColumnConstraint
 
-app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
-
 logging.basicConfig(level=logging.DEBUG)
 
+class Handler(BaseHTTPRequestHandler):
+    def do_OPTIONS(self):
+        """Handle CORS preflight requests"""
+        self.send_response(200)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.end_headers()
 
-@app.route('/', methods=['POST'])
-def compare_schemas():
+    def do_POST(self):
+        """Handle POST requests for schema comparison"""
+        try:
+            # Set CORS headers
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+            self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+            self.end_headers()
 
-    def compare_attributes(expr, expr2):
+            # Get request body
+            content_length = int(self.headers.get('Content-Length', 0))
+            post_data = self.rfile.read(content_length)
+
+            # Parse JSON data
+            try:
+                data = json.loads(post_data.decode('utf-8'))
+            except json.JSONDecodeError:
+                self.send_error_response(400, "Invalid JSON in request body")
+                return
+
+            # Extract schemas
+            schema1_str = data.get("schema1", "")
+            schema2_str = data.get("schema2", "")
+
+            if not schema1_str or not schema2_str:
+                self.send_error_response(400, "Both schema1 and schema2 are required")
+                return
+
+            # Process schemas
+            result = self.compare_schemas(schema1_str, schema2_str)
+
+            # Send successful response
+            response = {"diff": result}
+            self.wfile.write(json.dumps(response).encode('utf-8'))
+
+        except Exception as e:
+            logging.error(f"Error processing request: {str(e)}")
+            self.send_error_response(500, f"Internal server error: {str(e)}")
+
+    def send_error_response(self, status_code, message):
+        """Send error response with proper headers"""
+        self.send_response(status_code)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.end_headers()
+        error_response = {"error": message}
+        self.wfile.write(json.dumps(error_response).encode('utf-8'))
+
+    def compare_schemas(self, schema1_str, schema2_str):
+        """Main schema comparison logic"""
+        ast1 = parse(schema1_str)
+        ast2 = parse(schema2_str)
+
+        ast1_clean = self.strip_datatypes(ast1)
+        ast2_clean = self.strip_datatypes(ast2)
+
+        tables1 = set(self.get_table_names(ast1_clean))
+        tables2 = set(self.get_table_names(ast2_clean))
+
+        only_in_1 = tables1 - tables2
+        only_in_2 = tables2 - tables1
+        common_tables = tables1 & tables2
+
+        results = []
+
+        if only_in_1:
+            results.append(f"Tables only in schema 1: {only_in_1}")
+        if only_in_2:
+            results.append(f"Tables only in schema 2: {only_in_2}")
+        if not common_tables:
+            results.append("No common tables to compare.")
+            return results
+
+        for table in common_tables:
+            results.append(f"\nComparing table: {table}")
+
+            table_clean_1 = self.get_create_node_for_table(ast1_clean, table)
+            table_clean_2 = self.get_create_node_for_table(ast2_clean, table)
+
+            table_orig_1 = self.get_create_node_for_table(ast1, table)
+            table_orig_2 = self.get_create_node_for_table(ast2, table)
+
+            attr_diff = self.compare_attributes(table_clean_1, table_clean_2)
+            results.append(f"Attribute differences: {attr_diff}")
+
+            pk1 = self.primary_key_checker(table_orig_1)
+            pk2 = self.primary_key_checker(table_orig_2)
+            if set(pk1) == set(pk2):
+                results.append("Primary keys are the same")
+            else:
+                results.append(f"Primary key mismatch:\n  schema1: {pk1}\n  schema2: {pk2}")
+
+            fk1 = self.foreign_key_checker(table_orig_1)
+            fk2 = self.foreign_key_checker(table_orig_2)
+            if set(tuple(fk) for fk in fk1) == set(tuple(fk) for fk in fk2):
+                results.append("Foreign keys are the same")
+            else:
+                results.append(f"Foreign key differences:\n  schema1: {fk1}\n  schema2: {fk2}")
+
+        return results
+
+    def compare_attributes(self, expr, expr2):
+        """Compare attributes between two table expressions"""
         attributes1 = []
         attributes2 = []
 
@@ -37,8 +144,8 @@ def compare_schemas():
 
         return results
 
-
-    def primary_key_checker(expr1):
+    def primary_key_checker(self, expr1):
+        """Extract primary keys from table expression"""
         primary_keys = []
         for col in expr1.this.expressions:
             if col.args.get("constraints"):
@@ -53,7 +160,8 @@ def compare_schemas():
 
         return primary_keys
 
-    def foreign_key_checker(expr1):
+    def foreign_key_checker(self, expr1):
+        """Extract foreign keys from table expression"""
         foreign_keys = []
         for expr in expr1.this.expressions:
             if isinstance(expr, Constraint):
@@ -74,7 +182,8 @@ def compare_schemas():
                 foreign_keys.append(foreign_key)
         return foreign_keys
 
-    def strip_datatypes(ast):
+    def strip_datatypes(self, ast):
+        """Remove datatypes and constraints from AST for comparison"""
         cleaned = []
         for expr in ast:
             expr_copy = expr.copy()
@@ -84,79 +193,91 @@ def compare_schemas():
             cleaned.append(expr_copy)
         return cleaned
 
-
-    def get_table_names(ast):
+    def get_table_names(self, ast):
+        """Extract table names from AST"""
         table_names = []
         for statement in ast:
             if isinstance(statement, Create):
                 table_names.append(statement.this.this)
         return table_names
 
-    def get_create_node_for_table(ast, table_name):
+    def get_create_node_for_table(self, ast, table_name):
+        """Get CREATE statement for specific table"""
         for statement in ast:
             if isinstance(statement, Create):
                 if statement.this.this == table_name:
                     return statement
         return None
 
+# For Vercel deployment
+def handler(request, response):
+    """Vercel serverless function entry point"""
+    from http.server import HTTPServer
+    import io
+    from urllib.parse import urlparse, parse_qs
 
-    try:
-        data = request.get_json()
-        schema1_str = data.get("schema1", "")
-        schema2_str = data.get("schema2", "")
+    # Create a mock request for BaseHTTPRequestHandler
+    class MockRequest:
+        def __init__(self, method, path, headers, body):
+            self.method = method
+            self.path = path
+            self.headers = headers
+            self.body = body
 
-        ast1 = parse(schema1_str)
-        ast2 = parse(schema2_str)
+    # Extract request information
+    method = request.method
+    headers = dict(request.headers)
+    body = request.body if hasattr(request, 'body') else b''
 
-        ast1_clean = strip_datatypes(ast1)
-        ast2_clean = strip_datatypes(ast2)
+    # Create handler instance
+    handler_instance = Handler()
 
-        tables1 = set(get_table_names(ast1_clean))
-        tables2 = set(get_table_names(ast2_clean))
+    # Mock the request/response cycle
+    class MockSocket:
+        def __init__(self):
+            self.response_data = io.BytesIO()
 
-        only_in_1 = tables1 - tables2
-        only_in_2 = tables2 - tables1
-        common_tables = tables1 & tables2
+        def makefile(self, mode):
+            if 'r' in mode:
+                return io.BytesIO(body)
+            elif 'w' in mode:
+                return self.response_data
 
-        results = []
+    mock_socket = MockSocket()
+    handler_instance.connection = mock_socket
+    handler_instance.rfile = io.BytesIO(body)
+    handler_instance.wfile = mock_socket.response_data
+    handler_instance.headers = headers
 
-        if only_in_1:
-            results.append(f"Tables only in schema 1: {only_in_1}")
-        if only_in_2:
-            results.append(f"Tables only in schema 2: {only_in_2}")
-        if not common_tables:
-            results.append("No common tables to compare.")
-            return results
+    # Handle the request
+    if method == 'POST':
+        handler_instance.do_POST()
+    elif method == 'OPTIONS':
+        handler_instance.do_OPTIONS()
 
-        for table in common_tables:
-            results.append(f"\nComparing table: {table}")
+    # Get response
+    response_bytes = mock_socket.response_data.getvalue()
 
-            table_clean_1 = get_create_node_for_table(ast1_clean, table)
-            table_clean_2 = get_create_node_for_table(ast2_clean, table)
+    # Extract headers and body from HTTP response
+    response_str = response_bytes.decode('utf-8', errors='ignore')
+    if '\r\n\r\n' in response_str:
+        headers_part, body_part = response_str.split('\r\n\r\n', 1)
+        return {
+            'statusCode': 200,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'POST, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type'
+            },
+            'body': body_part
+        }
 
-            table_orig_1 = get_create_node_for_table(ast1, table)
-            table_orig_2 = get_create_node_for_table(ast2, table)
-
-            attr_diff = compare_attributes(table_clean_1, table_clean_2)
-            results.append(f"Attribute differences: {attr_diff}")
-
-            pk1 = primary_key_checker(table_orig_1)
-            pk2 = primary_key_checker(table_orig_2)
-            if set(pk1) == set(pk2):
-                results.append("Primary keys are the same")
-            else:
-                results.append(f"Primary key mismatch:\n  schema1: {pk1}\n  schema2: {pk2}")
-
-            fk1 = foreign_key_checker(table_orig_1)
-            fk2 = foreign_key_checker(table_orig_2)
-            if set(tuple(fk) for fk in fk1) == set(tuple(fk) for fk in fk2):
-                results.append("Foreign keys are the same")
-            else:
-                results.append(f"Foreign key differences:\n  schema1: {fk1}\n  schema2: {fk2}")
-
-        return jsonify({"diff": results})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-def handler(environ, start_response):
-    return app(environ, start_response)
+    return {
+        'statusCode': 500,
+        'headers': {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+        },
+        'body': json.dumps({'error': 'Internal server error'})
+    }
