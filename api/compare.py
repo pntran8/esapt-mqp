@@ -72,6 +72,62 @@ def get_create_node_for_table(ast, table_name):
             return stmt
     return None
 
+def compare_schemas_logic(schema1_str, schema2_str):
+    """Extracted logic for schema comparison"""
+    if not schema1_str or not schema2_str:
+        raise ValueError("Both schema1 and schema2 are required")
+
+    ast1 = parse(schema1_str)
+    ast2 = parse(schema2_str)
+
+    ast1_clean = strip_datatypes(ast1)
+    ast2_clean = strip_datatypes(ast2)
+
+    tables1 = set(get_table_names(ast1_clean))
+    tables2 = set(get_table_names(ast2_clean))
+
+    only_in_1 = tables1 - tables2
+    only_in_2 = tables2 - tables1
+    common_tables = tables1 & tables2
+
+    results = []
+
+    if only_in_1:
+        results.append(f"Tables only in schema 1: {only_in_1}")
+    if only_in_2:
+        results.append(f"Tables only in schema 2: {only_in_2}")
+    if not common_tables:
+        results.append("No common tables to compare.")
+        return results
+
+    for table in common_tables:
+        results.append(f"\nComparing table: {table}")
+
+        table_clean_1 = get_create_node_for_table(ast1_clean, table)
+        table_clean_2 = get_create_node_for_table(ast2_clean, table)
+
+        table_orig_1 = get_create_node_for_table(ast1, table)
+        table_orig_2 = get_create_node_for_table(ast2, table)
+
+        attr_diff = compare_attributes(table_clean_1, table_clean_2)
+        results.append(f"Attribute differences: {attr_diff}")
+
+        pk1 = primary_key_checker(table_orig_1)
+        pk2 = primary_key_checker(table_orig_2)
+        if set(pk1) == set(pk2):
+            results.append("Primary keys are the same")
+        else:
+            results.append(f"Primary key mismatch:\n  schema1: {pk1}\n  schema2: {pk2}")
+
+        fk1 = foreign_key_checker(table_orig_1)
+        fk2 = foreign_key_checker(table_orig_2)
+        if set(tuple(fk) for fk in fk1) == set(tuple(fk) for fk in fk2):
+            results.append("Foreign keys are the same")
+        else:
+            results.append(f"Foreign key differences:\n  schema1: {fk1}\n  schema2: {fk2}")
+
+    return results
+
 @app.route('/', methods=['POST'])
 def compare_schemas():
     try:
@@ -79,63 +135,14 @@ def compare_schemas():
         schema1_str = data.get("schema1", "")
         schema2_str = data.get("schema2", "")
 
-        if not schema1_str or not schema2_str:
-            return jsonify({"error": "Both schema1 and schema2 are required"}), 400
-
-        ast1 = parse(schema1_str)
-        ast2 = parse(schema2_str)
-
-        ast1_clean = strip_datatypes(ast1)
-        ast2_clean = strip_datatypes(ast2)
-
-        tables1 = set(get_table_names(ast1_clean))
-        tables2 = set(get_table_names(ast2_clean))
-
-        only_in_1 = tables1 - tables2
-        only_in_2 = tables2 - tables1
-        common_tables = tables1 & tables2
-
-        results = []
-
-        if only_in_1:
-            results.append(f"Tables only in schema 1: {only_in_1}")
-        if only_in_2:
-            results.append(f"Tables only in schema 2: {only_in_2}")
-        if not common_tables:
-            results.append("No common tables to compare.")
-            return jsonify({"diff": results})
-
-        for table in common_tables:
-            results.append(f"\nComparing table: {table}")
-
-            table_clean_1 = get_create_node_for_table(ast1_clean, table)
-            table_clean_2 = get_create_node_for_table(ast2_clean, table)
-
-            table_orig_1 = get_create_node_for_table(ast1, table)
-            table_orig_2 = get_create_node_for_table(ast2, table)
-
-            attr_diff = compare_attributes(table_clean_1, table_clean_2)
-            results.append(f"Attribute differences: {attr_diff}")
-
-            pk1 = primary_key_checker(table_orig_1)
-            pk2 = primary_key_checker(table_orig_2)
-            if set(pk1) == set(pk2):
-                results.append("Primary keys are the same")
-            else:
-                results.append(f"Primary key mismatch:\n  schema1: {pk1}\n  schema2: {pk2}")
-
-            fk1 = foreign_key_checker(table_orig_1)
-            fk2 = foreign_key_checker(table_orig_2)
-            if set(tuple(fk) for fk in fk1) == set(tuple(fk) for fk in fk2):
-                results.append("Foreign keys are the same")
-            else:
-                results.append(f"Foreign key differences:\n  schema1: {fk1}\n  schema2: {fk2}")
-
+        results = compare_schemas_logic(schema1_str, schema2_str)
         return jsonify({"diff": results})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# For serverless compatibility (optional; Vercel automatically uses `app`)
-def handler(environ, start_response):
-    return app(environ, start_response)
+# Vercel serverless function handler
+def handler(request):
+    """Vercel serverless function entry point"""
+    with app.app_context():
+        return app.full_dispatch_request()
