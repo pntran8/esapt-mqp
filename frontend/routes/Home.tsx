@@ -37,7 +37,6 @@ const Home = () => {
             <Header />
                 <h1 style={{marginTop:'30px', fontSize:'50px'}}><b>ESAPT</b></h1>
                 <h2 style={{fontSize:'2.5vh'}}><b>ERD to SQL Artificial Intelligence Powered Transpiler</b></h2>
-                <h3><br/>Text description of program goes here</h3>
                 <div className="box">
                     <div style ={{float:"left", marginLeft:"10vw"}}>
 
