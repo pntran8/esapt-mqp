@@ -75,6 +75,7 @@ const LogPage: React.FC = () => {
     return (
         <>
             <Header />
+            <h1>Log</h1>
             <img
                 src={entry.decodedImage}
                 alt="Upload preview"

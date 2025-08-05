@@ -10,6 +10,7 @@ import {Auth0Provider} from '@auth0/auth0-react';
 import { useAuth0 } from '@auth0/auth0-react';
 import {useEffect} from 'react';
 import LogPage from "../components/LogPage.tsx";
+import SessionImgToGem from "../components/SessionImgToGem.tsx";
 import Home from "../routes/Home.tsx"
 
 const App = () => {
@@ -64,6 +65,14 @@ const App = () => {
                                                         imageUrl={imageUrl}
                                                         setImageUrl={setImageUrl}
                                                     />} />
+                    <Route path="/imggem/session/:sessionID" element={<SessionImgToGem
+                    code = {code}
+                    setCode = {setCode}
+                    explanation = {explanation}
+                    setExplanation = {setExplanation}
+                    imageUrl = {imageUrl}
+                    setImageUrl = {setImageUrl}
+                    />} />
                     <Route path="/viewHistory" element={<View />} />
                     <Route path="/viewHistory/:userID" element={<LogPage />} />
                     <Route

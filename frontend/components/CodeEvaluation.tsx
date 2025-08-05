@@ -184,7 +184,10 @@ const CodeEvaluation = () => {
     return (
         <>
             <Header />
-            <div id="input-container" style={{border:"1vh light grey", borderRadius:"2vh", marginTop:"3vh"}}>
+
+            <header className="text-center text-4xl mt-8 font-bold">Code Eval</header>
+
+            <div id="input-container" style={{border: "1vh light grey", borderRadius:"2vh", marginTop:"3vh"}}>
 
                 {file !== null && responseString !== "" && isAuthenticated && (
                     <button className="cursor-pointer clear-btn">
