@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, ChangeEvent } from "react";
 import { io } from "socket.io-client";
-import ReactMarkdown from "react-markdown";
+//import ReactMarkdown from "react-markdown";
 import Header from "./Header";
 import "./gem.css";
 import {
@@ -37,7 +37,7 @@ const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_LLM_API_KEY });
 const SessionImgToGem:React.FC<Props> = ({ imageUrl, setImageUrl, code, setCode, explanation, setExplanation }) => {
     const { sessionID } = useParams();
     const [response, setResponse] = useState<Message[]>([]);
-    //const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const [file, setFile] = useState<File | null>(null);
     const [responseString, setResponseString] = useState("");
     const [hostID, setHostID] = useState<string | null>(null);
@@ -132,11 +132,11 @@ const SessionImgToGem:React.FC<Props> = ({ imageUrl, setImageUrl, code, setCode,
     const handleFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file || !isHost) return;
-
+        setIsLoading(true);
         setFile(file);
         const localUrl = URL.createObjectURL(file);
         setImageUrl(localUrl);
-        //setIsLoading(true);
+
         let resStr = "";
 
         try {
@@ -173,8 +173,8 @@ const SessionImgToGem:React.FC<Props> = ({ imageUrl, setImageUrl, code, setCode,
             const resParts = resStr.split('----------');
             setCode(resParts[0]);
             setExplanation(resParts[1]);
-            console.log(code);
-            console.log(explanation);
+            //console.log(code);
+            //console.log(explanation);
             setResponseString(resStr);
 
             socket.emit("update", {
@@ -205,9 +205,11 @@ const SessionImgToGem:React.FC<Props> = ({ imageUrl, setImageUrl, code, setCode,
         return (
             <>
                 <Header />
+                <h1>Generate SQL from ERD</h1>
                 <div className="chat-container">
                     <h1>Loading authentication...</h1>
                 </div>
+                <Footer />
             </>
         );
     }
@@ -245,14 +247,11 @@ const SessionImgToGem:React.FC<Props> = ({ imageUrl, setImageUrl, code, setCode,
                 </div>
                 <div className={"inner-page-box"} style={{width:"80vw", height:"70vh", overflow:"scroll"}}>
                     {response.length === 0 ? (
-                        <h1 style={{fontSize:'max(15px, 2.5vh)'}}>Upload your image to see code</h1>
+                        isLoading ? (<h1 style={{fontSize:'max(15px, 2.5vh)'}}>Loading SQL, please wait...</h1>) :
+                            (<h1 style={{fontSize:'max(15px, 2.5vh)'}}>Upload your image to see code</h1>)
                     ) : (
                         <div>
-                            {response.map((msg, index) => (
-                                <div key={index} >
-                                    <ReactMarkdown>{msg.message}</ReactMarkdown>
-                                </div>
-                            ))}
+                            <h3 style={{fontSize:'20px', justifySelf:'left'}}>{code}</h3>
                         </div>
                     )}
                 </div>

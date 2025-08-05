@@ -15,7 +15,7 @@ const StartSessionBtn = () => {
 
     return (
         <button onClick={handleStartSession} className="start-btn">
-            Start Session
+            Start Remote Session
         </button>
     );
 };

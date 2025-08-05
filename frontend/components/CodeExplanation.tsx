@@ -47,6 +47,7 @@ const CodeExplanation: React.FC<Props> = ({imageUrl, code, explanation}) => {
     return (
         <>
             <Header />
+            <h1>SQL Explanation</h1>
             <div className="inner-page-box" style={{ width: '80vw', height: '35vh' }}>
                 <h2 style={{ fontSize: '20px' }}>Your ERD is displayed here</h2>
                 {imageUrl ? (
@@ -63,13 +64,13 @@ const CodeExplanation: React.FC<Props> = ({imageUrl, code, explanation}) => {
                 <div style={{float:'left'}}>
                     <h1>Code Output</h1>
                     <div className={"inner-page-box"} style={{width:'35vw', height:'80vh', overflow:'scroll', float:'left'}}>
-                        <h2 style={{fontSize:'20px', justifySelf:'left'}}>{code}</h2>
+                        <h3 style={{fontSize:'20px', justifySelf:'left'}}>{code}</h3>
                     </div>
                 </div>
                 <div style={{float:'right'}}>
                     <h1>AI Explanation</h1>
                     <div className={"inner-page-box"} style={{width:"35vw", height:"80vh", overflow:"scroll", float:'right'}}>
-                        <h2 style={{fontSize:'20px', justifySelf:'left'}}>{explanation}</h2>
+                        <h3 style={{fontSize:'20px', justifySelf:'left'}}>{explanation}</h3>
                     </div>
                 </div>
             </div>
