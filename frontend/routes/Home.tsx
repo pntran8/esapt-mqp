@@ -4,7 +4,6 @@ import './Home.css'
 import '../src/App.css'
 import {useNavigate} from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
-import * as React from "react";
 import download from "../src/assets/download.png"
 import upload from "../src/assets/upload.png"
 
@@ -38,7 +37,6 @@ const Home = () => {
             <Header />
                 <h1 style={{marginTop:'30px', fontSize:'50px'}}><b>ESAPT</b></h1>
                 <h2 style={{fontSize:'2.5vh'}}><b>ERD to SQL Artificial Intelligence Powered Transpiler</b></h2>
-                <h3><br/>Text description of program goes here</h3>
                 <div className="box">
                     <div style ={{float:"left", marginLeft:"10vw"}}>
 
@@ -67,12 +65,11 @@ const Home = () => {
                 <div className="box">
                     {isAuthenticated ?
                         <div>
-                            <h2 style={{fontSize:'2.5vh', marginBottom:'3vh'}}>Welcome, {user?.sub?.slice(-8).toUpperCase()}! Click here to view <br/> your saved work</h2>
+                            <h2 style={{fontSize:'20px', marginBottom:'30px'}}>Welcome, {user?.sub?.slice(-8).toUpperCase()}! Click here to view <br/> your saved work</h2>
                             <button className={'box-button'} onClick={goToHistory}>View History</button>
-                        </div>
-                        :
+                        </div> :
                         <div>
-                            <h2 style={{fontSize:'2.5vh', marginBottom:'3vh'}}>Create an account to save <br/> your work</h2>
+                            <h2 style={{fontSize:'20px', marginBottom:'30px'}}>Create an account to save <br/> your work</h2>
                             <button className={'box-button'} onClick={handleAuthClick}>Login</button>
                         </div>
 

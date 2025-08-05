@@ -8,7 +8,6 @@ body{
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    height: 90vh;
     margin: 0 auto;
     padding: 20px;
     background-color: #f0f0f0;
@@ -110,10 +109,13 @@ h1{
     text-align: center;
     font-family: 'Poppins';
     /* Gradient Text */
-    background: linear-gradient(to right, #4BC0C8, #C779D0, #FEAC5E); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+    background: #000000; /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
     background-clip: text;
     color: transparent;
     letter-spacing: 2px;
+}
+h3{
+    text-align: left;
 }
 .json-editor {
     margin-top: 20px;
