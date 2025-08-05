@@ -1,5 +1,5 @@
 import { useState, ChangeEvent } from "react";
-import ReactMarkdown from "react-markdown";
+//import ReactMarkdown from "react-markdown";
 import Header from "./Header";
 import Footer from "./Footer";
 import "./gem.css";
@@ -36,7 +36,7 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
     const [response, setResponse] = useState<Message[]>([]);
     const { isAuthenticated, user, logout, loginWithRedirect} = useAuth0();
     //this can be used later if we add a loading animation for gemini
-    //const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
     const [file, setFile] = useState<File | null>(null);
     const [responseString, setResponseString] = useState<string>("");
     const navigate = useNavigate();
@@ -44,8 +44,8 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
         navigate('/viewHistory');
     }
     const goToExp = () => {
-        console.log(code);
-        console.log(explanation);
+        //console.log(code);
+        //console.log(explanation);
         navigate("/explanation");
     }
     const handleAuthClick = async () => {
@@ -62,6 +62,8 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
     };
     const handleFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
 
+        setIsLoading(true);
+
         const file = e.target.files?.[0];
         if (!file) return;
         setFile(file);
@@ -70,7 +72,7 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
 
         let resStr = "";
 
-        //setIsLoading(true);
+
 
         if (e.target.files?.[0] != undefined) {
             const myfile = await ai.files.upload({
@@ -140,13 +142,9 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
     return (
         <>
             <Header />
+            <h1>Generate SQL from ERD</h1>
             <div id="input-container" style={{border:"1vh light grey", borderRadius:"2vh", marginTop:"3vh"}}>
 
-                    {file !== null && responseString !== "" && isAuthenticated && (
-                        <button className="cursor-pointer clear-btn">
-                            <Save file={file} responseText={responseString} />
-                        </button>
-                    )}
                     <button className="cursor-pointer clear-btn">
                         <StartSessionBtn/>
                     </button>
@@ -175,14 +173,11 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
             </div>
             <div className={"inner-page-box"} style={{width:"80vw", height:"70vh", overflow:"scroll"}}>
                 {response.length === 0 ? (
-                    <h1 style={{fontSize:'max(15px, 2.5vh)'}}>Upload your image to see code</h1>
+                        isLoading ? (<h1 style={{fontSize:'max(15px, 2.5vh)'}}>Loading SQL, please wait...</h1>)
+                                : (<h1 style={{fontSize:'max(15px, 2.5vh)'}}>Upload your image to see code</h1>)
                 ) : (
                     <div>
-                        {response.map((msg, index) => (
-                            <div key={index} >
-                                <ReactMarkdown>{msg.message}</ReactMarkdown>
-                            </div>
-                        ))}
+                        <h3 style={{fontSize:'20px', justifySelf:'left'}}>{code}</h3>
                     </div>
                 )}
             </div>
