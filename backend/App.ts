@@ -11,6 +11,8 @@ import examplePy from "./routes/examplePy";
 import getHistory from "./routes/getHistory";
 import insertUpload from "./routes/insertUpload";
 import viewUpload from "./routes/viewUpload";
+import SQLITE from "./routes/uploadSQL"
+
 
 const app: Express = express();
 const httpServer = createServer(app);
@@ -94,6 +96,7 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
+app.use("/output", express.static("output"));
 
 // HTTP logging
 app.use(
@@ -110,12 +113,15 @@ const APP_ROUTES = {
     DB: "/api/getHistory",
     INSERT_DB: "/api/insertUpload",
     VIEW_DB: "/api/viewUpload",
+    SQLITE: "/api/uploadSQL",
 };
 
 app.use(APP_ROUTES.INSERT_DB, insertUpload);
 app.use(APP_ROUTES.VIEW_DB, viewUpload);
 app.use(APP_ROUTES.PYTHON, examplePy);
 app.use(APP_ROUTES.DB, getHistory);
+app.use(APP_ROUTES.SQLITE, SQLITE);
+
 
 // Auth0 domain key
 app.get("/api/authodom/key", (_req: Request, res: Response, next: NextFunction) => {
