@@ -226,7 +226,7 @@ const CodeEvaluation = () => {
                                     console.log("arr", arr)
                                     console.log("arr2", arr2)
 
-                                    bullets[i] = "Foreign Key differences: | Schema 1: | " + formatForeignKeys(arr) + "| Schema 2: | " + formatForeignKeys(arr2)
+                                    bullets[i] = "Foreign Key differences: | Schema 1: | " + (arr.length > 0 ? formatForeignKeys(arr) : "None") + "| Schema 2: | " + (arr2.length > 0 ? formatForeignKeys(arr2) : "None");
 
                                     console.log("bullets", bullets[i]);
 
