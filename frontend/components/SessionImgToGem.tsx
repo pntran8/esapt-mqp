@@ -1,6 +1,5 @@
 import { useRef, useState, useEffect, ChangeEvent } from "react";
 import { io } from "socket.io-client";
-//import ReactMarkdown from "react-markdown";
 import Header from "./Header";
 import "./gem.css";
 import {
@@ -25,7 +24,6 @@ interface Message {
 interface Props {
     code: string;
     setCode: (code: string) => void;
-    explanation: string;
     setExplanation: (exp: string) => void;
     imageUrl: string | null;
     setImageUrl: (url: string) => void;
@@ -34,7 +32,7 @@ interface Props {
 const socket = io("http://localhost:3001", { withCredentials: true });
 const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_LLM_API_KEY });
 
-const SessionImgToGem:React.FC<Props> = ({ imageUrl, setImageUrl, code, setCode, explanation, setExplanation }) => {
+const SessionImgToGem:React.FC<Props> = ({ imageUrl, setImageUrl, code, setCode, setExplanation }) => {
     const { sessionID } = useParams();
     const [response, setResponse] = useState<Message[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -233,28 +231,37 @@ const SessionImgToGem:React.FC<Props> = ({ imageUrl, setImageUrl, code, setCode,
                         style={{fontSize:'2vh'}}
                     />
                 </div>
-                <div className="inner-page-box" style={{ width: '80vw', height: '35vh' }}>
-                    <h2 style={{ fontSize: '20px' }}>Your ERD is displayed here</h2>
-                    {imageUrl ? (
-                        <img
-                            src={imageUrl}
-                            alt="ERD Preview"
-                            style={{ maxWidth: '90%', maxHeight: '27vh', objectFit: 'contain', justifySelf:'center'}}
-                        />
-                    ) : (
-                        <p>No image available.</p>
-                    )}
+            <div style={{height: '70vh', marginBottom: "1vh", marginTop: "3vh", display: 'flex', justifyContent: 'center', alignItems: 'stretch', gap: '4vh'}}>
+                <div style={{width: '45vw', display: 'flex', flexDirection: 'column'}}>
+                    <h2 style={{ fontSize: '2.5vh', margin: '0 0 1vh 0' }}>Your ERD is displayed here</h2>
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="border-2 border-[#BD0A0A]">
+                        {imageUrl ? (
+                            <img
+                                src={imageUrl}
+                                alt="ERD Preview"
+                                style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'contain'
+                                }}
+                            />
+                        ) : (
+                            <p>No image available.</p>
+                        )}
+                    </div>
                 </div>
-                <div className={"inner-page-box"} style={{width:"80vw", height:"70vh", overflow:"scroll"}}>
+
+                <div className={"inner-page-box"} style={{width: '30vw', overflow: "scroll"}}>
                     {response.length === 0 ? (
-                        isLoading ? (<h1 style={{fontSize:'max(15px, 2.5vh)'}}>Loading SQL, please wait...</h1>) :
-                            (<h1 style={{fontSize:'max(15px, 2.5vh)'}}>Upload your image to see code</h1>)
+                        isLoading ? (<h1 style={{fontSize:'max(15px, 2.5vh)'}}>Loading SQL, please wait...</h1>)
+                            : (<h1 style={{fontSize:'max(15px, 2.5vh)'}}>Upload your image to see code</h1>)
                     ) : (
                         <div>
                             <h3 style={{fontSize:'20px', justifySelf:'left'}}>{code}</h3>
                         </div>
                     )}
                 </div>
+            </div>
 
                 <div style={{height:'25vh', marginBottom:"6vh"}}>
                     <div className={"inner-page-box w-[35vw] h-[25vh] ml-[10vw] float-left"}>

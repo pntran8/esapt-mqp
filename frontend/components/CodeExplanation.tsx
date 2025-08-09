@@ -48,29 +48,39 @@ const CodeExplanation: React.FC<Props> = ({imageUrl, code, explanation}) => {
         <>
             <Header />
             <h1>SQL Explanation</h1>
-            <div className="inner-page-box" style={{ width: '80vw', height: '35vh' }}>
-                <h2 style={{ fontSize: '20px' }}>Your ERD is displayed here</h2>
-                {imageUrl ? (
-                    <img
-                        src={imageUrl}
-                        alt="ERD Preview"
-                        style={{ maxWidth: '90%', maxHeight: '27vh', objectFit: 'contain', justifySelf:'center' }}
-                    />
-                ) : (
-                    <p>No image available.</p>
-                )}
-            </div>
-            <div style={{height:'80vh', marginTop:'30px', paddingLeft:'10vw', paddingRight:'10vw'}}>
-                <div style={{float:'left'}}>
-                    <h1>Code Output</h1>
-                    <div className={"inner-page-box"} style={{width:'35vw', height:'80vh', overflow:'scroll', float:'left'}}>
-                        <h3 style={{fontSize:'20px', justifySelf:'left'}}>{code}</h3>
+            <div style={{height: '80vh', marginTop: '3vh', marginBottom: '1vh', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: '2vh', paddingLeft: '5vw', paddingRight: '5vw'}}>
+                <div style={{width: '45vw', display: 'flex', flexDirection: 'column'}}>
+                    <h1>Your ERD</h1>
+                    <div style={{height: '70vh', display: 'flex', alignItems: 'center', justifyContent: 'center'}} className="border-2 border-[#BD0A0A]">
+                        {imageUrl ? (
+                            <img
+                                src={imageUrl}
+                                alt="ERD Preview"
+                                style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'contain'
+                                }}
+                            />
+                        ) : (
+                            <p>No image available.</p>
+                        )}
                     </div>
                 </div>
-                <div style={{float:'right'}}>
-                    <h1>AI Explanation</h1>
-                    <div className={"inner-page-box"} style={{width:"35vw", height:"80vh", overflow:"scroll", float:'right'}}>
-                        <h3 style={{fontSize:'20px', justifySelf:'left'}}>{explanation}</h3>
+
+                <div style={{width: '45vw', display: 'flex', flexDirection: 'column', gap: '2vh'}}>
+                    <div style={{ height: '34vh', display: 'flex', flexDirection: 'column' }}>
+                        <h1>Code Output</h1>
+                        <div className={"inner-page-box"} style={{ flex: 1, overflow: 'scroll' }}>
+                            <h3 style={{fontSize:'20px', justifySelf:'left'}}>{code}</h3>
+                        </div>
+                    </div>
+
+                    <div style={{ height: '34vh', display: 'flex', flexDirection: 'column' }}>
+                        <h1>AI Explanation</h1>
+                        <div className={"inner-page-box"} style={{ flex: 1, overflow: 'scroll' }}>
+                            <h3 style={{fontSize:'20px', justifySelf:'left'}}>{explanation}</h3>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -144,13 +144,9 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
             <Header />
             <h1>Generate SQL from ERD</h1>
             <div id="input-container" style={{border:"1vh light grey", borderRadius:"2vh", marginTop:"3vh"}}>
-
-                    <button className="cursor-pointer clear-btn">
-                        <StartSessionBtn/>
-                    </button>
-
-
-
+                <button className="cursor-pointer clear-btn">
+                    <StartSessionBtn/>
+                </button>
                 <input
                     type="file"
                     accept=".png,.jpg"
@@ -159,27 +155,39 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
                     style={{fontSize:'2vh'}}
                 />
             </div>
-            <div className="inner-page-box" style={{ width: '80vw', height: '35vh' }}>
-                <h2 style={{ fontSize: '20px' }}>Your ERD is displayed here</h2>
-                {imageUrl ? (
-                    <img
-                        src={imageUrl}
-                        alt="ERD Preview"
-                        style={{ maxWidth: '90%', maxHeight: '27vh', objectFit: 'contain', justifySelf:'center'}}
-                    />
-                ) : (
-                    <p>No image available.</p>
-                )}
-            </div>
-            <div className={"inner-page-box"} style={{width:"80vw", height:"70vh", overflow:"scroll"}}>
-                {response.length === 0 ? (
-                        isLoading ? (<h1 style={{fontSize:'max(15px, 2.5vh)'}}>Loading SQL, please wait...</h1>)
-                                : (<h1 style={{fontSize:'max(15px, 2.5vh)'}}>Upload your image to see code</h1>)
-                ) : (
-                    <div>
-                        <h3 style={{fontSize:'20px', justifySelf:'left'}}>{code}</h3>
+
+            <div style={{height: '70vh', marginBottom: "1vh", marginTop: "3vh", display: 'flex', justifyContent: 'center', alignItems: 'stretch', gap: '4vh'}}>
+                <div style={{width: '45vw', display: 'flex', flexDirection: 'column'}}>
+                    {!imageUrl && (
+                        <h2 style={{ fontSize: '2.5vh', margin: '0 0 1vh 0' }}>Your ERD is displayed here</h2>
+                    )}
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="border-2 border-[#BD0A0A]">
+                        {imageUrl ? (
+                            <img
+                                src={imageUrl}
+                                alt="ERD Preview"
+                                style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'contain'
+                                }}
+                            />
+                        ) : (
+                            <p>No image available.</p>
+                        )}
                     </div>
-                )}
+                </div>
+
+                <div className={"inner-page-box"} style={{width: '30vw', overflow: "scroll"}}>
+                    {response.length === 0 ? (
+                        isLoading ? (<h1 style={{fontSize:'max(15px, 2.5vh)'}}>Loading SQL, please wait...</h1>)
+                            : (<h1 style={{fontSize:'max(15px, 2.5vh)'}}>Upload your image to see code</h1>)
+                    ) : (
+                        <div>
+                            <h3 style={{fontSize:'20px', justifySelf:'left'}}>{code}</h3>
+                        </div>
+                    )}
+                </div>
             </div>
 
             <div style={{height:'25vh', marginBottom:"6vh"}}>
