@@ -48,10 +48,10 @@ const CodeExplanation: React.FC<Props> = ({imageUrl, code, explanation}) => {
         <>
             <Header />
             <h1>SQL Explanation</h1>
-            <div style={{height: '80vh', marginTop: '3vh', marginBottom: '1vh', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: '2vh', paddingLeft: '5vw', paddingRight: '5vw'}}>
+            <div style={{height: '75vh', marginTop: '3vh', marginBottom: '1vh', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: '2vh', paddingLeft: '5vw', paddingRight: '5vw'}}>
                 <div style={{width: '45vw', display: 'flex', flexDirection: 'column'}}>
-                    <h1>Your ERD</h1>
-                    <div style={{height: '70vh', display: 'flex', alignItems: 'center', justifyContent: 'center'}} className="border-2 border-[#BD0A0A]">
+                    <h1 style={{marginBottom:'2vh'}}>Your ERD</h1>
+                    <div style={{height: '66vh', display: 'flex', alignItems: 'center', justifyContent: 'center'}} className="border-2 border-[#BD0A0A]">
                         {imageUrl ? (
                             <img
                                 src={imageUrl}
@@ -86,20 +86,31 @@ const CodeExplanation: React.FC<Props> = ({imageUrl, code, explanation}) => {
             </div>
             <div style={{height:'30vh', marginBottom:"10vh"}}>
                 { isAuthenticated ?
-                    <div className={"inner-page-box"} style={{width:"35vw", height:"25vh", float:"left", marginLeft:'10vw'}}>
-                        <h2 style={{fontSize:'20px', marginBottom:'30px'}}>Welcome, {user?.sub?.slice(-8).toUpperCase()}! Click here to view <br/> your saved work</h2>
+                    <div className={"inner-page-box w-[35vw] h-[25vh] float-left"} style={{marginLeft:'10vw'}}>
+                        <h2 style={{fontSize:'2vh', marginBottom:'30px'}}>Welcome, {user?.sub?.slice(-8).toUpperCase()}! Click here to view <br/> your saved work</h2>
                         <button className={'box-button'} onClick={goToHistory}>View History</button>
                     </div>
                     :
-                    <div className={"inner-page-box"} style={{width:"35vw", height:"25vh", float:"left", marginLeft:'10vw'}}>
-                        <h2 style={{fontSize:'20px'}}>Log in to save your work</h2>
+                    <div className={"inner-page-box w-[35vw] h-[25vh] float-left"} style={{marginLeft:'10vw'}}>
+                        <h2 style={{fontSize:'2vh'}}>Log in to save your work</h2>
                         <button className={'box-button'} style={{marginTop:'40px'}} onClick={handleAuthClick}>Login</button>
                     </div>
                 }
-                <div className={"inner-page-box"} style={{width:"35vw", height:"25vh", float:"right", marginRight:'10vw'}}>
+                <div className={"inner-page-box w-[35vw] h-[25vh] float-right"} style={{marginRight:'10vw'}}>
                     <div>
-                        <h2 style={{fontSize:"20px"}}>Download Output.txt</h2>
-                        <button className={"box-button"} style={{marginTop:'40px'}}>
+                        <h2 style={{fontSize:"2vh"}}>Download Output.txt</h2>
+                        <button className={"box-button"} style={{marginTop:'40px'}}
+                                onClick={() => {
+                                    const blob = new Blob([code], { type: 'text/plain' });
+                                    const url = URL.createObjectURL(blob);
+                                    const link = document.createElement('a');
+                                    link.href = url;
+                                    link.download = 'Output.txt';
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    document.body.removeChild(link);
+                                    URL.revokeObjectURL(url);
+                                }}>
                             <img src={download} alt="Download" style={{justifySelf:"center", width: '25%'}} />
                         </button>
                     </div>
