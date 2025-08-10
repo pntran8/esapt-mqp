@@ -221,9 +221,9 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
 
                 </div>
             </div>
-            <div className={"inner-page-box w-[80vw] h-[35vh]"}>
+            <div className={"inner-page-box w-[50vw] h-[30vh]"}>
                 {isAuthenticated ?
-                    <div style={{marginTop:"10vh"}}>
+                    <div style={{marginTop:"5vh"}}>
                         {file !== null && responseString !== "" ?
                             <Save file={file} responseText={responseString} />
                         :
