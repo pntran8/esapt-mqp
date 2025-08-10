@@ -6,13 +6,8 @@ import { useNavigate} from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
 import * as React from "react";
 
-interface Props {
-    code: string;
-    explanation: string;
-    imageUrl: string | null;
-}
 
-const CodeExplanation: React.FC<Props> = ({imageUrl, code, explanation}) => {
+const CodeExplanation: React.FC = () => {
     const { isAuthenticated, user, loginWithRedirect, logout } = useAuth0();
     const navigate = useNavigate();
     /*const handleClear = () => {
@@ -48,9 +43,9 @@ const CodeExplanation: React.FC<Props> = ({imageUrl, code, explanation}) => {
             <Header />
             <div className="inner-page-box" style={{ width: '80vw', height: '35vh' }}>
                 <h2 style={{ fontSize: '20px' }}>Your ERD is displayed here</h2>
-                {imageUrl ? (
+                {localStorage.getItem("localUrl") ? (
                     <img
-                        src={imageUrl}
+                        src={localStorage.getItem("localUrl") ?? ""}
                         alt="ERD Preview"
                         style={{ maxWidth: '100%', maxHeight: '30vh', objectFit: 'contain' }}
                     />
@@ -62,13 +57,13 @@ const CodeExplanation: React.FC<Props> = ({imageUrl, code, explanation}) => {
                 <div style={{float:'left'}}>
                     <h1>Code Output</h1>
                     <div className={"inner-page-box"} style={{width:'35vw', height:'80vh', overflow:'scroll', float:'left'}}>
-                        <h2 style={{fontSize:'20px'}}>{code}</h2>
+                        <h2 style={{fontSize:'20px'}}>{localStorage.getItem("Code")}</h2>
                     </div>
                 </div>
                 <div style={{float:'right'}}>
                     <h1>AI Explanation</h1>
                     <div className={"inner-page-box"} style={{width:"35vw", height:"80vh", overflow:"scroll", float:'right'}}>
-                        <h2 style={{fontSize:'20px'}}>{explanation}</h2>
+                        <h2 style={{fontSize:'20px'}}>{localStorage.getItem("Explanation")}</h2>
                     </div>
                 </div>
             </div>

@@ -1,5 +1,4 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { useState } from 'react';
 import SendToGem from "../components/SendToGem.tsx"
 import SendXMLToGem from "../components/SendXMLToGem.tsx"
 import SendImgToGem from "../components/SendImgToGem.tsx"
@@ -17,9 +16,6 @@ const App = () => {
     const domain = import.meta.env.VITE_AUTH0_DOMAIN;
     const clientID = import.meta.env.VITE_AUTH0_CLIENT_ID;
     const { isAuthenticated, isLoading, user } = useAuth0();
-    const [code, setCode] = useState<string>("");
-    const [explanation, setExplanation] = useState<string>("");
-    const [imageUrl, setImageUrl] = useState<string | null>(null);
 
     useEffect(() => {
         if (isLoading) return;
@@ -47,35 +43,17 @@ const App = () => {
                     <Route
                         path="/imggem"
                         element={
-                            <SendImgToGem
-                                code={code}
-                                setCode={setCode}
-                                explanation={explanation}
-                                setExplanation={setExplanation}
-                                imageUrl={imageUrl}
-                                setImageUrl={setImageUrl}
-                            />
+                            <SendImgToGem/>
                         }
                     />
-                    <Route path="/imggem" element={<SendImgToGem
-                                                        code={code}
-                                                        setCode={setCode}
-                                                        explanation={explanation}
-                                                        setExplanation={setExplanation}
-                                                        imageUrl={imageUrl}
-                                                        setImageUrl={setImageUrl}
-                                                    />} />
+                    <Route path="/imggem" element={<SendImgToGem/>} />
                     <Route path="/imggem/session/:sessionID" element={<SessionImgToGem />} />
                     <Route path="/viewHistory" element={<View />} />
                     <Route path="/viewHistory/:userID" element={<LogPage />} />
                     <Route
                         path="/explanation"
                         element={
-                            <CodeExplanation
-                                code={code}
-                                explanation={explanation}
-                                imageUrl={imageUrl}
-                            />
+                            <CodeExplanation/>
                         }
                     />
                   <Route path="/evaluation" element={<CodeEvaluation />} />

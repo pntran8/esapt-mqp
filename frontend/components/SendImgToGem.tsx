@@ -23,16 +23,7 @@ interface Message {
 }
 const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_LLM_API_KEY });
 
-interface Props {
-    code: string;
-    setCode: (code: string) => void;
-    explanation: string;
-    setExplanation: (exp: string) => void;
-    imageUrl: string | null;
-    setImageUrl: (url: string) => void;
-}
-
-const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, explanation, setExplanation }) => {
+const SendImgToGem: React.FC = () => {
     const [response, setResponse] = useState<Message[]>([]);
     const { isAuthenticated, user, logout, loginWithRedirect} = useAuth0();
     //this can be used later if we add a loading animation for gemini
@@ -44,8 +35,6 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
         navigate('/viewHistory');
     }
     const goToExp = () => {
-        console.log(code);
-        console.log(explanation);
         navigate("/explanation");
     }
     const handleAuthClick = async () => {
@@ -66,7 +55,7 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
         if (!file) return;
         setFile(file);
         const localUrl = URL.createObjectURL(file);
-        setImageUrl(localUrl);
+        localStorage.setItem("localUrl", localUrl);
 
         let resStr = "";
 
@@ -107,10 +96,8 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
 
                     resStr = response.text ?? "No bot response available";
                     const resParts = resStr.split('----------');
-                    setCode(resParts[0]);
-                    setExplanation(resParts[1]);
-                    console.log(code);
-                    console.log(explanation);
+                    localStorage.setItem("Code", resParts[0]);
+                    localStorage.setItem("Explanation", resParts[1]);
                     setResponseString(resStr);
                     //setIsLoading(false);
 
@@ -163,9 +150,9 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
             </div>
             <div className="inner-page-box" style={{ width: '80vw', height: '35vh' }}>
                 <h2 style={{ fontSize: '20px' }}>Your ERD is displayed here</h2>
-                {imageUrl ? (
+                {localStorage.getItem("localUrl") ? (
                     <img
-                        src={imageUrl}
+                        src={localStorage.getItem("localUrl") ?? ""}
                         alt="ERD Preview"
                         style={{ maxWidth: '90%', maxHeight: '27vh', objectFit: 'contain', justifySelf:'center'}}
                     />
@@ -202,7 +189,8 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
                     <button
                         className={"box-button mt-[4vh]"}
                         onClick={() => {
-                            const blob = new Blob([code], { type: 'text/plain' });
+                            const storedCode = localStorage.getItem("generatedCode") ?? "No Code Stored";
+                            const blob = new Blob([storedCode], { type: 'text/plain' });
                             const url = URL.createObjectURL(blob);
                             const link = document.createElement('a');
                             link.href = url;
