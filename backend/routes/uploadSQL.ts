@@ -45,7 +45,7 @@ router.post("/", async (req: Request, res: Response) => {
     const { sql } = req.body;
 
     if (!sql) {
-        return res.status(400).json({ error: "Missing SQL" });
+        res.status(400).json({ error: "Missing SQL" });
     }
 
     try {
