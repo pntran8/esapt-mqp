@@ -209,7 +209,7 @@ const CodeEvaluation = () => {
                 />
             </div>
             <div style={{height:'75vh'}}>
-                <div className={"inner-page-box"} style={{width:"35vw", height:"70vh", overflow:"scroll", float:"left", marginLeft:"20vh"}}>
+                <div className={"inner-page-box w-[35vw] h-[70vh] float-left overflow-scroll"} style={{marginLeft:"20vh"}}>
                     {response.length === 0 ? (
                         <h1 style={{fontSize:'2.5vh'}}>Upload your image to see code</h1>
                     ) : (
@@ -222,22 +222,19 @@ const CodeEvaluation = () => {
                         </div>
                     )}
                 </div>
-                <div className={"inner-page-box"} style={{width:"35vw", height:"70vh", overflow:"scroll", float:"right", marginRight:"20vh"}}>
+                <div className={"inner-page-box w-[35vw] h-[70vh] float-right overflow-scroll"} style={{marginRight:"20vh"}}>
                     <textarea value={userSchema} onChange={handleUserSchema} placeholder={"Enter your schema"} style={{ width: "100%", height: "100%", boxSizing: "border-box", border:0, outline:0 }}></textarea>
                 </div>
             </div>
 
             <button
-                className={"inner-page-box"}
+                className={"inner-page-box w-[80vw] h-[10vh] cursor-pointer"}
                 style={{
-                    width: "80vw",
-                    height: "10vh",
                     backgroundColor: "#BD0A0A",
                     color: "white",
                     fontSize: "24px",
                     fontWeight: "bold",
                     paddingTop: "0.5vh",
-                    cursor: "pointer",
                 }}
                 onClick={handleCompare}
                 disabled={loading}
@@ -245,7 +242,7 @@ const CodeEvaluation = () => {
                 {loading ? "Comparing..." : "Compare"}
             </button>
 
-            <div className={"inner-page-box"} style={{ width: "80vw", height: "35vh" }}>
+            <div className={"inner-page-box w-[80vw] h-[35vh]"}>
                 <h2 style={{ fontSize: "2.5vh" }}>
                     {error
                         ? `Error: ${error}`
@@ -268,7 +265,7 @@ const CodeEvaluation = () => {
                 )}
             </div>
 
-            <div className={"inner-page-box"} style={{width:'80vw', height:'35vh'}}>
+            <div className={"inner-page-box w-[80vw] h-[35vh]"}>
                 {isAuthenticated ?
                     <div style={{marginTop:"10vh"}}>
                         {file !== null && responseString !== "" ?
