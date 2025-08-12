@@ -334,6 +334,7 @@ const CodeEvaluation = () => {
                                         }
                                     })}
                                 </ul>
+                                <br />
                             </div>
                         );
                     }
@@ -361,7 +362,7 @@ const CodeEvaluation = () => {
         <>
             <Header />
 
-            <header className="text-center text-4xl mt-8 font-bold">Code Eval</header>
+            <header className="text-center text-4xl mt-8 font-bold">Code Comparison</header>
 
             <div id="input-container" style={{border: "1vh light grey", borderRadius:"2vh", marginTop:"3vh"}}>
 
