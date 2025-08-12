@@ -4,6 +4,7 @@ import "./gem.css";
 import "../src/App.css"
 import { useNavigate} from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
+import download from "../src/assets/download.png"
 import * as React from "react";
 
 interface Props {
@@ -46,48 +47,72 @@ const CodeExplanation: React.FC<Props> = ({imageUrl, code, explanation}) => {
     return (
         <>
             <Header />
-            <div className="inner-page-box" style={{ width: '80vw', height: '35vh' }}>
-                <h2 style={{ fontSize: '20px' }}>Your ERD is displayed here</h2>
-                {imageUrl ? (
-                    <img
-                        src={imageUrl}
-                        alt="ERD Preview"
-                        style={{ maxWidth: '100%', maxHeight: '30vh', objectFit: 'contain' }}
-                    />
-                ) : (
-                    <p>No image available.</p>
-                )}
-            </div>
-            <div style={{height:'80vh', marginTop:'30px', paddingLeft:'10vw', paddingRight:'10vw'}}>
-                <div style={{float:'left'}}>
-                    <h1>Code Output</h1>
-                    <div className={"inner-page-box"} style={{width:'35vw', height:'80vh', overflow:'scroll', float:'left'}}>
-                        <h2 style={{fontSize:'20px'}}>{code}</h2>
+            <h1>SQL Explanation</h1>
+            <div style={{height: '75vh', marginTop: '3vh', marginBottom: '1vh', display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: '2vh', paddingLeft: '5vw', paddingRight: '5vw'}}>
+                <div style={{width: '45vw', display: 'flex', flexDirection: 'column'}}>
+                    <h1 style={{marginBottom:'2vh'}}>Your ERD</h1>
+                    <div style={{height: '66vh', display: 'flex', alignItems: 'center', justifyContent: 'center'}} className="border-2 border-[#BD0A0A]">
+                        {imageUrl ? (
+                            <img
+                                src={imageUrl}
+                                alt="ERD Preview"
+                                style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'contain'
+                                }}
+                            />
+                        ) : (
+                            <p>No image available.</p>
+                        )}
                     </div>
                 </div>
-                <div style={{float:'right'}}>
-                    <h1>AI Explanation</h1>
-                    <div className={"inner-page-box"} style={{width:"35vw", height:"80vh", overflow:"scroll", float:'right'}}>
-                        <h2 style={{fontSize:'20px'}}>{explanation}</h2>
+
+                <div style={{width: '45vw', display: 'flex', flexDirection: 'column', gap: '2vh'}}>
+                    <div style={{ height: '34vh', display: 'flex', flexDirection: 'column' }}>
+                        <h1>Code Output</h1>
+                        <div className={"inner-page-box"} style={{ flex: 1, overflow: 'scroll' }}>
+                            <h3 style={{fontSize:'20px', justifySelf:'left'}}>{code}</h3>
+                        </div>
+                    </div>
+
+                    <div style={{ height: '34vh', display: 'flex', flexDirection: 'column' }}>
+                        <h1>AI Explanation</h1>
+                        <div className={"inner-page-box"} style={{ flex: 1, overflow: 'scroll' }}>
+                            <h3 style={{fontSize:'20px', justifySelf:'left'}}>{explanation}</h3>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div style={{height:'25vh', marginBottom:"10vh"}}>
+            <div style={{height:'30vh', marginBottom:"10vh"}}>
                 { isAuthenticated ?
-                    <div>
-                        <h2 style={{fontSize:'20px', marginBottom:'30px'}}>Welcome, {user?.sub?.slice(-8).toUpperCase()}! Click here to view <br/> your saved work</h2>
+                    <div className={"inner-page-box w-[35vw] h-[25vh] float-left"} style={{marginLeft:'10vw'}}>
+                        <h2 style={{fontSize:'2vh', marginBottom:'30px'}}>Welcome, {user?.sub?.slice(-8).toUpperCase()}! Click here to view <br/> your saved work</h2>
                         <button className={'box-button'} onClick={goToHistory}>View History</button>
                     </div>
                     :
-                    <div className={"inner-page-box"} style={{width:"35vw", height:"25vh", float:"left", marginLeft:'10vw'}}>
-                        <h2 style={{fontSize:'20px'}}>Log in to save your work</h2>
+                    <div className={"inner-page-box w-[35vw] h-[25vh] float-left"} style={{marginLeft:'10vw'}}>
+                        <h2 style={{fontSize:'2vh'}}>Log in to save your work</h2>
                         <button className={'box-button'} style={{marginTop:'40px'}} onClick={handleAuthClick}>Login</button>
                     </div>
                 }
-                <div className={"inner-page-box"} style={{width:"35vw", height:"25vh", float:"right", marginRight:'10vw'}}>
+                <div className={"inner-page-box w-[35vw] h-[25vh] float-right"} style={{marginRight:'10vw'}}>
                     <div>
-                        <h2 style={{fontSize:"20px"}}>Download Output.txt</h2>
-                        <button className={"box-button"} style={{marginTop:'40px'}}></button>
+                        <h2 style={{fontSize:"2vh"}}>Download Output.txt</h2>
+                        <button className={"box-button"} style={{marginTop:'40px'}}
+                                onClick={() => {
+                                    const blob = new Blob([code], { type: 'text/plain' });
+                                    const url = URL.createObjectURL(blob);
+                                    const link = document.createElement('a');
+                                    link.href = url;
+                                    link.download = 'Output.txt';
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    document.body.removeChild(link);
+                                    URL.revokeObjectURL(url);
+                                }}>
+                            <img src={download} alt="Download" style={{justifySelf:"center", width: '25%'}} />
+                        </button>
                     </div>
                 </div>
             </div>
