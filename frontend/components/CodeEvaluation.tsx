@@ -137,6 +137,68 @@ const CodeEvaluation = () => {
     };
 
 
+    function getTableNameDiffs(data, formattedBlocks: any[], startingNum: number) {
+        const splitting = data.diff[0].split("(this=");
+        console.log("splitting", splitting);
+        const rawLine = data.diff[0];
+        const match = rawLine.match(/Identifier\(this=([A-Za-z0-9_]+)/);
+        const cleanedLine = match ? `Tables only in schema 1: ${match[1]}` : rawLine;
+        formattedBlocks.push(cleanedLine + "\n");
+        if (data.diff[1].includes("only")) {
+            startingNum += 1;
+            const rawLine2 = data.diff[1];
+            console.log(data.diff[1]);
+            const match2 = rawLine2.match(/Identifier\(this=([A-Za-z0-9_]+)/);
+            const cleanedLine2 = match2 ? `Tables only in schema 2: ${match2[1]}` : rawLine2;
+            formattedBlocks.push(cleanedLine2);
+        }
+        return startingNum;
+    }
+
+    function getAttributeDiffs(bullets: any[], i: number) {
+        const rawArr = bullets[i].replace("Attribute differences: ", "").trim();
+
+        const inner = rawArr.slice(1, -1);
+
+        const parts = inner.split(/",\s*"/).map(str => str.replace(/^"|"$/g, "")); // remove outer quotes
+
+        for (let k = 0; k < parts.length; k++) {
+            parts[k] = parts[k]
+                .replace(/only in\s+\d:\s*/i, "")
+                .replace(/[\{\}']/g, "")
+                .trim();
+        }
+
+        bullets[i] = "Attribute differences: | Schema 1: " + (parts[0] || "None") + " | Schema 2: " + (parts[1] || "None");
+    }
+
+    function getForeignKeyDiffs(bullets: any[], i: number | number) {
+        const rawArr = bullets[i].split(":");
+        const strSchema1Raw = rawArr[2].replace(/\s*\n\s*schema2/, "");
+        const cleaned = strSchema1Raw.trim().replace(/'/g, '"');
+        const cleaned2 = rawArr[3].trim().replace(/'/g, '"');
+
+        const arr = JSON.parse(cleaned2);
+        const arr2 = JSON.parse(cleaned);
+
+        for (let i = 0; i < arr.length; i++) {
+            arr[i][0] = " Ref. Table: " + arr[i][0];
+            arr[i][1] = " Ref. Column: " + arr[i][1];
+        }
+
+        for (let i = 0; i < arr2.length; i++) {
+            arr2[i][0] = " Ref. Table: " + arr2[i][0];
+            arr2[i][1] = " Ref. Column: " + arr2[i][1];
+        }
+
+        console.log("arr", arr)
+        console.log("arr2", arr2)
+
+        bullets[i] = "Foreign Key differences: | Schema 1: | " + (arr.length > 0 ? formatForeignKeys(arr) : "None") + "| Schema 2: | " + (arr2.length > 0 ? formatForeignKeys(arr2) : "None");
+
+        console.log("bullets", bullets[i]);
+    }
+
     const handleCompare = async () => {
         setLoading(true);
         setError(null);
@@ -175,64 +237,31 @@ const CodeEvaluation = () => {
             setDiffResult(data.diff);
 
             const formattedBlocks = [];
+            const tableNameDiffs = [];
 
 
             if(data.diff){
                 let startingNum = 0;
                 if (!data.diff[0].includes("Comparing")){
                     startingNum += 1;
-                    const splitting = data.diff[0].split("(this=");
-                    console.log("splitting", splitting);
-                    const rawLine = data.diff[0];
-                    const match = rawLine.match(/Identifier\(this=([A-Za-z0-9_]+)/);
-                    const cleanedLine = match ? `Tables only in schema 1: ${match[1]}` : rawLine;
-                    formattedBlocks.push(cleanedLine + "\n");
-                    if (data.diff[1].includes("only")){
-                        startingNum += 1;
-                        const rawLine2 = data.diff[1];
-                        console.log(data.diff[1]);
-                        const match2 = rawLine2.match(/Identifier\(this=([A-Za-z0-9_]+)/);
-                        const cleanedLine2 = match2 ? `Tables only in schema 2: ${match2[1]}` : rawLine2;
-                        formattedBlocks.push(cleanedLine2);
-                    }
+                    startingNum = getTableNameDiffs(data, tableNameDiffs, startingNum);
                 }
                 for (; startingNum < data.diff.length; startingNum += 4) {
                     if (data.diff[startingNum].includes("Comparing")) {
                         const header = data.diff[startingNum];
                         let bullets = [data.diff[startingNum + 1], data.diff[startingNum + 2], data.diff[startingNum + 3]];
 
-
                         for (let i = 0; i < 3; i++) {
                             if (!bullets[i].includes("same")) {
-                                if (i === 2) {
-                                    const rawArr = bullets[i].split(":");
-                                    const strSchema1Raw = rawArr[2].replace(/\s*\n\s*schema2/, "");
-                                    const cleaned = strSchema1Raw.trim().replace(/'/g, '"');
-                                    const cleaned2 = rawArr[3].trim().replace(/'/g, '"');
-
-                                    const arr = JSON.parse(cleaned2);
-                                    const arr2 = JSON.parse(cleaned);
-
-                                    for (let i = 0; i < arr.length; i++) {
-                                        arr[i][0] = " Ref. Table: " + arr[i][0];
-                                        arr[i][1] = " Ref. Column: " + arr[i][1];
-                                    }
-
-                                    for (let i = 0; i < arr2.length; i++) {
-                                        arr2[i][0] = " Ref. Table: " + arr2[i][0];
-                                        arr2[i][1] = " Ref. Column: " + arr2[i][1];
-                                    }
-
-                                    console.log("arr", arr)
-                                    console.log("arr2", arr2)
-
-                                    bullets[i] = "Foreign Key differences: | Schema 1: | " + (arr.length > 0 ? formatForeignKeys(arr) : "None") + "| Schema 2: | " + (arr2.length > 0 ? formatForeignKeys(arr2) : "None");
-
-                                    console.log("bullets", bullets[i]);
-
+                                if (i === 0) {
+                                    getAttributeDiffs(bullets, i);
                                 }
 
-                            } else if (bullets[i].includes("same") && i == 0) {
+                                if (i === 2) {
+                                    getForeignKeyDiffs(bullets, i);
+                                }
+                            }
+                            else if (bullets[i].includes("same") && i == 0) {
                                 bullets[i] = "Attributes are equivalent";
                             } else if (bullets[i].includes("same") && i == 1) {
                                 bullets[i] = "Primary keys are equivalent";
@@ -249,9 +278,14 @@ const CodeEvaluation = () => {
 
                         formattedBlocks.push(
                             <div key={startingNum}>
+                                {tableNameDiffs.length > 0 && tableNameDiffs.map((diff, index) => (
+                                    <h1 key={index} className="font-bold">{diff}</h1>
+                                ))}
+
                                 <h1 className="font-bold">{header}</h1>
                                 <ul>
                                     {bullets.map((b, j) => {
+                                        console.log("BBBBB", b)
                                         if (b.includes("mismatch:")) {
                                             const [before, afterRaw] = b.split("mismatch:");
 
@@ -270,12 +304,12 @@ const CodeEvaluation = () => {
                                                 return (
                                                     <li key={j} className={"bg-red-400 font-bold"}>
                                                         {before}mismatch:<br />
-                                                        schema1: [{columnNames.join(", ")}]<br />
-                                                        schema2: {schema2}
+                                                        Schema1: [{columnNames.join(", ")}]<br />
+                                                        Schema2: {schema2}
                                                     </li>
                                                 );
                                             } else {
-                                                const after = afterRaw.replace(/\s*schema2:/, ", schema2:").replace(/[\[\]']/g, "");
+                                                const after = afterRaw.replace(/\s*schema2:/, ", Schema2:").replace(/[\[\]']/g, "").replace(/\s*schema1:/, "Schema1:");
                                                 return (
                                                     <li key={j} className={"bg-red-400 font-bold"}>
                                                         {before}mismatch:<br />
