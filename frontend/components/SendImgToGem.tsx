@@ -15,6 +15,8 @@ import * as React from "react";
 import {useAuth0} from "@auth0/auth0-react";
 import download from "../src/assets/download.png";
 import StartSessionBtn from "./StartSessionBtn.tsx";
+import LineTypeRenderer from "./ui/StepByStep";
+
 
 // Message type definition
 interface Message {
@@ -31,6 +33,114 @@ interface Props {
     imageUrl: string | null;
     setImageUrl: (url: string) => void;
 }
+interface lineType {
+    line: string;
+    title: string;
+}
+const instruction = `
+    You are given an image of a conceptual ER diagram that could either be (Chen or Crow's Foot).
+    Your job is to (1) extract the ER model strictly from visual cues, and (2) produce SQL step-by-step.
+    
+    Definitions
+    
+    Chen Notation
+    - Entities are rectangles.
+    - Relationships are diamonds, connected to the entities they relate.
+    - Cardinality: 1 means one; M means many; 1 to M means one-to-many.
+    - Keys: Primary keys are underlined text. Partial keys are underlined with a dashed line.
+    - Pay close attention to whether the text is underlined; spacing between the text and the underline can be small.
+    
+    Crow’s Foot Notation
+    - Entities are rectangles.
+    - Relationships are lines with symbols at the ends: crow’s foot (<) = many; single line (|) = one.
+    - One-to-many is represented by a single line on one end and a crow’s foot on the other.
+    
+    General Rules
+    - Many-to-many relationships require creating a separate table to represent the association.
+    - Do not assume attributes or keys based on names alone—only use explicit diagram features.
+    - Only create foreign keys when there is a direct relationship between entities.
+    
+    SQL CONVENTIONS
+    - Dialect: PostgreSQL 15+
+    - snake_case for tables/columns; join tables named <a>_<b>.
+    - Primary keys end with _id when surrogate keys are needed; otherwise use the underlined attribute(s) as PK.
+    - Constraints: use inline constraints.
+    - Use NOT NULL when total participation requires it.
+    - For weak entities: composite PK includes owner PK + weak key; add FK to owner with ON DELETE CASCADE.
+    - For 1:1 relationships: place the FK on the total-participation side and add UNIQUE to enforce 1:1.
+    
+    STEP-BY-STEP MAPPING
+    Step 1 — Strong Entities
+    - Create one table per strong entity with all simple attributes.
+    - Use underlined attributes as the primary key. Do not invent surrogate keys unless the diagram lacks a key.
+    
+    Step 2 — Weak Entities
+    - Create one table per weak entity with its simple attributes.
+    - Add FK to the owner; composite PK = owner PK + partial/own key (if present). Use ON DELETE CASCADE on that FK.
+    
+    Step 3 — Binary 1:1 Relationships
+    - Include the PK of one entity as an FK in the other, choosing the side with total participation if shown.
+    - Add relationship attributes into that same table.
+    - Enforce 1:1 with UNIQUE on the FK and NOT NULL if participation is total.
+    
+    Step 4 — Binary 1:N Relationships
+    - Put the 1-side PK as an FK in the N-side table.
+    - Include any relationship attributes in the N-side table.
+    - Use NOT NULL if the N-side participation is total.
+    
+    Step 5 — Binary M:N Relationships
+    - Create a new join table.
+    - Primary key = combination of the participating entities’ PKs (and include relationship attributes).
+    
+    OUTPUT FORMAT
+    Print sections  in the order below, each bounded by single-line markers:
+    
+    === RECOGNIZED FROM IMAGE ===
+    (Plain text list of entities, attributes, keys (underline/dashed), relationships, and cardinalities derived from the image only.)
+    
+    === STEP 1 — STRONG ENTITIES (SQL) ===
+    -- SQL for Step 1 only
+
+    === EXPLANATION / ASSUMPTIONS / ANOMALIES FOR STEP 1===
+    - Assumptions & Ambiguities: bullet list
+    - Explanation
+        
+    === STEP 2 — WEAK ENTITIES (SQL) ===
+    -- SQL After Applying Step 2
+    
+    === EXPLANATION / ASSUMPTIONS / ANOMALIES FOR STEP 2===
+    - Assumptions & Ambiguities: bullet list
+    - Explanation
+    
+    === STEP 3 — BINARY 1:1 (SQL) ===
+    -- SQL After Applying Step 3
+  
+    === EXPLANATION / ASSUMPTIONS / ANOMALIES FOR STEP 3===
+    - Assumptions & Ambiguities: bullet list
+    - Explanation
+    
+    === STEP 4 — BINARY 1:N (SQL) ===
+    -- SQL After Applying Step 4
+    
+    === EXPLANATION / ASSUMPTIONS / ANOMALIES FOR STEP 4===
+    - Assumptions & Ambiguities: bullet list
+    - Explanation
+    
+    === STEP 5 — BINARY M:N (SQL) ===
+    -- SQL After Applying Step 5
+    
+    === EXPLANATION / ASSUMPTIONS / ANOMALIES FOR STEP 5===
+    - Assumptions & Ambiguities: bullet list
+    - Explanation
+
+
+    
+    STRICT RULES
+    - Use the exact section headers above (including capitalization and punctuation).
+    - Include ALL sections even if some are empty; 
+    - Do not output anything outside these sections.
+    `.trim();
+
 
 const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, explanation, setExplanation }) => {
     const [response, setResponse] = useState<Message[]>([]);
@@ -39,6 +149,7 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [file, setFile] = useState<File | null>(null);
     const [responseString, setResponseString] = useState<string>("");
+    const [allLines, setAllLines] = useState<lineType[]>([]);
     const navigate = useNavigate();
     const goToHistory = () => {
         navigate('/viewHistory');
@@ -60,6 +171,39 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
             navigate('/imggem');
         }
     };
+
+    const splitRegExp =  (explanation: string): lineType[] => {
+        const lines = explanation.split(/\r?\n/);
+        const allLines: lineType[] = []
+
+        let currentTitle = "";
+        let currentSection: string[] = [];
+
+        const flush = () => {
+            const text = currentSection.join("\n").trim();
+            if (text) allLines.push({line: text, title: currentTitle});
+            currentSection = []
+        }
+        for (const raw of lines) {
+            if (raw.startsWith("===")) {
+                // new header: first flush previous section
+                flush();
+                if (raw.startsWith("=== RECOGNIZED")) {
+                    currentTitle = "RECOGNIZED";
+                } else if (raw.startsWith("=== EXPLANATION")) {
+                    currentTitle = "EXPLANATION";
+                } else if (raw.startsWith("=== STEP")) {
+                    currentTitle = "STEP";
+                } else {
+                    currentTitle = "UNKNOWN TITLE"
+                }
+                continue;
+            }
+            currentSection.push(raw)
+        }
+        flush();
+        return allLines;
+    }
     const handleFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
 
         setIsLoading(true);
@@ -86,16 +230,7 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
                         model: "gemini-2.5-flash",
                         contents: createUserContent([
                             createPartFromUri(myfile.uri, myfile.mimeType),
-      "I am providing you with a conceptual Entity-Relationship diagram that is in either Chen or Crow's Foot notation. " +
-      "Return that diagram translated into SQL code. " +
-      "Look at the lines between relationships and tables, and build extra tables if those lines have the features of a many-to-many relationship in either notation. " +
-      "Do not make assumptions about relationships or attributes based on names, solely consider the picture. " +
-      "Remember that in Chen notation, a 1 cardinality means one, and a letter cardinality means many, so 1 to M is one-to-many. Relationships are represented as diamonds, connected to the the entities they are relating." +
-      "Also remember that primary keys are signified by underlined text, and partial keys are signified by text underlined with a dashed line. " +
-      "Pay close attention to whether the text is underlined or not because the space between the text and underline may be small. " +
-      "Do not assume anything is a primary or partial key unless it is underlined. " +
-      "Do not create foreign keys or addtional tables unless there is a relationship between entities" +
-      "Print out the SQL code, then '----------' on a new line, then an explanation for the logic behind the code.",
+                            instruction,
                         ]),
                     });
 
@@ -108,8 +243,21 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
                     ]);
 
                     resStr = response.text ?? "No bot response available";
+                    console.log(resStr);
+                    const allLines = splitRegExp(resStr);
+                    setAllLines(allLines);
+                    localStorage.setItem("allLines", JSON.stringify(allLines));
+                    let finalCode = "";
+                    for (const lineLog of allLines) {
+                        const line = lineLog.line
+                        const title = lineLog.title
+                        if (title == "STEP"){
+                            finalCode = line;
+                        }
+                    }
+
                     const resParts = resStr.split('----------');
-                    setCode(resParts[0]);
+                    setCode(finalCode);
                     setExplanation(resParts[1]);
                     console.log(code);
                     console.log(explanation);
@@ -158,7 +306,7 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
 
             <div style={{height: '70vh', marginBottom: "1vh", marginTop: "3vh", display: 'flex', justifyContent: 'center', alignItems: 'stretch', gap: '4vh'}}>
                 <div style={{width: '45vw', display: 'flex', flexDirection: 'column'}}>
-                    {!imageUrl && (
+{/*                    {!imageUrl && (
                         <h2 style={{ fontSize: '2.5vh', margin: '0 0 1vh 0' }}>Your ERD is displayed here</h2>
                     )}
                     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="border-2 border-[#BD0A0A]">
@@ -175,7 +323,7 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
                         ) : (
                             <p>No image available.</p>
                         )}
-                    </div>
+                    </div>*/}
                 </div>
 
                 <div className={"inner-page-box"} style={{width: '30vw', overflow: "scroll"}}>
@@ -184,8 +332,11 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
                             : (<h1 style={{fontSize:'max(15px, 2.5vh)'}}>Upload your image to see code</h1>)
                     ) : (
                         <div>
-                            <h3 style={{fontSize:'20px', justifySelf:'left'}}>{code}</h3>
+                            <code style={{ fontSize: '20px', whiteSpace: 'pre-wrap' }}>
+                                {code}
+                            </code>
                         </div>
+
                     )}
                 </div>
             </div>
@@ -221,6 +372,8 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
 
                 </div>
             </div>
+            <LineTypeRenderer items={allLines} />
+
             <div className={"inner-page-box w-[50vw] h-[30vh]"}>
                 {isAuthenticated ?
                     <div style={{marginTop:"5vh"}}>

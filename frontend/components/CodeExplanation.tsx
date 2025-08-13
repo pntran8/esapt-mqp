@@ -6,27 +6,29 @@ import { useNavigate} from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
 import download from "../src/assets/download.png"
 import * as React from "react";
+import LineTypeRenderer from "./ui/StepByStep";
+import {useState, useEffect} from "react";
 
 interface Props {
     code: string;
     explanation: string;
     imageUrl: string | null;
 }
+interface LineType { line: string; title: string; }
 
 const CodeExplanation: React.FC<Props> = ({imageUrl, code, explanation}) => {
     const { isAuthenticated, user, loginWithRedirect, logout } = useAuth0();
     const navigate = useNavigate();
-    /*const handleClear = () => {
-        setResponse([]);
-        setIsLoading(false);
-        setFile(null);
-        setResponseString("");
-    };
+    const [allLines, setAllLines] = useState<LineType[]>(() => {
+        const stored = localStorage.getItem("allLines");
+        return stored ? JSON.parse(stored) : [];
+    });
 
-    //
-    /*<!--     <button onClick={handleClear} className="clear-btn">
-                    Clear
-                </button>1-->*/
+    useEffect(() => {
+        const stored = localStorage.getItem("allLines");
+        const parsed: LineType[] = stored ? JSON.parse(stored) : [];
+        setAllLines(parsed);
+    }, []);
 
     const handleAuthClick = async () => {
         if (isAuthenticated) {
@@ -79,7 +81,7 @@ const CodeExplanation: React.FC<Props> = ({imageUrl, code, explanation}) => {
                     <div style={{ height: '34vh', display: 'flex', flexDirection: 'column' }}>
                         <h1>AI Explanation</h1>
                         <div className={"inner-page-box"} style={{ flex: 1, overflow: 'scroll' }}>
-                            <h3 style={{fontSize:'20px', justifySelf:'left'}}>{explanation}</h3>
+                            <LineTypeRenderer items={allLines} />
                         </div>
                     </div>
                 </div>
