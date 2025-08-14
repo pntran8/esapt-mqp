@@ -185,7 +185,7 @@ const SessionImgToGem:React.FC<Props> = ({ imageUrl, setImageUrl, code, setCode,
             console.error("Gemini error:", err);
             setResponse([{ type: "system", message: "Failed to read or process the file." }]);
         } finally {
-            //setIsLoading(false);
+            setIsLoading(false);
         }
     };
 

@@ -115,7 +115,7 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
                     console.log(code);
                     console.log(explanation);
                     setResponseString(resStr);
-                    //setIsLoading(false);
+                    setIsLoading(false);
 
 
                 } catch (err) {
