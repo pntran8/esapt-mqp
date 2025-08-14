@@ -97,7 +97,7 @@ const CodeEvaluation = () => {
                     //const resParts = resStr.split('----------');
 
                     setResponseString(resStr);
-                    //setIsLoading(false);
+                    setIsLoading(false);
 
 
                 } catch (err) {
