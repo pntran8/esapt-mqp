@@ -13,6 +13,7 @@ import {useLocation, useNavigate, useParams} from "react-router-dom";
 import download from "../src/assets/download.png";
 import * as React from "react";
 import Footer from "./Footer.tsx";
+import { PulseLoader } from "react-spinners";
 
 
 
@@ -253,7 +254,8 @@ const SessionImgToGem:React.FC<Props> = ({ imageUrl, setImageUrl, code, setCode,
 
                 <div className={"inner-page-box"} style={{width: '30vw', overflow: "scroll"}}>
                     {response.length === 0 ? (
-                        isLoading ? (<h1 style={{fontSize:'max(15px, 2.5vh)'}}>Loading SQL, please wait...</h1>)
+                        isLoading ? (<div><h1 style={{fontSize:'max(15px, 2.5vh)'}}>Loading SQL, please wait...</h1>
+                                <PulseLoader color={"black"} loading={isLoading} size={15} margin={4} aria-label="Loading Spinner" data-testid="loader"/></div>)
                             : (<h1 style={{fontSize:'max(15px, 2.5vh)'}}>Upload your image to see code</h1>)
                     ) : (
                         <div>
