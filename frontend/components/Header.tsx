@@ -28,11 +28,11 @@ export default function Header() {
                     </div>
                 </div>
 
-                <div className={'text-2xl text-white font-bold font-sans'} style={{fontSize:'max(5px, 3vh)'}} onClick={goToGem}>
+                <div className={'cursor-pointer text-2xl text-white font-bold font-sans'} style={{fontSize:'max(5px, 3vh)'}} onClick={goToGem}>
                     SQL Generation
                 </div>
 
-                <div className={'text-2xl text-white font-bold font-sans'} style={{fontSize:'max(5px, 3vh)'}} onClick={goToEval}>
+                <div className={'cursor-pointer text-2xl text-white font-bold font-sans'} style={{fontSize:'max(5px, 3vh)'}} onClick={goToEval}>
                     Code Evaluation
                 </div>
 
