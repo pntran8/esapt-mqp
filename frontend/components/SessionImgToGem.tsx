@@ -103,12 +103,13 @@ const SessionImgToGem:React.FC<Props> = ({ imageUrl, setImageUrl, code, setCode,
             setHostID(serverHostID);
         });
 
-        socket.on("receive-update", ({ fileName, responseText }) => {
+        socket.on("receive-update", ({ fileName, responseText, code, explanation }) => {
             setResponse([
                 { type: "user", message: `[Uploaded file: ${fileName}]` },
-                { type: "bot", message: responseText },
+                { type: "bot", message: code },
             ]);
-            setFile(null);
+            setCode(code);
+            setExplanation(explanation);
             setResponseString(responseText);
         });
 
@@ -178,7 +179,10 @@ const SessionImgToGem:React.FC<Props> = ({ imageUrl, setImageUrl, code, setCode,
             socket.emit("update", {
                 sessionID,
                 fileName: file.name,
-                responseText: code,
+                responseText: resStr, // Send full response
+                code: resParts[0],
+                explanation: resParts[1],
+                imageUrl: localUrl, // Send image URL (though this won't work cross-user)
             });
         } catch (err) {
             console.error("Gemini error:", err);
