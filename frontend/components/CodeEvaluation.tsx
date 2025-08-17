@@ -127,11 +127,77 @@ const CodeEvaluation = () => {
         setUserSchema(e.target.value);
     }
 
-    const [diffResult, setDiffResult] = useState(null);
+    const [diffResult, setDiffResult] = useState<any[]>([]);
+    const [formattedResult, setFormattedResult] = useState<any[]>([]);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
 
+    const formatForeignKeys = (fkArray: string[][]) => {
+        return fkArray.map(pair => pair.join(",")).join(" |");
+    };
 
+
+    function getTableNameDiffs(data, formattedBlocks: any[], startingNum: number) {
+        const splitting = data.diff[0].split("(this=");
+        console.log("splitting", splitting);
+        const rawLine = data.diff[0];
+        const match = rawLine.match(/Identifier\(this=([A-Za-z0-9_]+)/);
+        const cleanedLine = match ? `Tables only in schema 1: ${match[1]}` : rawLine;
+        formattedBlocks.push(cleanedLine + "\n");
+        if (data.diff[1].includes("only")) {
+            startingNum += 1;
+            const rawLine2 = data.diff[1];
+            console.log(data.diff[1]);
+            const match2 = rawLine2.match(/Identifier\(this=([A-Za-z0-9_]+)/);
+            const cleanedLine2 = match2 ? `Tables only in schema 2: ${match2[1]}` : rawLine2;
+            formattedBlocks.push(cleanedLine2);
+        }
+        return startingNum;
+    }
+
+    function getAttributeDiffs(bullets: any[], i: number) {
+        const rawArr = bullets[i].replace("Attribute differences: ", "").trim();
+
+        const inner = rawArr.slice(1, -1);
+
+        const parts = inner.split(/",\s*"/).map(str => str.replace(/^"|"$/g, "")); // remove outer quotes
+
+        for (let k = 0; k < parts.length; k++) {
+            parts[k] = parts[k]
+                .replace(/only in\s+\d:\s*/i, "")
+                .replace(/[\{\}']/g, "")
+                .trim();
+        }
+
+        bullets[i] = "Attribute differences: | Schema 1: " + (parts[0] || "None") + " | Schema 2: " + (parts[1] || "None");
+    }
+
+    function getForeignKeyDiffs(bullets: any[], i: number | number) {
+        const rawArr = bullets[i].split(":");
+        const strSchema1Raw = rawArr[2].replace(/\s*\n\s*schema2/, "");
+        const cleaned = strSchema1Raw.trim().replace(/'/g, '"');
+        const cleaned2 = rawArr[3].trim().replace(/'/g, '"');
+
+        const arr = JSON.parse(cleaned2);
+        const arr2 = JSON.parse(cleaned);
+
+        for (let i = 0; i < arr.length; i++) {
+            arr[i][0] = " Ref. Table: " + arr[i][0];
+            arr[i][1] = " Ref. Column: " + arr[i][1];
+        }
+
+        for (let i = 0; i < arr2.length; i++) {
+            arr2[i][0] = " Ref. Table: " + arr2[i][0];
+            arr2[i][1] = " Ref. Column: " + arr2[i][1];
+        }
+
+        console.log("arr", arr)
+        console.log("arr2", arr2)
+
+        bullets[i] = "Foreign Key differences: | Schema 1: | " + (arr.length > 0 ? formatForeignKeys(arr) : "None") + "| Schema 2: | " + (arr2.length > 0 ? formatForeignKeys(arr2) : "None");
+
+        console.log("bullets", bullets[i]);
+    }
 
     const handleCompare = async () => {
         setLoading(true);
@@ -157,8 +223,8 @@ const CodeEvaluation = () => {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    schema1: userSchema,
-                    schema2: cleanedSchema
+                    schema1: cleanedSchema,
+                    schema2: userSchema
                 })
             });
 
@@ -169,11 +235,122 @@ const CodeEvaluation = () => {
 
             const data = await res.json();
             setDiffResult(data.diff);
+
+            const formattedBlocks = [];
+            const tableNameDiffs = [];
+
+
+            if(data.diff){
+                let startingNum = 0;
+                if (!data.diff[0].includes("Comparing")){
+                    startingNum += 1;
+                    startingNum = getTableNameDiffs(data, tableNameDiffs, startingNum);
+                }
+                for (; startingNum < data.diff.length; startingNum += 4) {
+                    if (data.diff[startingNum].includes("Comparing")) {
+                        const header = data.diff[startingNum];
+                        let bullets = [data.diff[startingNum + 1], data.diff[startingNum + 2], data.diff[startingNum + 3]];
+
+                        for (let i = 0; i < 3; i++) {
+                            if (!bullets[i].includes("same")) {
+                                if (i === 0) {
+                                    getAttributeDiffs(bullets, i);
+                                }
+
+                                if (i === 2) {
+                                    getForeignKeyDiffs(bullets, i);
+                                }
+                            }
+                            else if (bullets[i].includes("same") && i == 0) {
+                                bullets[i] = "Attributes are equivalent";
+                            } else if (bullets[i].includes("same") && i == 1) {
+                                bullets[i] = "Primary keys are equivalent";
+                            } else if (bullets[i].includes("same") && i == 2) {
+                                bullets[i] = "Foreign keys are equivalent";
+                            }
+
+                        }
+
+                        if (bullets.every(b => b.includes("equivalent"))) {
+                            bullets = ["Both Tables Are Equivalent"];
+                        }
+
+
+                        formattedBlocks.push(
+                            <div key={startingNum}>
+                                {tableNameDiffs.length > 0 && tableNameDiffs.map((diff, index) => (
+                                    <h1 key={index} className="font-bold">{diff}</h1>
+                                ))}
+
+                                <h1 className="font-bold">{header}</h1>
+                                <ul>
+                                    {bullets.map((b, j) => {
+                                        console.log("BBBBB", b)
+                                        if (b.includes("mismatch:")) {
+                                            const [before, afterRaw] = b.split("mismatch:");
+
+                                            if (afterRaw.includes("Column(") || afterRaw.includes("Identifier(")) {
+                                                const regex = /this=Identifier\(this=([A-Za-z0-9_]+),/g;
+                                                let match;
+                                                const columnNames = [];
+
+                                                while ((match = regex.exec(afterRaw)) !== null) {
+                                                    columnNames.push(match[1]);
+                                                }
+
+                                                const schema2Match = afterRaw.match(/schema2:\s*(\[[^\]]*\])/);
+                                                const schema2 = schema2Match ? schema2Match[1] : "[]";
+
+                                                return (
+                                                    <li key={j} className={"bg-red-400 font-bold"}>
+                                                        {before}mismatch:<br />
+                                                        Schema1: [{columnNames.join(", ")}]<br />
+                                                        Schema2: {schema2}
+                                                    </li>
+                                                );
+                                            } else {
+                                                const after = afterRaw.replace(/\s*schema2:/, ", Schema2:").replace(/[\[\]']/g, "").replace(/\s*schema1:/, "Schema1:");
+                                                return (
+                                                    <li key={j} className={"bg-red-400 font-bold"}>
+                                                        {before}mismatch:<br />
+                                                        {after}
+                                                    </li>
+                                                );
+                                            }
+                                        }
+                                        else if (b.includes("differences:")) {
+                                            const test = b.split("|");
+                                            console.log("here we are ", test);
+                                            return (
+                                                <ul className={"bg-red-400 font-bold"}>
+                                                    {test.map((item, index) => (
+                                                        <li key={index}>{item}</li>
+                                                    ))}
+                                                </ul>
+                                            );
+                                        }
+                                        else {
+                                            return <li key={j}>{b}</li>;
+                                        }
+                                    })}
+                                </ul>
+                                <br />
+                            </div>
+                        );
+                    }
+                }
+            }
+
+            setFormattedResult(formattedBlocks);
+
+            console.log("typeof", typeof data.diff);
             console.log("here", data.diff);
+            console.log("why it not formatting doe", formattedBlocks);
             console.log("there", diffResult);
         } catch (e) {
             console.log("here???")
             setError(e.message);
+            setFormattedResult(e.message);
         } finally {
             setLoading(false);
         }
@@ -185,7 +362,7 @@ const CodeEvaluation = () => {
         <>
             <Header />
 
-            <header className="text-center text-4xl mt-8 font-bold">Code Eval</header>
+            <header className="text-center text-4xl mt-8 font-bold">Code Comparison</header>
 
             <div id="input-container" style={{border: "1vh light grey", borderRadius:"2vh", marginTop:"3vh"}}>
 
@@ -208,33 +385,54 @@ const CodeEvaluation = () => {
                     style={{fontSize:'2vh'}}
                 />
             </div>
-            <div style={{height:'75vh'}}>
-                <div className={"inner-page-box w-[35vw] h-[70vh] float-left overflow-scroll"} style={{marginLeft:"20vh"}}>
+
+            <div className={"flex"} style={{marginTop:"2vh"}}>
+                <h1 className={"w-2/5 font-bold"}>LLM Code</h1>
+                <h1 className={"w-1/5 font-bold"}>Your Code</h1>
+                <h1 className={"w-2/5 font-bold"}>Comparison</h1>
+            </div>
+
+            <div style={{ height: '75vh', display: 'flex', justifyContent: 'space-around', alignItems: 'flex-start', marginTop:"-2vh"}}>
+                <div className="inner-page-box" style={{ width: '28vw', height: '70vh', overflow: 'scroll', marginRight:"-16vh" }}>
                     {response.length === 0 ? (
-                        <h1 style={{fontSize:'2.5vh'}}>Upload your image to see code</h1>
+                        <h1 style={{ fontSize: '2.5vh' }}>Upload your image to see code</h1>
                     ) : (
                         <div>
                             {response.map((msg, index) => (
-                                <div key={index} >
+                                <div key={index}>
                                     <ReactMarkdown>{msg.message}</ReactMarkdown>
                                 </div>
                             ))}
                         </div>
                     )}
                 </div>
-                <div className={"inner-page-box w-[35vw] h-[70vh] float-right overflow-scroll"} style={{marginRight:"20vh"}}>
-                    <textarea value={userSchema} onChange={handleUserSchema} placeholder={"Enter your schema"} style={{ width: "100%", height: "100%", boxSizing: "border-box", border:0, outline:0 }}></textarea>
+
+                <div className="inner-page-box" style={{ width: '28vw', height: '70vh', overflow: 'scroll', marginRight:"-16vh" }}>
+                    <textarea
+                        value={userSchema}
+                        onChange={handleUserSchema}
+                        placeholder="Enter your schema"
+                        style={{ width: '100%', height: '100%', boxSizing: 'border-box', border: 0, outline: 0 }}
+                    ></textarea>
+                </div>
+
+                <div className="inner-page-box" style={{ width: '28vw', height: '70vh', overflow: 'scroll' }}>
+                    {formattedResult}
                 </div>
             </div>
 
+
             <button
-                className={"inner-page-box w-[80vw] h-[10vh] cursor-pointer"}
+                className={"inner-page-box"}
                 style={{
+                    width: "80vw",
+                    height: "10vh",
                     backgroundColor: "#BD0A0A",
                     color: "white",
                     fontSize: "24px",
                     fontWeight: "bold",
                     paddingTop: "0.5vh",
+                    cursor: "pointer",
                 }}
                 onClick={handleCompare}
                 disabled={loading}
@@ -242,30 +440,31 @@ const CodeEvaluation = () => {
                 {loading ? "Comparing..." : "Compare"}
             </button>
 
-            <div className={"inner-page-box w-[80vw] h-[35vh]"}>
-                <h2 style={{ fontSize: "2.5vh" }}>
-                    {error
-                        ? `Error: ${error}`
-                        : diffResult
-                            ? "Comparison Result:"
-                            : "Click Compare After Uploading Your ERD And SQL Code To See Results"}
-                </h2>
-                {diffResult && (
-                    <pre
-                        style={{
-                            whiteSpace: "pre-wrap",
-                            wordWrap: "break-word",
-                            fontSize: "1.2vh",
-                            maxHeight: "25vh",
-                            overflowY: "auto",
-                        }}
-                    >
-            {JSON.stringify(diffResult, null, 2)}
-          </pre>
-                )}
-            </div>
+            {/*keeping this for now, will get rid of it in a bit (i just think its useful if the other box shows weird input i can look at the og*/}
+          {/*  <div className={"inner-page-box"} style={{ width: "80vw", height: "35vh" }}>*/}
+          {/*      <h2 style={{ fontSize: "2.5vh" }}>*/}
+          {/*          {error*/}
+          {/*              ? `Error: ${error}`*/}
+          {/*              : diffResult*/}
+          {/*                  ? "Comparison Result:"*/}
+          {/*                  : "Click Compare After Uploading Your ERD And SQL Code To See Results"}*/}
+          {/*      </h2>*/}
+          {/*      {diffResult && (*/}
+          {/*          <pre*/}
+          {/*              style={{*/}
+          {/*                  whiteSpace: "pre-wrap",*/}
+          {/*                  wordWrap: "break-word",*/}
+          {/*                  fontSize: "1.2vh",*/}
+          {/*                  maxHeight: "25vh",*/}
+          {/*                  overflowY: "auto",*/}
+          {/*              }}*/}
+          {/*          >*/}
+          {/*  {JSON.stringify(diffResult, null, 2)}*/}
+          {/*</pre>*/}
+          {/*      )}*/}
+          {/*  </div>*/}
 
-            <div className={"inner-page-box w-[80vw] h-[35vh]"}>
+            <div className={"inner-page-box"} style={{width:'80vw', height:'35vh'}}>
                 {isAuthenticated ?
                     <div style={{marginTop:"10vh"}}>
                         {file !== null && responseString !== "" ?
