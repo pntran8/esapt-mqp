@@ -14,7 +14,8 @@ import {useNavigate} from "react-router-dom";
 import * as React from "react";
 import {useAuth0} from "@auth0/auth0-react";
 import StartSessionBtn from "./StartSessionBtn.tsx";
-import download from "@/src/assets/download.png";
+import download from "../src/assets/download.png";
+import { PulseLoader } from "react-spinners";
 
 // Message type definition
 interface Message {
@@ -96,7 +97,7 @@ const CodeEvaluation = () => {
                     //const resParts = resStr.split('----------');
 
                     setResponseString(resStr);
-                    //setIsLoading(false);
+                    setIsLoading(false);
 
 
                 } catch (err) {
@@ -395,7 +396,9 @@ const CodeEvaluation = () => {
             <div style={{ height: '75vh', display: 'flex', justifyContent: 'space-around', alignItems: 'flex-start', marginTop:"-2vh"}}>
                 <div className="inner-page-box" style={{ width: '28vw', height: '70vh', overflow: 'scroll', marginRight:"-16vh" }}>
                     {response.length === 0 ? (
-                        <h1 style={{ fontSize: '2.5vh' }}>Upload your image to see code</h1>
+                        isLoading ? (<div><h1 style={{fontSize:'max(15px, 2.5vh)'}}>Loading SQL, please wait...</h1>
+                                <PulseLoader color={"black"} loading={isLoading} size={15} margin={4} aria-label="Loading Spinner" data-testid="loader"/></div>)
+                            : (<h1 style={{fontSize:'max(15px, 2.5vh)'}}>Upload your image to see code</h1>)
                     ) : (
                         <div>
                             {response.map((msg, index) => (
