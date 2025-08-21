@@ -41,6 +41,8 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
     const [file, setFile] = useState<File | null>(null);
     const [responseString, setResponseString] = useState<string>("");
     const navigate = useNavigate();
+    const [popup, setPopup] = useState<boolean>(false);
+    const [zoomIn, setZoomIn] = useState<boolean>(false);
     const goToHistory = () => {
         navigate('/viewHistory');
     }
@@ -142,109 +144,160 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
                 </button>1-->*/
     return (
         <>
-            <Header />
-            <h1>Generate SQL from ERD</h1>
-            <div id="input-container" style={{border:"1vh light grey", borderRadius:"2vh", marginTop:"3vh"}}>
-                <button className="cursor-pointer clear-btn">
-                    <StartSessionBtn/>
-                </button>
-                <input
-                    type="file"
-                    accept=".png,.jpg"
-                    onChange={handleFileUpload}
-                    className="chat-input"
-                    style={{fontSize:'2vh'}}
-                />
-            </div>
+            <div>
+                {popup ? (
+                        <div className="">
+                            <div className="relative m-12" style={{height: '90vh'}}>
+                                { zoomIn ?
+                                    (
+                                    <img
+                                        src={imageUrl}
+                                        alt="ERD Preview"
+                                        className={"cursor-zoom-out"}
+                                        onClick={() => setZoomIn(false)}
+                                        style={{ width: '200%', height: '200%', objectFit: 'contain' }}
+                                    />
+                                    )
+                                : (
+                                    <img
+                                        src={imageUrl}
+                                        alt="ERD Preview"
+                                        className={"cursor-zoom-in"}
+                                        onClick={() => setZoomIn(true)}
+                                        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                                    />
+                                    )}
 
-            <div style={{height: '70vh', marginBottom: "1vh", marginTop: "3vh", display: 'flex', justifyContent: 'center', alignItems: 'stretch', gap: '4vh'}}>
-                <div style={{width: '45vw', display: 'flex', flexDirection: 'column'}}>
-                    {!imageUrl && (
-                        <h2 style={{ fontSize: '2.5vh', margin: '0 0 1vh 0' }}>Your ERD is displayed here</h2>
-                    )}
-                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="border-2 border-[#BD0A0A]">
-                        {imageUrl ? (
-                            <img
-                                src={imageUrl}
-                                alt="ERD Preview"
-                                style={{
-                                    width: '100%',
-                                    height: '100%',
-                                    objectFit: 'contain'
-                                }}
-                            />
-                        ) : (
-                            <p>No image available.</p>
-                        )}
-                    </div>
-                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setPopup(false)}
+                                    className="absolute top-2 right-2 focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-red-600 dark:hover:bg-red-700"
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </div>
 
-                <div className={"inner-page-box"} style={{width: '30vw', overflow: "scroll"}}>
-                    {response.length === 0 ? (
-                        isLoading ? (<div><h1 style={{fontSize:'max(15px, 2.5vh)'}}>Loading SQL, please wait...</h1>
-                                <PulseLoader color={"black"} loading={isLoading} size={15} margin={4} aria-label="Loading Spinner" data-testid="loader"/></div>)
-                            : (<h1 style={{fontSize:'max(15px, 2.5vh)'}}>Upload your image to see code</h1>)
-                    ) : (
+                    ) :
+                    (
                         <div>
-                            <h3 style={{fontSize:'20px', justifySelf:'left'}}>{code}</h3>
+                            <Header/>
+                            <h1>Generate SQL from ERD</h1>
+                            <div id="input-container"
+                                 style={{border: "1vh light grey", borderRadius:"2vh", marginTop:"3vh"}}>
+                                <button className="cursor-pointer clear-btn">
+                                    <StartSessionBtn/>
+                                </button>
+                                <input
+                                    type="file"
+                                    accept=".png,.jpg"
+                                    onChange={handleFileUpload}
+                                    className="chat-input"
+                                    style={{fontSize:'2vh'}}
+                                />
+                            </div>
+
+                            <div style={{height: '70vh', marginBottom: "1vh", marginTop: "3vh", display: 'flex', justifyContent: 'center', alignItems: 'stretch', gap: '4vh'}}>
+                                <div style={{width: '45vw', display: 'flex', flexDirection: 'column'}}>
+                                    {!imageUrl && (
+                                        <h2 style={{ fontSize: '2.5vh', margin: '0 0 1vh 0' }}>Your ERD is displayed here</h2>
+                                    )}
+                                    <div style={{height: '100%', width: '100%', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="border-2 border-[#BD0A0A]">
+                                        {imageUrl ? (
+                                            <img
+                                                src={imageUrl}
+                                                onClick={() => setPopup(true)}
+                                                alt="ERD Preview"
+                                                style={{
+                                                    width: '100%',
+                                                    height: '100%',
+                                                    objectFit: 'contain'
+                                                }}
+                                            />
+                                        ) : (
+                                            <p>No image available.</p>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className={"inner-page-box"} style={{width: '30vw', overflow: "scroll"}}>
+                                    {response.length === 0 ? (
+                                        isLoading ? (<div><h1 style={{fontSize:'max(15px, 2.5vh)'}}>Loading SQL, please wait...</h1>
+                                                <PulseLoader color={"black"} loading={isLoading} size={15} margin={4} aria-label="Loading Spinner" data-testid="loader"/></div>)
+                                            : (<h1 style={{fontSize:'max(15px, 2.5vh)'}}>Upload your image to see code</h1>)
+                                    ) : (
+                                        <div>
+                                            <h3 style={{fontSize:'20px', justifySelf:'left'}}>{code}</h3>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div style={{height:'25vh', marginBottom:"6vh"}}>
+                                <div className={"inner-page-box w-[35vw] h-[25vh] ml-[10vw] float-left"}>
+                                    <h2 style={{fontSize:'2.5vh'}}>Display Code Explanation</h2>
+                                    <button
+                                        className={"box-button mt-[4vh]"}
+                                        onClick={() => {
+                                            goToExp()
+                                        }}
+                                    >View</button>
+                                </div>
+                                <div className={"inner-page-box w-[35vw] h-[25vh] mr-[10vw] float-right"} >
+                                    <h2 style={{fontSize:'2.5vh'}}>Download Output.txt</h2>
+                                    <button
+                                        className={"box-button mt-[4vh]"}
+                                        onClick={() => {
+                                            const blob = new Blob([code], { type: 'text/plain' });
+                                            const url = URL.createObjectURL(blob);
+                                            const link = document.createElement('a');
+                                            link.href = url;
+                                            link.download = 'Output.txt';
+                                            document.body.appendChild(link);
+                                            link.click();
+                                            document.body.removeChild(link);
+                                            URL.revokeObjectURL(url);
+                                        }}
+                                    >
+                                        <img src={download} alt="Download" style={{justifySelf:"center", width: '25%'}} />
+                                    </button>
+
+                                </div>
+                            </div>
+                            <div className={"inner-page-box w-[50vw] h-[30vh]"}>
+                                {isAuthenticated ?
+                                    <div style={{marginTop:"5vh"}}>
+                                        {file !== null && responseString !== "" ?
+                                            <Save file={file} responseText={responseString} />
+                                            :
+                                            <div>
+                                                <h2 style={{fontSize:'2.5vh', marginTop:'4vh'}}>Welcome, {user?.sub?.slice(-8).toUpperCase()}! Click here to view <br/> your saved work</h2>
+                                                <button className={'box-button'} onClick={goToHistory}>View History</button>
+                                            </div>
+                                        }
+                                    </div>
+                                    :
+                                    <div>
+                                        <h2 style={{fontSize:'2.5vh', marginTop:'5vh'}}>Log in to save your work</h2>
+                                        <button className={'box-button mt-[4vh]'} onClick={handleAuthClick}>Login</button>
+                                    </div>
+
+                                }
+                            </div>
+
+                            <Footer/>
                         </div>
                     )}
-                </div>
             </div>
 
-            <div style={{height:'25vh', marginBottom:"6vh"}}>
-                <div className={"inner-page-box w-[35vw] h-[25vh] ml-[10vw] float-left"}>
-                    <h2 style={{fontSize:'2.5vh'}}>Display Code Explanation</h2>
-                    <button
-                        className={"box-button mt-[4vh]"}
-                        onClick={() => {
-                            goToExp()
-                        }}
-                    >View</button>
-                </div>
-                <div className={"inner-page-box w-[35vw] h-[25vh] mr-[10vw] float-right"} >
-                    <h2 style={{fontSize:'2.5vh'}}>Download Output.txt</h2>
-                    <button
-                        className={"box-button mt-[4vh]"}
-                        onClick={() => {
-                            const blob = new Blob([code], { type: 'text/plain' });
-                            const url = URL.createObjectURL(blob);
-                            const link = document.createElement('a');
-                            link.href = url;
-                            link.download = 'Output.txt';
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                            URL.revokeObjectURL(url);
-                        }}
-                    >
-                        <img src={download} alt="Download" style={{justifySelf:"center", width: '25%'}} />
-                    </button>
+            {/*<div className={"absolute inset-0 m-20 backdrop-blur-sm"}>*/}
+            {/*    {popup ? (*/}
+            {/*        <img src={imageUrl} alt="ERD Preview" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />*/}
+            {/*    ) : (*/}
+            {/*        <div></div>*/}
+            {/*    )}*/}
+            {/*</div>*/}
 
-                </div>
-            </div>
-            <div className={"inner-page-box w-[50vw] h-[30vh]"}>
-                {isAuthenticated ?
-                    <div style={{marginTop:"5vh"}}>
-                        {file !== null && responseString !== "" ?
-                            <Save file={file} responseText={responseString} />
-                        :
-                            <div>
-                                <h2 style={{fontSize:'2.5vh', marginTop:'4vh'}}>Welcome, {user?.sub?.slice(-8).toUpperCase()}! Click here to view <br/> your saved work</h2>
-                                <button className={'box-button'} onClick={goToHistory}>View History</button>
-                            </div>
-                        }
-                    </div>
-                    :
-                    <div>
-                        <h2 style={{fontSize:'2.5vh', marginTop:'5vh'}}>Log in to save your work</h2>
-                        <button className={'box-button mt-[4vh]'} onClick={handleAuthClick}>Login</button>
-                    </div>
-
-                }
-            </div>
-
-            <Footer/>
         </>
     );
 };
