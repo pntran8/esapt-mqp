@@ -17,6 +17,8 @@ interface Props {
 const CodeExplanation: React.FC<Props> = ({imageUrl, code, explanation}) => {
     const { isAuthenticated, user, loginWithRedirect, logout } = useAuth0();
     const navigate = useNavigate();
+    const [popup, setPopup] = useState<boolean>(false);
+    const [zoomIn, setZoomIn] = useState<boolean>(false);
 
     const [expandedSections, setExpandedSections] = useState({
         erd: true,
@@ -108,175 +110,215 @@ const CodeExplanation: React.FC<Props> = ({imageUrl, code, explanation}) => {
 
     return (
         <>
-            <Header />
-            <h1>SQL Explanation</h1>
-
-            {/* collapsed headers */}
-            {renderCollapsedHeaders()}
-
-            <div style={{
-                height: '75vh',
-                marginTop: '3vh',
-                marginBottom: '1vh',
-                paddingLeft: '5vw',
-                paddingRight: '5vw',
-                ...getLayoutStyles()
-            }}>
-                {/* only one section (centered) */}
-                {expandedCount === 1 && (
-                    <>
-                        {expandedSections.erd && (
-                            <div style={{ width: '80vw', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                <h1 style={{marginBottom:'2vh', cursor: 'pointer'}} onClick={() => toggleSection('erd')}>
-                                    Your ERD ▼
-                                </h1>
-                                <div style={{ height: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }} className="border-2 border-[#BD0A0A]">
-                                    {imageUrl ? (
-                                        <img src={imageUrl} alt="ERD Preview" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                                    ) : (
-                                        <p>No image available.</p>
+            <div>
+                {popup ? (
+                        <div className="">
+                            <div className="relative m-12" style={{height: '90vh'}}>
+                                { zoomIn ?
+                                    (
+                                        <img
+                                            src={imageUrl}
+                                            alt="ERD Preview"
+                                            className={"cursor-zoom-out"}
+                                            onClick={() => setZoomIn(false)}
+                                            style={{ width: '200%', height: '200%', objectFit: 'contain' }}
+                                        />
+                                    )
+                                    : (
+                                        <img
+                                            src={imageUrl}
+                                            alt="ERD Preview"
+                                            className={"cursor-zoom-in"}
+                                            onClick={() => setZoomIn(true)}
+                                            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                                        />
                                     )}
-                                </div>
-                            </div>
-                        )}
-                        {expandedSections.code && (
-                            <div style={{ width: '80vw', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                <h1 style={{cursor: 'pointer'}} onClick={() => toggleSection('code')}>
-                                    Code Output ▼
-                                </h1>
-                                <div className={"inner-page-box"} style={{ height: '60vh', width: '100%', overflow: 'scroll' }}>
-                                    <h3 style={{fontSize:'20px', justifySelf:'left'}}>{code}</h3>
-                                </div>
-                            </div>
-                        )}
-                        {expandedSections.explanation && (
-                            <div style={{ width: '80vw', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                <h1 style={{cursor: 'pointer'}} onClick={() => toggleSection('explanation')}>
-                                    AI Explanation ▼
-                                </h1>
-                                <div className={"inner-page-box"} style={{ height: '60vh', width: '100%', overflow: 'scroll' }}>
-                                    <h3 style={{fontSize:'20px', justifySelf:'left'}}>{explanation}</h3>
-                                </div>
-                            </div>
-                        )}
-                    </>
-                )}
 
-                {/* two sections side by side */}
-                {expandedCount === 2 && (
-                    <>
-                        {expandedSections.erd && (
-                            <div style={{ width: '45vw', display: 'flex', flexDirection: 'column' }}>
-                                <h1 style={{marginBottom:'2vh', cursor: 'pointer'}} onClick={() => toggleSection('erd')}>
-                                    Your ERD ▼
-                                </h1>
-                                <div style={{ height: '66vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="border-2 border-[#BD0A0A]">
-                                    {imageUrl ? (
-                                        <img src={imageUrl} alt="ERD Preview" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                                    ) : (
-                                        <p>No image available.</p>
-                                    )}
-                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setPopup(false)}
+                                    className="absolute top-2 right-2 focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-red-600 dark:hover:bg-red-700"
+                                >
+                                    Close
+                                </button>
                             </div>
-                        )}
-                        {expandedSections.code && (
-                            <div style={{ width: '45vw', display: 'flex', flexDirection: 'column' }}>
-                                <h1 style={{cursor: 'pointer'}} onClick={() => toggleSection('code')}>
-                                    Code Output ▼
-                                </h1>
-                                <div className={"inner-page-box"} style={{ height: '66vh', overflow: 'scroll' }}>
-                                    <h3 style={{fontSize:'20px', justifySelf:'left'}}>{code}</h3>
-                                </div>
-                            </div>
-                        )}
-                        {expandedSections.explanation && (
-                            <div style={{ width: '45vw', display: 'flex', flexDirection: 'column' }}>
-                                <h1 style={{cursor: 'pointer'}} onClick={() => toggleSection('explanation')}>
-                                    AI Explanation ▼
-                                </h1>
-                                <div className={"inner-page-box"} style={{ height: '66vh', overflow: 'scroll' }}>
-                                    <h3 style={{fontSize:'20px', justifySelf:'left'}}>{explanation}</h3>
-                                </div>
-                            </div>
-                        )}
-                    </>
-                )}
+                        </div>
 
-                {/* all three sections (og layout) */}
-                {expandedCount === 3 && (
-                    <>
-                        {/* erd */}
-                        <div style={{ width: '45vw', display: 'flex', flexDirection: 'column' }}>
-                            <h1 style={{marginBottom:'2vh', cursor: 'pointer'}} onClick={() => toggleSection('erd')}>
-                                Your ERD ▼
-                            </h1>
-                            <div style={{ height: '66vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="border-2 border-[#BD0A0A]">
-                                {imageUrl ? (
-                                    <img src={imageUrl} alt="ERD Preview" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                                ) : (
-                                    <p>No image available.</p>
+                    ) :
+                    (
+                        <div>
+                            <Header />
+                            <h1>SQL Explanation</h1>
+
+                            {/* collapsed headers */}
+                            {renderCollapsedHeaders()}
+
+                            <div style={{
+                                height: '75vh',
+                                marginTop: '3vh',
+                                marginBottom: '1vh',
+                                paddingLeft: '5vw',
+                                paddingRight: '5vw',
+                                ...getLayoutStyles()
+                            }}>
+                                {/* only one section (centered) */}
+                                {expandedCount === 1 && (
+                                    <>
+                                        {expandedSections.erd && (
+                                            <div style={{ width: '80vw', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                                <h1 style={{marginBottom:'2vh', cursor: 'pointer'}} onClick={() => toggleSection('erd')}>
+                                                    Your ERD ▼
+                                                </h1>
+                                                <div style={{ height: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }} className="border-2 border-[#BD0A0A]">
+                                                    {imageUrl ? (
+                                                        <img src={imageUrl} onClick={() => setPopup(true)} alt="ERD Preview" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                                    ) : (
+                                                        <p>No image available.</p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+                                        {expandedSections.code && (
+                                            <div style={{ width: '80vw', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                                <h1 style={{cursor: 'pointer'}} onClick={() => toggleSection('code')}>
+                                                    Code Output ▼
+                                                </h1>
+                                                <div className={"inner-page-box"} style={{ height: '60vh', width: '100%', overflow: 'scroll' }}>
+                                                    <h3 style={{fontSize:'20px', justifySelf:'left'}}>{code}</h3>
+                                                </div>
+                                            </div>
+                                        )}
+                                        {expandedSections.explanation && (
+                                            <div style={{ width: '80vw', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                                <h1 style={{cursor: 'pointer'}} onClick={() => toggleSection('explanation')}>
+                                                    AI Explanation ▼
+                                                </h1>
+                                                <div className={"inner-page-box"} style={{ height: '60vh', width: '100%', overflow: 'scroll' }}>
+                                                    <h3 style={{fontSize:'20px', justifySelf:'left'}}>{explanation}</h3>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+
+                                {/* two sections side by side */}
+                                {expandedCount === 2 && (
+                                    <>
+                                        {expandedSections.erd && (
+                                            <div style={{ width: '45vw', display: 'flex', flexDirection: 'column' }}>
+                                                <h1 style={{marginBottom:'2vh', cursor: 'pointer'}} onClick={() => toggleSection('erd')}>
+                                                    Your ERD ▼
+                                                </h1>
+                                                <div style={{ height: '66vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="border-2 border-[#BD0A0A]">
+                                                    {imageUrl ? (
+                                                        <img src={imageUrl} onClick={() => setPopup(true)} alt="ERD Preview" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                                    ) : (
+                                                        <p>No image available.</p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+                                        {expandedSections.code && (
+                                            <div style={{ width: '45vw', display: 'flex', flexDirection: 'column' }}>
+                                                <h1 style={{cursor: 'pointer'}} onClick={() => toggleSection('code')}>
+                                                    Code Output ▼
+                                                </h1>
+                                                <div className={"inner-page-box"} style={{ height: '66vh', overflow: 'scroll' }}>
+                                                    <h3 style={{fontSize:'20px', justifySelf:'left'}}>{code}</h3>
+                                                </div>
+                                            </div>
+                                        )}
+                                        {expandedSections.explanation && (
+                                            <div style={{ width: '45vw', display: 'flex', flexDirection: 'column' }}>
+                                                <h1 style={{cursor: 'pointer'}} onClick={() => toggleSection('explanation')}>
+                                                    AI Explanation ▼
+                                                </h1>
+                                                <div className={"inner-page-box"} style={{ height: '66vh', overflow: 'scroll' }}>
+                                                    <h3 style={{fontSize:'20px', justifySelf:'left'}}>{explanation}</h3>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+
+                                {/* all three sections (og layout) */}
+                                {expandedCount === 3 && (
+                                    <>
+                                        {/* erd */}
+                                        <div style={{ width: '45vw', display: 'flex', flexDirection: 'column' }}>
+                                            <h1 style={{marginBottom:'2vh', cursor: 'pointer'}} onClick={() => toggleSection('erd')}>
+                                                Your ERD ▼
+                                            </h1>
+                                            <div style={{ height: '66vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="border-2 border-[#BD0A0A]">
+                                                {imageUrl ? (
+                                                    <img src={imageUrl} onClick={() => setPopup(true)} alt="ERD Preview" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                                ) : (
+                                                    <p>No image available.</p>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* code and explanation stacked */}
+                                        <div style={{width: '45vw', display: 'flex', flexDirection: 'column', gap: '2vh'}}>
+                                            <div style={{ height: '32vh', display: 'flex', flexDirection: 'column' }}>
+                                                <h1 style={{cursor: 'pointer'}} onClick={() => toggleSection('code')}>
+                                                    Code Output ▼
+                                                </h1>
+                                                <div className={"inner-page-box"} style={{ flex: 1, overflow: 'scroll' }}>
+                                                    <h3 style={{fontSize:'20px', justifySelf:'left'}}>{code}</h3>
+                                                </div>
+                                            </div>
+
+                                            <div style={{ height: '32vh', display: 'flex', flexDirection: 'column' }}>
+                                                <h1 style={{cursor: 'pointer'}} onClick={() => toggleSection('explanation')}>
+                                                    AI Explanation ▼
+                                                </h1>
+                                                <div className={"inner-page-box"} style={{ flex: 1, overflow: 'scroll' }}>
+                                                    <h3 style={{fontSize:'20px', justifySelf:'left'}}>{explanation}</h3>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </>
                                 )}
                             </div>
-                        </div>
 
-                        {/* code and explanation stacked */}
-                        <div style={{width: '45vw', display: 'flex', flexDirection: 'column', gap: '2vh'}}>
-                            <div style={{ height: '32vh', display: 'flex', flexDirection: 'column' }}>
-                                <h1 style={{cursor: 'pointer'}} onClick={() => toggleSection('code')}>
-                                    Code Output ▼
-                                </h1>
-                                <div className={"inner-page-box"} style={{ flex: 1, overflow: 'scroll' }}>
-                                    <h3 style={{fontSize:'20px', justifySelf:'left'}}>{code}</h3>
+                            <div style={{height:'30vh', marginBottom:"10vh"}}>
+                                { isAuthenticated ?
+                                    <div className={"inner-page-box w-[35vw] h-[25vh] float-left"} style={{marginLeft:'10vw'}}>
+                                        <h2 style={{fontSize:'2vh', marginBottom:'30px'}}>Welcome, {user?.sub?.slice(-8).toUpperCase()}! Click here to view <br/> your saved work</h2>
+                                        <button className={'box-button'} onClick={goToHistory}>View History</button>
+                                    </div>
+                                    :
+                                    <div className={"inner-page-box w-[35vw] h-[25vh] float-left"} style={{marginLeft:'10vw'}}>
+                                        <h2 style={{fontSize:'2vh'}}>Log in to save your work</h2>
+                                        <button className={'box-button'} style={{marginTop:'40px'}} onClick={handleAuthClick}>Login</button>
+                                    </div>
+                                }
+                                <div className={"inner-page-box w-[35vw] h-[25vh] float-right"} style={{marginRight:'10vw'}}>
+                                    <div>
+                                        <h2 style={{fontSize:"2vh"}}>Download Output.txt</h2>
+                                        <button className={"box-button"} style={{marginTop:'40px'}}
+                                                onClick={() => {
+                                                    const blob = new Blob([code], { type: 'text/plain' });
+                                                    const url = URL.createObjectURL(blob);
+                                                    const link = document.createElement('a');
+                                                    link.href = url;
+                                                    link.download = 'Output.txt';
+                                                    document.body.appendChild(link);
+                                                    link.click();
+                                                    document.body.removeChild(link);
+                                                    URL.revokeObjectURL(url);
+                                                }}>
+                                            <img src={download} alt="Download" style={{justifySelf:"center", width: '25%'}} />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div style={{ height: '32vh', display: 'flex', flexDirection: 'column' }}>
-                                <h1 style={{cursor: 'pointer'}} onClick={() => toggleSection('explanation')}>
-                                    AI Explanation ▼
-                                </h1>
-                                <div className={"inner-page-box"} style={{ flex: 1, overflow: 'scroll' }}>
-                                    <h3 style={{fontSize:'20px', justifySelf:'left'}}>{explanation}</h3>
-                                </div>
-                            </div>
+                            <Footer/>
                         </div>
-                    </>
-                )}
+                    )}
             </div>
-
-            <div style={{height:'30vh', marginBottom:"10vh"}}>
-                { isAuthenticated ?
-                    <div className={"inner-page-box w-[35vw] h-[25vh] float-left"} style={{marginLeft:'10vw'}}>
-                        <h2 style={{fontSize:'2vh', marginBottom:'30px'}}>Welcome, {user?.sub?.slice(-8).toUpperCase()}! Click here to view <br/> your saved work</h2>
-                        <button className={'box-button'} onClick={goToHistory}>View History</button>
-                    </div>
-                    :
-                    <div className={"inner-page-box w-[35vw] h-[25vh] float-left"} style={{marginLeft:'10vw'}}>
-                        <h2 style={{fontSize:'2vh'}}>Log in to save your work</h2>
-                        <button className={'box-button'} style={{marginTop:'40px'}} onClick={handleAuthClick}>Login</button>
-                    </div>
-                }
-                <div className={"inner-page-box w-[35vw] h-[25vh] float-right"} style={{marginRight:'10vw'}}>
-                    <div>
-                        <h2 style={{fontSize:"2vh"}}>Download Output.txt</h2>
-                        <button className={"box-button"} style={{marginTop:'40px'}}
-                                onClick={() => {
-                                    const blob = new Blob([code], { type: 'text/plain' });
-                                    const url = URL.createObjectURL(blob);
-                                    const link = document.createElement('a');
-                                    link.href = url;
-                                    link.download = 'Output.txt';
-                                    document.body.appendChild(link);
-                                    link.click();
-                                    document.body.removeChild(link);
-                                    URL.revokeObjectURL(url);
-                                }}>
-                            <img src={download} alt="Download" style={{justifySelf:"center", width: '25%'}} />
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <Footer/>
         </>
     );
 };
