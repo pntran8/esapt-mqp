@@ -32,7 +32,7 @@ const CodeEvaluation = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [userSchema, setUserSchema] = useState('');
     const [file, setFile] = useState<File | null>(null);
-    const [responseString, setResponseString] = useState<string>("");
+    // const [responseString, setResponseString] = useState<string>("");
     const navigate = useNavigate();
     const goToHistory = () => {
         navigate('/viewHistory');
@@ -96,7 +96,8 @@ const CodeEvaluation = () => {
                     resStr = response.text ?? "No bot response available";
                     //const resParts = resStr.split('----------');
 
-                    setResponseString(resStr);
+                    localStorage.setItem("responseString", resStr)
+                    // setResponseString(resStr);
                     setIsLoading(false);
 
 
@@ -367,9 +368,9 @@ const CodeEvaluation = () => {
 
             <div id="input-container" style={{border: "1vh light grey", borderRadius:"2vh", marginTop:"3vh"}}>
 
-                {file !== null && responseString !== "" && isAuthenticated && (
+                {file !== null && localStorage.getItem("responseString") !== "" && isAuthenticated && (
                     <button className="cursor-pointer clear-btn">
-                        <Save file={file} responseText={responseString} />
+                        <Save file={file} responseText={localStorage.getItem("responseString")} />
                     </button>
                 )}
                 <button className="cursor-pointer clear-btn">
@@ -470,8 +471,8 @@ const CodeEvaluation = () => {
             <div className={"inner-page-box"} style={{width:'80vw', height:'35vh'}}>
                 {isAuthenticated ?
                     <div style={{marginTop:"10vh"}}>
-                        {file !== null && responseString !== "" ?
-                            <Save file={file} responseText={responseString} />
+                        {file !== null && localStorage.getItem("responseString") !== "" ?
+                            <Save file={file} responseText={localStorage.getItem("responseString")} />
                             :
                             <div>
                                 <h2 style={{fontSize:'2.5vh', marginTop:'4vh'}}>Welcome, {user?.sub?.slice(-8).toUpperCase()}! Click here to view <br/> your saved work</h2>

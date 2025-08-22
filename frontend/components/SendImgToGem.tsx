@@ -16,6 +16,7 @@ import {useAuth0} from "@auth0/auth0-react";
 import download from "../src/assets/download.png";
 import StartSessionBtn from "./StartSessionBtn.tsx";
 import { PulseLoader } from "react-spinners";
+import {compressImageFile} from "./Save.tsx";
 
 // Message type definition
 interface Message {
@@ -39,7 +40,7 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
     //this can be used later if we add a loading animation for gemini
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [file, setFile] = useState<File | null>(null);
-    const [responseString, setResponseString] = useState<string>("");
+    // const [responseString, setResponseString] = useState<string>("");
     const navigate = useNavigate();
     const [popup, setPopup] = useState<boolean>(false);
     const [zoomIn, setZoomIn] = useState<boolean>(false);
@@ -69,6 +70,9 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
 
         const file = e.target.files?.[0];
         if (!file) return;
+        const compressedFile = compressImageFile(file);
+        const compStr = JSON.stringify(compressedFile);
+        localStorage.setItem("compressedFile", compStr);
         setFile(file);
         const localUrl = URL.createObjectURL(file);
         setImageUrl(localUrl);
@@ -116,7 +120,7 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
                     setExplanation(resParts[1]);
                     console.log(code);
                     console.log(explanation);
-                    setResponseString(resStr);
+                    localStorage.setItem("responseString", resStr)
                     setIsLoading(false);
 
 
@@ -267,8 +271,8 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
                             <div className={"inner-page-box w-[50vw] h-[30vh]"}>
                                 {isAuthenticated ?
                                     <div style={{marginTop:"5vh"}}>
-                                        {file !== null && responseString !== "" ?
-                                            <Save file={file} responseText={responseString} />
+                                        {file !== null && localStorage.getItem("responseString") !== null ?
+                                            <Save file={file} responseText={localStorage.getItem("responseString")} />
                                             :
                                             <div>
                                                 <h2 style={{fontSize:'2.5vh', marginTop:'4vh'}}>Welcome, {user?.sub?.slice(-8).toUpperCase()}! Click here to view <br/> your saved work</h2>
