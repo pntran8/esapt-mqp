@@ -368,7 +368,7 @@ const CodeEvaluation = () => {
 
             <div id="input-container" style={{border: "1vh light grey", borderRadius:"2vh", marginTop:"3vh"}}>
 
-                {file !== null && localStorage.getItem("responseString") !== "" && isAuthenticated && (
+                {file !== null && localStorage.getItem("responseString") !== null && isAuthenticated && (
                     <button className="cursor-pointer clear-btn">
                         <Save file={file} responseText={localStorage.getItem("responseString")} />
                     </button>
