@@ -119,6 +119,7 @@ const CodeEvaluation = () => {
     };
 
 
+
     function getTableNameDiffs(data, formattedBlocks: any[], startingNum: number) {
         const splitting = data.diff[0].split("(this=");
         console.log("splitting", splitting);
@@ -186,7 +187,17 @@ const CodeEvaluation = () => {
         setError(null);
         setDiffResult(null);
 
-        const schema1 = response.length > 0 ? response[0].message : "";
+        let schema1;
+        if (localStorage.getItem("aiCode") !== null) {
+            schema1 = localStorage.getItem("aiCode");
+        }
+        else if (response.length > 0){
+            response[0].message
+        }
+        else{
+            schema1 = ""
+        }
+
         schema1.replace("sql", "")
         schema1.replace("`", "")
 
@@ -387,7 +398,10 @@ const CodeEvaluation = () => {
 
             <div style={{ height: '75vh', display: 'flex', justifyContent: 'space-around', alignItems: 'flex-start', marginTop:"-2vh"}}>
                 <div className="inner-page-box" style={{ width: '28vw', height: '70vh', overflow: 'scroll', marginRight:"-16vh" }}>
-                    {response.length === 0 ? (
+                    {localStorage.getItem("aiCode") !== null && response.length === 0 ? (
+                        localStorage.getItem("aiCode")
+                    ) :
+                        response.length === 0 ? (
                         isLoading ? (<div><h1 style={{fontSize:'max(15px, 2.5vh)'}}>Loading SQL, please wait...</h1>
                                 <PulseLoader color={"black"} loading={isLoading} size={15} margin={4} aria-label="Loading Spinner" data-testid="loader"/></div>)
                             : (<h1 style={{fontSize:'max(15px, 2.5vh)'}}>Upload your image to see code</h1>)
@@ -439,6 +453,10 @@ const CodeEvaluation = () => {
           {/*</pre>*/}
           {/*      )}*/}
           {/*  </div>*/}
+
+            <button className={"box-button"} onClick={localStorage.removeItem("aiCode")}>
+                Clear
+            </button>
 
             <Footer/>
         </>
