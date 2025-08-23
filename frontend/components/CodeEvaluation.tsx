@@ -11,10 +11,7 @@ import {
 import Save from "./Save.tsx";
 import "../src/App.css"
 import {useNavigate} from "react-router-dom";
-import * as React from "react";
 import {useAuth0} from "@auth0/auth0-react";
-import StartSessionBtn from "./StartSessionBtn.tsx";
-import download from "../src/assets/download.png";
 import { PulseLoader } from "react-spinners";
 
 // Message type definition
@@ -28,28 +25,12 @@ const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_LLM_API_KEY });
 
 const CodeEvaluation = () => {
     const [response, setResponse] = useState<Message[]>([]);
-    const { isAuthenticated, user, logout, loginWithRedirect} = useAuth0();
+    const { isAuthenticated} = useAuth0();
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [userSchema, setUserSchema] = useState('');
     const [file, setFile] = useState<File | null>(null);
     const [responseString, setResponseString] = useState<string>("");
-    const navigate = useNavigate();
-    const goToHistory = () => {
-        navigate('/viewHistory');
-    }
 
-    const handleAuthClick = async () => {
-        if (isAuthenticated) {
-            await logout({
-                logoutParams: { returnTo: window.location.origin }
-            });
-            navigate('/imggem');
-        } else {
-            await loginWithRedirect();
-            console.log("sendtogem login button icon authenticated");
-            navigate('/imggem');
-        }
-    };
     const handleFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
 
         const file = e.target.files?.[0];
@@ -372,9 +353,20 @@ const CodeEvaluation = () => {
                         <Save file={file} responseText={responseString} />
                     </button>
                 )}
-                <button className="cursor-pointer clear-btn">
-                    <StartSessionBtn/>
+
+                <button
+                    className={"cursor-pointer clear-btn"}
+                    style={{
+                        backgroundColor: "#BD0A0A",
+                        color: "white",
+
+                    }}
+                    onClick={handleCompare}
+                    disabled={loading}
+                >
+                    {loading ? "Comparing..." : "Compare"}
                 </button>
+
 
 
 
@@ -424,25 +416,6 @@ const CodeEvaluation = () => {
                 </div>
             </div>
 
-
-            <button
-                className={"inner-page-box"}
-                style={{
-                    width: "80vw",
-                    height: "10vh",
-                    backgroundColor: "#BD0A0A",
-                    color: "white",
-                    fontSize: "24px",
-                    fontWeight: "bold",
-                    paddingTop: "0.5vh",
-                    cursor: "pointer",
-                }}
-                onClick={handleCompare}
-                disabled={loading}
-            >
-                {loading ? "Comparing..." : "Compare"}
-            </button>
-
             {/*keeping this for now, will get rid of it in a bit (i just think its useful if the other box shows weird input i can look at the og*/}
           {/*  <div className={"inner-page-box"} style={{ width: "80vw", height: "35vh" }}>*/}
           {/*      <h2 style={{ fontSize: "2.5vh" }}>*/}
@@ -466,27 +439,6 @@ const CodeEvaluation = () => {
           {/*</pre>*/}
           {/*      )}*/}
           {/*  </div>*/}
-
-            <div className={"inner-page-box"} style={{width:'80vw', height:'35vh'}}>
-                {isAuthenticated ?
-                    <div style={{marginTop:"10vh"}}>
-                        {file !== null && responseString !== "" ?
-                            <Save file={file} responseText={responseString} />
-                            :
-                            <div>
-                                <h2 style={{fontSize:'2.5vh', marginTop:'4vh'}}>Welcome, {user?.sub?.slice(-8).toUpperCase()}! Click here to view <br/> your saved work</h2>
-                                <button className={'box-button'} onClick={goToHistory}>View History</button>
-                            </div>
-                        }
-                    </div>
-                    :
-                    <div>
-                        <h2 style={{fontSize:'2.5vh', marginTop:'5vh'}}>Log in to save your work</h2>
-                        <button className={'box-button'} style={{marginTop:'4vh'}} onClick={handleAuthClick}>Login</button>
-                    </div>
-
-                }
-            </div>
 
             <Footer/>
         </>
