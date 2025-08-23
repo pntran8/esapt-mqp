@@ -7,10 +7,16 @@ import { useAuth0 } from "@auth0/auth0-react";
 import download from "../src/assets/download.png"
 import * as React from "react";
 import { useState } from "react";
+import LineTypeRenderer from "../components/StepByStep.tsx"
+
+interface lineType {
+    line: string;
+    title: string;
+}
 
 interface Props {
     code: string;
-    explanation: string;
+    explanation: lineType[];
     imageUrl: string | null;
 }
 
@@ -145,7 +151,17 @@ const CodeExplanation: React.FC<Props> = ({imageUrl, code, explanation}) => {
                                     Code Output ▼
                                 </h1>
                                 <div className={"inner-page-box"} style={{ height: '60vh', width: '100%', overflow: 'scroll' }}>
-                                    <h3 style={{fontSize:'20px', justifySelf:'left'}}>{code}</h3>
+                                    <pre
+                                        style={{
+                                            margin: 0,
+                                            fontSize: '20px',
+                                            whiteSpace: 'pre-wrap',   // preserve newlines and wrap
+                                            wordBreak: 'break-word',  // break long words/tokens
+                                            overflowWrap: 'anywhere', // extra safety
+                                        }}
+                                    >
+                                      {code}
+                                    </pre>
                                 </div>
                             </div>
                         )}
@@ -155,7 +171,7 @@ const CodeExplanation: React.FC<Props> = ({imageUrl, code, explanation}) => {
                                     AI Explanation ▼
                                 </h1>
                                 <div className={"inner-page-box"} style={{ height: '60vh', width: '100%', overflow: 'scroll' }}>
-                                    <h3 style={{fontSize:'20px', justifySelf:'left'}}>{explanation}</h3>
+                                    <LineTypeRenderer items={explanation} />
                                 </div>
                             </div>
                         )}
@@ -185,7 +201,17 @@ const CodeExplanation: React.FC<Props> = ({imageUrl, code, explanation}) => {
                                     Code Output ▼
                                 </h1>
                                 <div className={"inner-page-box"} style={{ height: '66vh', overflow: 'scroll' }}>
-                                    <h3 style={{fontSize:'20px', justifySelf:'left'}}>{code}</h3>
+                                    <pre
+                                        style={{
+                                            margin: 0,
+                                            fontSize: '20px',
+                                            whiteSpace: 'pre-wrap',   // preserve newlines and wrap
+                                            wordBreak: 'break-word',  // break long words/tokens
+                                            overflowWrap: 'anywhere', // extra safety
+                                        }}
+                                    >
+                                      {code}
+                                    </pre>
                                 </div>
                             </div>
                         )}
@@ -195,7 +221,7 @@ const CodeExplanation: React.FC<Props> = ({imageUrl, code, explanation}) => {
                                     AI Explanation ▼
                                 </h1>
                                 <div className={"inner-page-box"} style={{ height: '66vh', overflow: 'scroll' }}>
-                                    <h3 style={{fontSize:'20px', justifySelf:'left'}}>{explanation}</h3>
+                                    <LineTypeRenderer items={explanation} />
                                 </div>
                             </div>
                         )}
@@ -226,7 +252,17 @@ const CodeExplanation: React.FC<Props> = ({imageUrl, code, explanation}) => {
                                     Code Output ▼
                                 </h1>
                                 <div className={"inner-page-box"} style={{ flex: 1, overflow: 'scroll' }}>
-                                    <h3 style={{fontSize:'20px', justifySelf:'left'}}>{code}</h3>
+                                    <pre
+                                        style={{
+                                            margin: 0,
+                                            fontSize: '20px',
+                                            whiteSpace: 'pre-wrap',   // preserve newlines and wrap
+                                            wordBreak: 'break-word',  // break long words/tokens
+                                            overflowWrap: 'anywhere', // extra safety
+                                        }}
+                                    >
+                                      {code}
+                                    </pre>
                                 </div>
                             </div>
 
@@ -235,7 +271,7 @@ const CodeExplanation: React.FC<Props> = ({imageUrl, code, explanation}) => {
                                     AI Explanation ▼
                                 </h1>
                                 <div className={"inner-page-box"} style={{ flex: 1, overflow: 'scroll' }}>
-                                    <h3 style={{fontSize:'20px', justifySelf:'left'}}>{explanation}</h3>
+                                    <LineTypeRenderer items={explanation} />
                                 </div>
                             </div>
                         </div>
