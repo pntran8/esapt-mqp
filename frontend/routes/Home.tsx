@@ -50,7 +50,7 @@ const Home = () => {
                         <h2 style={{fontSize:'2.5vh'}}>ERD to Code</h2>
                         <h3>Generate SQL Code from conceptual ERD</h3>
                     </div>
-                    <div style ={{float:"right", marginRight:"10vw"}}>
+                    <div style ={{float:"right", marginRight:"10vw"}} >
                         <button
                             className={'circle-button'}
                             onClick={() => {
@@ -65,7 +65,7 @@ const Home = () => {
                 <div className="box">
                     {isAuthenticated ?
                         <div>
-                            <h2 style={{fontSize:'20px', marginBottom:'30px'}}>Welcome, {user?.sub?.slice(-8).toUpperCase()}! Click here to view <br/> your saved work</h2>
+                            <h2 style={{fontSize:'20px', marginBottom:'30px'}}>Welcome, {user?.name?.split('@')[0]}! Click here to view <br/> your saved work</h2>
                             <button className={'box-button'} onClick={goToHistory}>View History</button>
                         </div> :
                         <div>
