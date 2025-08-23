@@ -137,6 +137,7 @@ const instruction = `
         - Include ALL sections even if some are empty; 
         - Do not output anything outside these sections.
         - For SQL print the cumulative output from each step
+        - In the explanation avoid long lines, create a new line and continue if one line exceeds 60 characters
         `.trim();
 
 const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, explanation, setExplanation }) => {
@@ -253,8 +254,6 @@ const SendImgToGem: React.FC<Props> = ({ imageUrl, setImageUrl,code, setCode, ex
                         }
                     }
                     setCode(finalCode);
-                    console.log(code);
-                    console.log(explanation);
                     setResponseString(resStr);
                     setIsLoading(false);
 
