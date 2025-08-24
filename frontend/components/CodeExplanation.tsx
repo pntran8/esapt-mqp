@@ -136,8 +136,8 @@ const CodeExplanation = () => {
 
                     resStr = response.text ?? "No bot response available";
                     const resParts = resStr.split('----------');
-                    localStorage.setItem("aiCode", resParts[0]);
                     setCode(resParts[0]);
+                    localStorage.setItem("aiCode", resParts[0]);
                     setExplanation(resParts[1]);
                     console.log(code);
                     console.log(explanation);

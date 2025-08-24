@@ -187,22 +187,25 @@ const CodeEvaluation = () => {
         setError(null);
         setDiffResult(null);
 
-        let schema1;
-        if (localStorage.getItem("aiCode") !== null) {
-            schema1 = localStorage.getItem("aiCode");
+        let schema1 = "";
+        if (localStorage.getItem("aiCode") !== null && response.length < 1) {
+            console.log("1")
+            schema1 = localStorage.getItem("aiCode") as string;
         }
         else if (response.length > 0){
-            response[0].message
+            console.log("2")
+            schema1 = response[0].message
         }
         else{
+            console.log("3")
             schema1 = ""
         }
 
         schema1.replace("sql", "")
         schema1.replace("`", "")
 
-        console.log(schema1);
-        console.log(userSchema);
+        console.log("AI SCHEMA", schema1);
+        console.log("USER", userSchema);
         const cleanedSchema = schema1
             .replace(/^```sql\s*/, '')
             .replace("```", '')
@@ -399,7 +402,9 @@ const CodeEvaluation = () => {
             <div style={{ height: '75vh', display: 'flex', justifyContent: 'space-around', alignItems: 'flex-start', marginTop:"-2vh"}}>
                 <div className="inner-page-box" style={{ width: '28vw', height: '70vh', overflow: 'scroll', marginRight:"-16vh" }}>
                     {localStorage.getItem("aiCode") !== null && response.length === 0 ? (
-                        localStorage.getItem("aiCode")
+                        <div>
+                            {localStorage.getItem("aiCode").replace("sql", "")}
+                        </div>
                     ) :
                         response.length === 0 ? (
                         isLoading ? (<div><h1 style={{fontSize:'max(15px, 2.5vh)'}}>Loading SQL, please wait...</h1>
@@ -454,10 +459,13 @@ const CodeEvaluation = () => {
           {/*      )}*/}
           {/*  </div>*/}
 
-            <button className={"box-button"} onClick={localStorage.removeItem("aiCode")}>
-                Clear
-            </button>
 
+            <button className={"box-button"} onClick={() => {
+                localStorage.clear();
+                window.location.reload();
+            }}>
+                clear
+            </button>
             <Footer/>
         </>
     );
