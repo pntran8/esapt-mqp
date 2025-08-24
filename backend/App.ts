@@ -11,6 +11,7 @@ import examplePy from "./routes/examplePy";
 import getHistory from "./routes/getHistory";
 import insertUpload from "./routes/insertUpload";
 import viewUpload from "./routes/viewUpload";
+import removeUpload from "./routes/removeUpload";
 
 const app: Express = express();
 const httpServer = createServer(app);
@@ -110,12 +111,14 @@ const APP_ROUTES = {
     DB: "/api/getHistory",
     INSERT_DB: "/api/insertUpload",
     VIEW_DB: "/api/viewUpload",
+    REMOVE_DB: "/api/removeUpload",
 };
 
 app.use(APP_ROUTES.INSERT_DB, insertUpload);
 app.use(APP_ROUTES.VIEW_DB, viewUpload);
 app.use(APP_ROUTES.PYTHON, examplePy);
 app.use(APP_ROUTES.DB, getHistory);
+app.use(APP_ROUTES.REMOVE_DB, removeUpload);
 
 // Auth0 domain key
 app.get("/api/authodom/key", (_req: Request, res: Response, next: NextFunction) => {

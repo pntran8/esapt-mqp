@@ -103,6 +103,24 @@ const View: React.FC = () => {
                                 ✕
                             </button>
                         </div>
+                        <div className="w-full flex items-center justify-between mb-4">
+                        <button
+                            onClick={async () => {
+                                try {
+                                    await fetch(`http://localhost:3001/api/removeUpload?id=${openEntry.id}`, {
+                                        method: "DELETE",
+                                    });
+                                    setEntries(entries.filter((e) => e.id !== openEntry.id));
+                                    setOpenEntryId(0); // close modal
+                                } catch (err) {
+                                    console.error("Failed to delete entry:", err);
+                                }
+                            }}
+                            className="bg-red-600 text-white px-3 py-2 hover:bg-red-800 rounded-2xl cursor-pointer"
+                        >
+                            Delete
+                        </button>
+                        </div>
                         <img
                             src={openEntry.decodedImage}
                             alt="Upload preview large"
