@@ -208,7 +208,7 @@ const CodeExplanation = () => {
                                 document.body.removeChild(link);
                                 URL.revokeObjectURL(url);
                             }}>
-                                Download
+                                Download Output
                             </button>
 
                             <input
@@ -261,9 +261,9 @@ const CodeExplanation = () => {
                                             </h1>
                                             <div className={"inner-page-box"} style={{ height: '60vh', width: '100%', overflow: 'scroll' }}>
                                                 <h3 style={{fontSize:'20px', justifySelf:'left'}}>{code}</h3>
-                                                {isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Loading SQL, please wait...</h1>
+                                                {!code && (isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Loading SQL, please wait...</h1>
                                                         <PulseLoader color={"black"} loading={isLoading} size={10} margin={4} aria-label="Loading Spinner" data-testid="loader"/></div>)
-                                                    : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your image to see code</h1>)}
+                                                    : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your image to see code</h1>))}
                                             </div>
                                         </div>
                                     )}
@@ -274,9 +274,9 @@ const CodeExplanation = () => {
                                             </h1>
                                             <div className={"inner-page-box"} style={{ height: '60vh', width: '100%', overflow: 'scroll' }}>
                                                 <h3 style={{fontSize:'20px', justifySelf:'left'}}>{explanation}</h3>
-                                                {isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Generating explanation, please wait...</h1>
+                                                {!explanation && (isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Generating explanation, please wait...</h1>
                                                         <PulseLoader color={"black"} loading={isLoading} size={10} margin={4} aria-label="Loading Spinner" data-testid="loader"/></div>)
-                                                    : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your ERD to see an explanation</h1>)}
+                                                    : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your ERD to see an explanation</h1>))}
                                             </div>
                                         </div>
                                     )}
@@ -307,9 +307,9 @@ const CodeExplanation = () => {
                                             </h1>
                                             <div className={"inner-page-box"} style={{ height: '60vh', overflow: 'scroll' }}>
                                                 <h3 style={{fontSize:'20px', justifySelf:'left'}}>{code}</h3>
-                                                {isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Loading SQL, please wait...</h1>
+                                                {!code && (isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Loading SQL, please wait...</h1>
                                                         <PulseLoader color={"black"} loading={isLoading} size={10} margin={4} aria-label="Loading Spinner" data-testid="loader"/></div>)
-                                                    : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your image to see code</h1>)}
+                                                    : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your image to see code</h1>))}
                                             </div>
                                         </div>
                                     )}
@@ -320,9 +320,9 @@ const CodeExplanation = () => {
                                             </h1>
                                             <div className={"inner-page-box"} style={{ height: '60vh', overflow: 'scroll' }}>
                                                 <h3 style={{fontSize:'20px', justifySelf:'left'}}>{explanation}</h3>
-                                                {isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Generating explanation, please wait...</h1>
+                                                {!explanation && (isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Generating explanation, please wait...</h1>
                                                         <PulseLoader color={"black"} loading={isLoading} size={10} margin={4} aria-label="Loading Spinner" data-testid="loader"/></div>)
-                                                    : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your ERD to see an explanation</h1>)}
+                                                    : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your ERD to see an explanation</h1>))}
                                             </div>
                                         </div>
                                     )}
@@ -354,9 +354,9 @@ const CodeExplanation = () => {
                                             </h1>
                                             <div className={"inner-page-box"} style={{ flex: 1, overflow: 'scroll' }}>
                                                 <h3 style={{fontSize:'20px', justifySelf:'left'}}>{code}</h3>
-                                                {isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Loading SQL, please wait...</h1>
+                                                {!code && (isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Loading SQL, please wait...</h1>
                                                         <PulseLoader color={"black"} loading={isLoading} size={10} margin={4} aria-label="Loading Spinner" data-testid="loader"/></div>)
-                                                    : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your image to see code</h1>)}
+                                                    : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your image to see code</h1>))}
                                             </div>
                                         </div>
 
@@ -366,9 +366,9 @@ const CodeExplanation = () => {
                                             </h1>
                                             <div className={"inner-page-box"} style={{ flex: 1, overflow: 'scroll' }}>
                                                 <h3 style={{fontSize:'20px', justifySelf:'left'}}>{explanation}</h3>
-                                                {isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Generating explanation, please wait...</h1>
+                                                {!explanation && (isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Generating explanation, please wait...</h1>
                                                         <PulseLoader color={"black"} loading={isLoading} size={10} margin={4} aria-label="Loading Spinner" data-testid="loader"/></div>)
-                                                    : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your ERD to see an explanation</h1>)}
+                                                    : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your ERD to see an explanation</h1>))}
                                             </div>
                                         </div>
                                     </div>

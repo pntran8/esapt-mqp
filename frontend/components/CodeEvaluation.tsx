@@ -367,9 +367,6 @@ const CodeEvaluation = () => {
                     {loading ? "Comparing..." : "Compare"}
                 </button>
 
-
-
-
                 <input
                     type="file"
                     accept=".png,.jpg"
