@@ -26,11 +26,49 @@ const View: React.FC = () => {
             console.log("INPUT", input);
             const parsed = JSON.parse(input);
             const cleanedText = parsed.text.replace(/`/g, "").replace("sql","" ).replace(/\*\*(.*?)\*\*/g, "$1");
+            const code = cleanedText.split("-------")
 
             console.log("type?? ", typeof cleanedText);
+            console.log("code ", typeof code[0]);
 
             return typeof parsed === "object" && parsed.text
                 ? cleanedText
+                : input;
+        } catch {
+            return input;
+        }
+    }
+
+    function parseCode(input: string){
+        try {
+            console.log("INPUT", input);
+            const parsed = JSON.parse(input);
+            const cleanedText = parsed.text.replace(/`/g, "").replace("sql","" ).replace(/\*\*(.*?)\*\*/g, "$1");
+            const code = cleanedText.split("-------")
+
+            console.log("type?? ", typeof cleanedText);
+            console.log("code ", typeof code[0]);
+
+            return typeof parsed === "object" && parsed.text
+                ? code[0]
+                : input;
+        } catch {
+            return input;
+        }
+    }
+
+    function parseExplanation(input: string){
+        try {
+            console.log("INPUT", input);
+            const parsed = JSON.parse(input);
+            const cleanedText = parsed.text.replace(/`/g, "").replace("sql","" ).replace(/\*\*(.*?)\*\*/g, "$1");
+            const code = cleanedText.split("-------")
+
+            console.log("type?? ", typeof cleanedText);
+            console.log("code ", typeof code[0]);
+
+            return typeof parsed === "object" && parsed.text
+                ? code[1]
                 : input;
         } catch {
             return input;
@@ -115,7 +153,12 @@ const View: React.FC = () => {
                         <div className="whitespace-pre-wrap break-words mb-4">
                             Schema:
                             <p style={{ textAlign: 'left' }}>
-                                {parseText(openEntry.textFile)}
+                                <pre className={"bg-[#E7E7E7] rounded-sm p-4"}>
+                                    <code>
+                                        {parseCode(openEntry.textFile)}
+                                    </code>
+                                </pre>
+                                {parseExplanation(openEntry.textFile)}
                             </p>
                         </div>
                         <p className="text-sm text-gray-500">
