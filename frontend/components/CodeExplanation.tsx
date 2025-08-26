@@ -10,6 +10,7 @@ import {PulseLoader} from "react-spinners";
 
 const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_LLM_API_KEY });
 
+
 const CodeExplanation = () => {
     const { isAuthenticated } = useAuth0();
     const [file, setFile] = useState<File | null>(null);
@@ -96,14 +97,66 @@ const CodeExplanation = () => {
 
         setIsLoading(true);
 
+        const compressImageFile = (file: File): Promise<File> => {
+            return new Promise((resolve) => {
+                const img = new Image();
+                const reader = new FileReader();
+
+                reader.onload = (e) => {
+                    if (!e.target?.result) return;
+                    img.src = e.target.result as string;
+                    const dataURL = img.src as string;
+                    localStorage.setItem("imageDataURL", dataURL);
+                };
+
+                img.onload = () => {
+                    const canvas = document.createElement("canvas");
+                    const maxSize = 1200;
+                    const scale = Math.min(maxSize / img.width, maxSize / img.height);
+
+                    canvas.width = img.width * scale;
+                    canvas.height = img.height * scale;
+
+                    const ctx = canvas.getContext("2d");
+                    if (!ctx) return;
+
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    canvas.toBlob(
+                        (blob) => {
+                            if (!blob) return;
+                            const newFile = new File([blob], file.name, {
+                                type: "image/jpeg",
+                                lastModified: Date.now(),
+                            });
+                            resolve(newFile);
+                        },
+                        "image/jpeg",
+                        1
+                    );
+                };
+
+                reader.readAsDataURL(file);
+
+            });
+        };
+
+
+
         const file = e.target.files?.[0];
         if (!file) return;
         setFile(file);
+        // "imageFile": fileBuffer?.toString("base64") || "No image",);
+        await compressImageFile(file);
+        // console.log("is this even showning up bro", localStorage.getItem("imageDataURL"));
+
         const localUrl = URL.createObjectURL(file);
         setImageUrl(localUrl);
 
-        let resStr = "";
+        console.log("imageurl ", localUrl)
+        console.log("local ", localStorage.getItem("localURL"));
+        console.log("equivlanet?? ", localUrl === localStorage.getItem("localURL"))
 
+        let resStr = "";
 
 
         if (e.target.files?.[0] != undefined) {
@@ -139,9 +192,11 @@ const CodeExplanation = () => {
                     setCode(resParts[0]);
                     localStorage.setItem("aiCode", resParts[0]);
                     setExplanation(resParts[1]);
+                    localStorage.setItem("explanation", resParts[1]);
                     console.log(code);
                     console.log(explanation);
                     setResponseString(resStr);
+                    localStorage.setItem("response", resStr);
                     setIsLoading(false);
 
 
@@ -156,6 +211,8 @@ const CodeExplanation = () => {
         }
     }
 
+
+
     return (
         <>
             {popup ?
@@ -164,7 +221,7 @@ const CodeExplanation = () => {
                         { zoomIn ?
                             (
                                 <img
-                                    src={imageUrl}
+                                    src={imageUrl ? imageUrl : localStorage.getItem("imageDataURL")}
                                     alt="ERD Preview"
                                     className={"cursor-zoom-out"}
                                     onClick={() => setZoomIn(false)}
@@ -173,7 +230,7 @@ const CodeExplanation = () => {
                             )
                             : (
                                 <img
-                                    src={imageUrl}
+                                    src={imageUrl ? imageUrl : localStorage.getItem("imageDataURL")}
                                     alt="ERD Preview"
                                     className={"cursor-zoom-in"}
                                     onClick={() => setZoomIn(true)}
@@ -220,9 +277,10 @@ const CodeExplanation = () => {
                                 style={{fontSize:'2vh'}}
                             />
 
-                            {file !== null && responseString !== "" && isAuthenticated && (
+                            {(file !== null || localStorage.getItem("imageDataURL")) && (responseString !== "" || localStorage.getItem("response") )&& isAuthenticated && (
                                 <button className="cursor-pointer clear-btn bg-[#BD0A0A] hover:bg-[#700606]">
-                                    <Save file={file} responseText={responseString} />
+                                    {/*HERE IS THE PROBLEM*/}
+                                    <Save file={localStorage.getItem("imageDataURL")} responseText={localStorage.getItem("response")} />
                                 </button>
                             )}
                         </div>
@@ -248,10 +306,23 @@ const CodeExplanation = () => {
                                             </h1>
                                             <div style={{ height: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }} className="border-2 border-[#BD0A0A] cursor-pointer">
                                                 {imageUrl ? (
-                                                    <img src={imageUrl} alt="ERD Preview" style={{ width: '100%', height: '100%', objectFit: 'contain' }} onClick={() => setPopup(true)} />
+                                                    <img
+                                                        src={imageUrl}
+                                                        alt="ERD Preview"
+                                                        style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                                                        onClick={() => setPopup(true)}
+                                                    />
+                                                ) : localStorage.getItem("imageDataURL") ? (
+                                                    <img
+                                                        src={localStorage.getItem("imageDataURL")}
+                                                        alt="ERD Preview"
+                                                        style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                                                        onClick={() => setPopup(true)}
+                                                    />
                                                 ) : (
                                                     <p>No image available.</p>
                                                 )}
+
                                             </div>
                                         </div>
                                     )}
@@ -261,7 +332,14 @@ const CodeExplanation = () => {
                                                 Code Output ▼
                                             </h1>
                                             <div className={"inner-page-box"} style={{ height: '60vh', width: '100%', overflow: 'scroll' }}>
-                                                <h3 style={{fontSize:'20px', justifySelf:'left'}}>{code}</h3>
+                                                <h3 style={{fontSize:'20px', justifySelf:'left'}}>
+                                                    {code ?
+                                                        (code
+                                                        ) : (
+                                                            localStorage.getItem("aiCode")
+                                                        )
+                                                    }
+                                                </h3>
                                                 {isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Loading SQL, please wait...</h1>
                                                         <PulseLoader color={"black"} loading={isLoading} size={10} margin={4} aria-label="Loading Spinner" data-testid="loader"/></div>)
                                                     : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your image to see code</h1>)}
@@ -274,7 +352,14 @@ const CodeExplanation = () => {
                                                 AI Explanation ▼
                                             </h1>
                                             <div className={"inner-page-box"} style={{ height: '60vh', width: '100%', overflow: 'scroll' }}>
-                                                <h3 style={{fontSize:'20px', justifySelf:'left'}}>{explanation}</h3>
+                                                <h3 style={{fontSize:'20px', justifySelf:'left'}}>
+                                                    {explanation ? (
+                                                        explanation
+                                                    ) : (
+                                                        localStorage.getItem("explanation")
+                                                    )
+                                                    }
+                                                </h3>
                                                 {isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Generating explanation, please wait...</h1>
                                                         <PulseLoader color={"black"} loading={isLoading} size={10} margin={4} aria-label="Loading Spinner" data-testid="loader"/></div>)
                                                     : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your ERD to see an explanation</h1>)}
@@ -294,7 +379,19 @@ const CodeExplanation = () => {
                                             </h1>
                                             <div style={{ height: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="border-2 border-[#BD0A0A] cursor-pointer">
                                                 {imageUrl ? (
-                                                    <img src={imageUrl} alt="ERD Preview" style={{ width: '100%', height: '100%', objectFit: 'contain' }} onClick={() => setPopup(true)} />
+                                                    <img
+                                                        src={imageUrl}
+                                                        alt="ERD Preview"
+                                                        style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                                                        onClick={() => setPopup(true)}
+                                                    />
+                                                ) : localStorage.getItem("imageDataURL") ? (
+                                                    <img
+                                                        src={localStorage.getItem("imageDataURL")}
+                                                        alt="ERD Preview"
+                                                        style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                                                        onClick={() => setPopup(true)}
+                                                    />
                                                 ) : (
                                                     <p>No image available.</p>
                                                 )}
@@ -307,7 +404,14 @@ const CodeExplanation = () => {
                                                 Code Output ▼
                                             </h1>
                                             <div className={"inner-page-box"} style={{ height: '60vh', overflow: 'scroll' }}>
-                                                <h3 style={{fontSize:'20px', justifySelf:'left'}}>{code}</h3>
+                                                <h3 style={{fontSize:'20px', justifySelf:'left'}}>
+                                                    {code ?
+                                                        (code
+                                                        ) : (
+                                                            localStorage.getItem("aiCode")
+                                                        )
+                                                    }
+                                                </h3>
                                                 {isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Loading SQL, please wait...</h1>
                                                         <PulseLoader color={"black"} loading={isLoading} size={10} margin={4} aria-label="Loading Spinner" data-testid="loader"/></div>)
                                                     : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your image to see code</h1>)}
@@ -320,7 +424,14 @@ const CodeExplanation = () => {
                                                 AI Explanation ▼
                                             </h1>
                                             <div className={"inner-page-box"} style={{ height: '60vh', overflow: 'scroll' }}>
-                                                <h3 style={{fontSize:'20px', justifySelf:'left'}}>{explanation}</h3>
+                                                <h3 style={{fontSize:'20px', justifySelf:'left'}}>
+                                                    {explanation ? (
+                                                        explanation
+                                                    ) : (
+                                                        localStorage.getItem("explanation")
+                                                    )
+                                                    }
+                                                </h3>
                                                 {isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Generating explanation, please wait...</h1>
                                                         <PulseLoader color={"black"} loading={isLoading} size={10} margin={4} aria-label="Loading Spinner" data-testid="loader"/></div>)
                                                     : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your ERD to see an explanation</h1>)}
@@ -340,7 +451,19 @@ const CodeExplanation = () => {
                                         </h1>
                                         <div style={{ height: '66vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="border-2 border-[#BD0A0A]">
                                             {imageUrl ? (
-                                                <img src={imageUrl} alt="ERD Preview" style={{ width: '100%', height: '100%', objectFit: 'contain' }} className="cursor-pointer" onClick={() => setPopup(true)}/>
+                                                <img
+                                                    src={imageUrl}
+                                                    alt="ERD Preview"
+                                                    style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                                                    onClick={() => setPopup(true)}
+                                                />
+                                            ) : localStorage.getItem("imageDataURL") ? (
+                                                <img
+                                                    src={localStorage.getItem("imageDataURL")}
+                                                    alt="ERD Preview"
+                                                    style={{ width: "100%", height: "100%", objectFit: "contain" }}
+                                                    onClick={() => setPopup(true)}
+                                                />
                                             ) : (
                                                 <p>No image available.</p>
                                             )}
@@ -354,7 +477,14 @@ const CodeExplanation = () => {
                                                 Code Output ▼
                                             </h1>
                                             <div className={"inner-page-box"} style={{ flex: 1, overflow: 'scroll' }}>
-                                                <h3 style={{fontSize:'20px', justifySelf:'left'}}>{code}</h3>
+                                                <h3 style={{fontSize:'20px', justifySelf:'left'}}>
+                                                    {code ?
+                                                        (code
+                                                        ) : (
+                                                            localStorage.getItem("aiCode")
+                                                        )
+                                                    }
+                                                </h3>
                                                 {isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Loading SQL, please wait...</h1>
                                                         <PulseLoader color={"black"} loading={isLoading} size={10} margin={4} aria-label="Loading Spinner" data-testid="loader"/></div>)
                                                     : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your image to see code</h1>)}
@@ -366,7 +496,14 @@ const CodeExplanation = () => {
                                                 AI Explanation ▼
                                             </h1>
                                             <div className={"inner-page-box"} style={{ flex: 1, overflow: 'scroll' }}>
-                                                <h3 style={{fontSize:'20px', justifySelf:'left'}}>{explanation}</h3>
+                                                <h3 style={{fontSize:'20px', justifySelf:'left'}}>
+                                                    {explanation ? (
+                                                        explanation
+                                                    ) : (
+                                                        localStorage.getItem("explanation")
+                                                    )
+                                                    }
+                                                </h3>
                                                 {isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Generating explanation, please wait...</h1>
                                                         <PulseLoader color={"black"} loading={isLoading} size={10} margin={4} aria-label="Loading Spinner" data-testid="loader"/></div>)
                                                     : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your ERD to see an explanation</h1>)}
@@ -376,6 +513,13 @@ const CodeExplanation = () => {
                                 </>
                             )}
                         </div>
+
+                        <button className={"box-button"} onClick={() => {
+                            localStorage.clear();
+                            window.location.reload();
+                        }}>
+                            clear
+                        </button>
 
                         <Footer/>
                     </div>

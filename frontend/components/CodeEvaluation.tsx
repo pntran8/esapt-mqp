@@ -195,6 +195,7 @@ const CodeEvaluation = () => {
         else if (response.length > 0){
             console.log("2")
             schema1 = response[0].message
+            localStorage.setItem("aiCode", response[0].message);
         }
         else{
             console.log("3")
