@@ -475,16 +475,33 @@ const CodeExplanation = () => {
                                             <h1 style={{cursor: 'not-allowed'}} onClick={() => toggleSection('explanation')}>
                                                 AI Explanation ▼
                                             </h1>
-                                            <div className={"inner-page-box"} style={{ height: '60vh', width: '100%', overflow: 'scroll' }}>
-                                                <h3 style={{fontSize:'20px', justifySelf:'left'}}><LineTypeRenderer items={explanation ? (
-                                                    explanation
-                                                ) : (
-                                                    localStorage.getItem("explanation")
-                                                )
-                                                }/></h3>
-                                                {!explanation && (isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Generating explanation, please wait...</h1>
-                                                        <PulseLoader color={"black"} loading={isLoading} size={10} margin={4} aria-label="Loading Spinner" data-testid="loader"/></div>)
-                                                    : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your ERD to see an explanation</h1>))}
+                                            <div className="inner-page-box" style={{ flex: 1, overflow: 'scroll' }}>
+                                                    {explanation || localStorage.getItem("explanation") ? (
+                                                        <h3 style={{ fontSize: '20px', justifySelf: 'left' }}>
+                                                        <LineTypeRenderer
+                                                            items={explanation ?? localStorage.getItem("explanation")}
+                                                        />
+                                                        </h3>
+                                                    ) : isLoading ? (
+                                                        <>
+                                                            <h1 style={{ fontSize: 'max(15px, 2vh)' }}>
+                                                                Generating explanation, please wait...
+                                                            </h1>
+                                                            <PulseLoader
+                                                                color="black"
+                                                                loading={isLoading}
+                                                                size={10}
+                                                                margin={4}
+                                                                aria-label="Loading Spinner"
+                                                                data-testid="loader"
+                                                            />
+                                                        </>
+                                                    ) : (
+                                                        <h1 style={{ fontSize: 'max(15px, 2vh)' }}>
+                                                            Upload your ERD to see an explanation
+                                                        </h1>
+                                                    )}
+
                                             </div>
                                         </div>
                                     )}
@@ -553,17 +570,34 @@ const CodeExplanation = () => {
                                             <h1 style={{cursor: 'pointer'}} onClick={() => toggleSection('explanation')}>
                                                 AI Explanation ▼
                                             </h1>
-                                            <div className={"inner-page-box"} style={{ height: '60vh', overflow: 'scroll' }}>
-                                                <h3 style={{fontSize:'20px', justifySelf:'left'}}><LineTypeRenderer items={explanation ? (
-                                                    explanation
-                                                ) : (
-                                                    localStorage.getItem("explanation")
-                                                )
-                                                }/></h3>
-                                                {!(explanation || localStorage.getItem("explanation")) && (isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Generating explanation, please wait...</h1>
-                                                        <PulseLoader color={"black"} loading={isLoading} size={10} margin={4} aria-label="Loading Spinner" data-testid="loader"/></div>)
-                                                    : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your ERD to see an explanation</h1>))}
+                                            <div className="inner-page-box" style={{ flex: 1, overflow: 'scroll' }}>
+                                                    {explanation || localStorage.getItem("explanation") ? (
+                                                        <h3 style={{ fontSize: '20px', justifySelf: 'left' }}>
+                                                            <LineTypeRenderer
+                                                                items={explanation ?? localStorage.getItem("explanation")}
+                                                            />
+                                                        </h3>
+                                                    ) : isLoading ? (
+                                                        <>
+                                                            <h1 style={{ fontSize: 'max(15px, 2vh)' }}>
+                                                                Generating explanation, please wait...
+                                                            </h1>
+                                                            <PulseLoader
+                                                                color="black"
+                                                                loading={isLoading}
+                                                                size={10}
+                                                                margin={4}
+                                                                aria-label="Loading Spinner"
+                                                                data-testid="loader"
+                                                            />
+                                                        </>
+                                                    ) : (
+                                                        <h1 style={{ fontSize: 'max(15px, 2vh)' }}>
+                                                            Upload your ERD to see an explanation
+                                                        </h1>
+                                                    )}
                                             </div>
+
                                         </div>
                                     )}
                                 </>
@@ -631,17 +665,34 @@ const CodeExplanation = () => {
                                             <h1 style={{cursor: 'pointer'}} onClick={() => toggleSection('explanation')}>
                                                 AI Explanation ▼
                                             </h1>
-                                            <div className={"inner-page-box"} style={{ flex: 1, overflow: 'scroll' }}>
-                                                <h3 style={{fontSize:'20px', justifySelf:'left'}}><LineTypeRenderer items={explanation ? (
-                                                    explanation
-                                                ) : (
-                                                    localStorage.getItem("explanation")
-                                                )
-                                                }/></h3>
-                                                {!explanation && (isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Generating explanation, please wait...</h1>
-                                                        <PulseLoader color={"black"} loading={isLoading} size={10} margin={4} aria-label="Loading Spinner" data-testid="loader"/></div>)
-                                                    : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your ERD to see an explanation</h1>))}
+                                            <div className="inner-page-box" style={{ flex: 1, overflow: 'scroll' }}>
+                                                    {explanation || localStorage.getItem("explanation") ? (
+                                                        <h3 style={{ fontSize: '20px', justifySelf: 'left' }}>
+                                                            <LineTypeRenderer
+                                                                items={explanation ?? localStorage.getItem("explanation")}
+                                                            />
+                                                        </h3>
+                                                    ) : isLoading ? (
+                                                        <>
+                                                            <h1 style={{ fontSize: 'max(15px, 2vh)' }}>
+                                                                Generating explanation, please wait...
+                                                            </h1>
+                                                            <PulseLoader
+                                                                color="black"
+                                                                loading={isLoading}
+                                                                size={10}
+                                                                margin={4}
+                                                                aria-label="Loading Spinner"
+                                                                data-testid="loader"
+                                                            />
+                                                        </>
+                                                    ) : (
+                                                        <h1 style={{ fontSize: 'max(15px, 2vh)' }}>
+                                                            Upload your ERD to see an explanation
+                                                        </h1>
+                                                    )}
                                             </div>
+
                                         </div>
                                     </div>
                                 </>
