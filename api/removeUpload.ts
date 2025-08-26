@@ -1,10 +1,11 @@
-import express, { Router, RequestHandler } from "express";
-import { PrismaClient } from "../../.prisma/client";
+import { PrismaClient } from "../.prisma/client";
+import { NextApiRequest, NextApiResponse } from "next";
 
-const router: Router = express.Router();
 const prisma = new PrismaClient();
 
-const deleteUpload: RequestHandler = async (req, res) => {
+//export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+//const deleteUpload: RequestHandler = async (req, res) => {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     try {
         const idParam = req.query.id as string | undefined;
         if (!idParam) {
@@ -24,7 +25,3 @@ const deleteUpload: RequestHandler = async (req, res) => {
         res.status(404).json({ error: "Not found" });
     }
 };
-
-router.delete("/", deleteUpload);
-
-export default router;

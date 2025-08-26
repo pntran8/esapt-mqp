@@ -8,6 +8,7 @@ import cors from "cors";
 import getHistory from "../api/getHistory.ts";
 import insertUpload from "../api/insertUpload.ts";
 import viewUpload from "../api/viewUpload.ts";
+import removeUpload from "../api/removeUpload.ts";
 
 const app: Express = express();
 
@@ -46,11 +47,13 @@ const APP_ROUTES = {
     DB: "/api/getHistory",
     INSERT_DB: "/api/insertUpload",
     VIEW_DB: "/api/viewUpload",
+    REMOVE: "/api/removeUpload",
 };
 
 app.use(APP_ROUTES.INSERT_DB, insertUpload);
 app.use(APP_ROUTES.VIEW_DB, viewUpload);
 app.use(APP_ROUTES.DB, getHistory);
+app.use(APP_ROUTES.REMOVE, removeUpload);
 
 // Auth0 domain key
 app.get("/api/authodom/key", (_req: Request, res: Response, next: NextFunction) => {
