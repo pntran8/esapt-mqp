@@ -8,6 +8,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import {useEffect} from 'react';
 import LogPage from "../components/LogPage.tsx";
 import Home from "../routes/Home.tsx"
+import Normalization from "../components/Normalization";
 
 const App = () => {
     const domain = import.meta.env.VITE_AUTH0_DOMAIN;
@@ -42,6 +43,7 @@ const App = () => {
                         path="/imggem"
                         element={ <CodeExplanation/> }
                     />
+                    <Route path="/normalization" element={<Normalization />} />
                   <Route path="/evaluation" element={<CodeEvaluation />} />
                 </Routes>
             </Router>
