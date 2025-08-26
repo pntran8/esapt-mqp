@@ -63,6 +63,14 @@ const App = () => {
                             />
                         }
                     />
+                    <Route path="/imggem" element={<SendImgToGem
+                                                        code={code}
+                                                        setCode={setCode}
+                                                        explanation={explanation}
+                                                        setExplanation={setExplanation}
+                                                        imageUrl={imageUrl}
+                                                        setImageUrl={setImageUrl}
+                                                    />} />
                     <Route path="/imggem/session/:sessionID" element={<SessionImgToGem
                     code = {code}
                     setCode = {setCode}
@@ -71,18 +79,11 @@ const App = () => {
                     imageUrl = {imageUrl}
                     setImageUrl = {setImageUrl}
                     />} />
-
                     <Route path="/viewHistory" element={<View />} />
                     <Route path="/viewHistory/:userID" element={<LogPage />} />
                     <Route
-                        path="/explanation"
-                        element={
-                            <CodeExplanation
-                                code={code}
-                                explanation={explanation}
-                                imageUrl={imageUrl}
-                            />
-                        }
+                        path="/imggem"
+                        element={ <CodeExplanation/> }
                     />
                   <Route path="/evaluation" element={<CodeEvaluation />} />
                 </Routes>

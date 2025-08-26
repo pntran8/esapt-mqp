@@ -63,17 +63,12 @@ body{
 }
 
 .clear-btn {
-    background-color: #e0e0e0;
     border: none;
     padding: 10px 20px;
     border-radius: 20px;
     font-size: 14px;
     cursor: pointer;
     margin-right: 10px;
-}
-
-.clear-btn:hover {
-    background-color: #ccc;
 }
 
 .chat-input {
