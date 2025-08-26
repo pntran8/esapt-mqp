@@ -305,7 +305,7 @@ const CodeExplanation = () => {
                             </button>
 
 
-                            {(file !== null) && (responseString !== "" || localStorage.getItem("response") )&& isAuthenticated && (
+                            {(file !== null || localStorage.getItem("imageDataURL")) && (responseString !== "" || localStorage.getItem("response") )&& isAuthenticated && (
                                 <button className="cursor-pointer clear-btn bg-[#BD0A0A] hover:bg-[#700606]">
                                     {/*HERE IS THE PROBLEM*/}
                                     <Save
