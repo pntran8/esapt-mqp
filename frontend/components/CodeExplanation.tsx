@@ -10,7 +10,6 @@ import {PulseLoader} from "react-spinners";
 
 const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_LLM_API_KEY });
 
-
 const CodeExplanation = () => {
     const { isAuthenticated } = useAuth0();
     const [file, setFile] = useState<File | null>(null);
@@ -25,14 +24,22 @@ const CodeExplanation = () => {
     const [expandedSections, setExpandedSections] = useState({
         erd: true,
         code: true,
-        explanation: true
+        explanation: true,
     });
 
     const toggleSection = (section: 'erd' | 'code' | 'explanation') => {
-        setExpandedSections(prev => ({
-            ...prev,
-            [section]: !prev[section]
-        }));
+        setExpandedSections(prev => {
+            const currentlyExpanded = Object.values(prev).filter(Boolean).length;
+
+            if (currentlyExpanded === 1 && prev[section]) {
+                return prev; // Return unchanged state
+            }
+
+            return {
+                ...prev,
+                [section]: !prev[section]
+            };
+        });
     };
 
     // how many sections are expanded
@@ -160,6 +167,7 @@ const CodeExplanation = () => {
         let resStr = "";
 
 
+
         if (e.target.files?.[0] != undefined) {
             const myfile = await ai.files.upload({
                 file: e.target.files?.[0],
@@ -211,8 +219,6 @@ const CodeExplanation = () => {
             }
         }
     }
-
-
 
     return (
         <>
@@ -267,7 +273,7 @@ const CodeExplanation = () => {
                                 document.body.removeChild(link);
                                 URL.revokeObjectURL(url);
                             }}>
-                                Download
+                                Download Output
                             </button>
 
                             <input
@@ -305,12 +311,13 @@ const CodeExplanation = () => {
                             paddingRight: '5vw',
                             ...getLayoutStyles()
                         }}>
+
                             {/* only one section (centered) */}
                             {expandedCount === 1 && (
                                 <>
                                     {expandedSections.erd && (
                                         <div style={{ width: '80vw', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                            <h1 style={{marginBottom:'2vh', cursor: 'pointer'}} onClick={() => toggleSection('erd')}>
+                                            <h1 style={{marginBottom:'2vh', cursor: 'not-allowed'}} onClick={() => toggleSection('erd')}>
                                                 Your ERD ▼
                                             </h1>
                                             <div style={{ height: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }} className="border-2 bg-[#E7E7E7] border-[#BD0A0A] cursor-pointer">
@@ -331,16 +338,16 @@ const CodeExplanation = () => {
                                                 ) : (
                                                     <p>No image available.</p>
                                                 )}
-
                                             </div>
                                         </div>
                                     )}
                                     {expandedSections.code && (
                                         <div style={{ width: '80vw', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                            <h1 style={{cursor: 'pointer'}} onClick={() => toggleSection('code')}>
+                                            <h1 style={{cursor: 'not-allowed'}} onClick={() => toggleSection('code')}>
                                                 Code Output ▼
                                             </h1>
                                             <div className={"inner-page-box"} style={{ height: '60vh', width: '100%', overflow: 'scroll' }}>
+                                                <h3 style={{fontSize:'20px', justifySelf:'left'}}>{code}</h3>
                                                 <h3 style={{fontSize:'20px', justifySelf:'left'}}>
                                                     {code ?
                                                         (code
@@ -349,15 +356,15 @@ const CodeExplanation = () => {
                                                         )
                                                     }
                                                 </h3>
-                                                {isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Loading SQL, please wait...</h1>
+                                                {!(code || localStorage.getItem("aiCode")) &&(isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Loading SQL, please wait...</h1>
                                                         <PulseLoader color={"black"} loading={isLoading} size={10} margin={4} aria-label="Loading Spinner" data-testid="loader"/></div>)
-                                                    : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your image to see code</h1>)}
+                                                    : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your image to see code</h1>))}
                                             </div>
                                         </div>
                                     )}
                                     {expandedSections.explanation && (
                                         <div style={{ width: '80vw', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                            <h1 style={{cursor: 'pointer'}} onClick={() => toggleSection('explanation')}>
+                                            <h1 style={{cursor: 'not-allowed'}} onClick={() => toggleSection('explanation')}>
                                                 AI Explanation ▼
                                             </h1>
                                             <div className={"inner-page-box"} style={{ height: '60vh', width: '100%', overflow: 'scroll' }}>
@@ -369,9 +376,9 @@ const CodeExplanation = () => {
                                                     )
                                                     }
                                                 </h3>
-                                                {isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Generating explanation, please wait...</h1>
+                                                {!(explanation || localStorage.getItem("explanation")) && (isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Generating explanation, please wait...</h1>
                                                         <PulseLoader color={"black"} loading={isLoading} size={10} margin={4} aria-label="Loading Spinner" data-testid="loader"/></div>)
-                                                    : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your ERD to see an explanation</h1>)}
+                                                    : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your ERD to see an explanation</h1>))}
                                             </div>
                                         </div>
                                     )}
@@ -421,9 +428,9 @@ const CodeExplanation = () => {
                                                         )
                                                     }
                                                 </h3>
-                                                {isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Loading SQL, please wait...</h1>
+                                                {!(code || localStorage.getItem("aiCode")) &&(isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Loading SQL, please wait...</h1>
                                                         <PulseLoader color={"black"} loading={isLoading} size={10} margin={4} aria-label="Loading Spinner" data-testid="loader"/></div>)
-                                                    : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your image to see code</h1>)}
+                                                    : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your image to see code</h1>))}
                                             </div>
                                         </div>
                                     )}
@@ -441,9 +448,9 @@ const CodeExplanation = () => {
                                                     )
                                                     }
                                                 </h3>
-                                                {isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Generating explanation, please wait...</h1>
+                                                {!(explanation || localStorage.getItem("explanation")) &&(isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Generating explanation, please wait...</h1>
                                                         <PulseLoader color={"black"} loading={isLoading} size={10} margin={4} aria-label="Loading Spinner" data-testid="loader"/></div>)
-                                                    : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your ERD to see an explanation</h1>)}
+                                                    : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your ERD to see an explanation</h1>))}
                                             </div>
                                         </div>
                                     )}
@@ -494,9 +501,9 @@ const CodeExplanation = () => {
                                                         )
                                                     }
                                                 </h3>
-                                                {isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Loading SQL, please wait...</h1>
+                                                {!(code || localStorage.getItem("aiCode")) &&(isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Loading SQL, please wait...</h1>
                                                         <PulseLoader color={"black"} loading={isLoading} size={10} margin={4} aria-label="Loading Spinner" data-testid="loader"/></div>)
-                                                    : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your image to see code</h1>)}
+                                                    : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your image to see code</h1>))}
                                             </div>
                                         </div>
 
@@ -513,16 +520,15 @@ const CodeExplanation = () => {
                                                     )
                                                     }
                                                 </h3>
-                                                {isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Generating explanation, please wait...</h1>
+                                                {!(explanation || localStorage.getItem("explanation")) && (isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Generating explanation, please wait...</h1>
                                                         <PulseLoader color={"black"} loading={isLoading} size={10} margin={4} aria-label="Loading Spinner" data-testid="loader"/></div>)
-                                                    : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your ERD to see an explanation</h1>)}
+                                                    : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your ERD to see an explanation</h1>))}
                                             </div>
                                         </div>
                                     </div>
                                 </>
                             )}
                         </div>
-
 
                         <Footer/>
                     </div>
