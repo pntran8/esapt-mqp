@@ -130,38 +130,38 @@ const View: React.FC = () => {
                         className="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-full overflow-auto p-6 flex flex-col items-center"
                     >
                         <div className="w-full flex justify-between items-center mb-4">
-                            <button
-                                onClick={() =>
-                                    navigate(`/viewHistory/${user?.sub?.slice(-8).toUpperCase()}?id=${openEntry.id}&timeCreated=${encodeURIComponent(openEntry.timeCreated)}`)
-                                }
-                                className="bg-[#981026] text-white p-2 hover:bg-[#c31431] rounded-2xl cursor-pointer"
-                            >
-                                Share Log
-                            </button>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() =>
+                                        navigate(`/viewHistory/${user?.sub?.slice(-8).toUpperCase()}?id=${openEntry.id}&timeCreated=${encodeURIComponent(openEntry.timeCreated)}`)
+                                    }
+                                    className="bg-[#981026] text-white p-2 hover:bg-[#c31431] rounded-2xl cursor-pointer"
+                                >
+                                    Share Log
+                                </button>
+                                <button
+                                    onClick={async () => {
+                                        try {
+                                            await fetch(`http://localhost:3001/api/removeUpload?id=${openEntry.id}`, {
+                                                method: "DELETE",
+                                            });
+                                            setEntries(entries.filter((e) => e.id !== openEntry.id));
+                                            setOpenEntryId(0); // close modal
+                                        } catch (err) {
+                                            console.error("Failed to delete entry:", err);
+                                        }
+                                    }}
+                                    className="bg-red-600 text-white px-3 py-2 hover:bg-red-800 rounded-2xl cursor-pointer"
+                                >
+                                    Delete
+                                </button>
+                            </div>
                             <button
                                 onClick={() => setOpenEntryId(0)}
                                 className="cursor-pointer text-lg text-gray-600 hover:text-gray-900"
                             >
                                 ✕
                             </button>
-                        </div>
-                        <div className="w-full flex items-center justify-between mb-4">
-                        <button
-                            onClick={async () => {
-                                try {
-                                    await fetch(`http://localhost:3001/api/removeUpload?id=${openEntry.id}`, {
-                                        method: "DELETE",
-                                    });
-                                    setEntries(entries.filter((e) => e.id !== openEntry.id));
-                                    setOpenEntryId(0); // close modal
-                                } catch (err) {
-                                    console.error("Failed to delete entry:", err);
-                                }
-                            }}
-                            className="bg-red-600 text-white px-3 py-2 hover:bg-red-800 rounded-2xl cursor-pointer"
-                        >
-                            Delete
-                        </button>
                         </div>
                         <img
                             src={openEntry.decodedImage}
