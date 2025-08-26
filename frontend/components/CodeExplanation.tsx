@@ -304,7 +304,6 @@ const CodeExplanation = () => {
                                 Clear
                             </button>
 
-
                             {(file !== null || localStorage.getItem("imageDataURL")) && (responseString !== "" || localStorage.getItem("response") )&& isAuthenticated && (
                                 <button className="cursor-pointer clear-btn bg-[#BD0A0A] hover:bg-[#700606]">
                                     {/*HERE IS THE PROBLEM*/}
@@ -314,13 +313,6 @@ const CodeExplanation = () => {
                                     />
                                 </button>
                             )}
-                            <button className="cursor-pointer clear-btn bg-[#BD0A0A] hover:bg-[#700606]">
-                                {/*HERE IS THE PROBLEM*/}
-                                <Save
-                                    file={localStorage.getItem("imageDataURL") ? dataURLtoFile(localStorage.getItem("imageDataURL")!, "image.png") : null}
-                                    responseText={localStorage.getItem("response")}
-                                />
-                            </button>
                         </div>
 
                         {/* collapsed headers */}
