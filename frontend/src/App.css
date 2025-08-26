@@ -6,12 +6,14 @@
 #root {
   margin: 0 auto;
   text-align: center;
+  height: 100vh;
 }
 
 .box-button:hover{
   background-color: #D45959;
 }
 .box-button{
+  cursor: pointer;
   width: 200px;
   height: 70px;
   background-Color: #BD0A0A;
@@ -23,6 +25,7 @@
   background-color: #D45959;
 }
 .circle-button{
+  cursor: pointer;
   border-radius:50%;
   height:60px;
   width:60px;
@@ -44,7 +47,7 @@
 
 .inner-page-box {
   justify-self: center;
-  margin-top:30px;
+  margin-top:2vh;
   padding-top:20px;
   padding-left:20px;
   padding-right:20px;

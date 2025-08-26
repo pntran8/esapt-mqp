@@ -9,6 +9,7 @@ interface SaveProps {
 
 const Save: React.FC<SaveProps> = ({ file, responseText }) => {
     const [isSaving, setIsSaving] = useState(false);
+    const [doneSaving, setDoneSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<boolean>(false);
     const {user} = useAuth0();
@@ -78,26 +79,31 @@ const Save: React.FC<SaveProps> = ({ file, responseText }) => {
             setError("Failed to save data.");
         } finally {
             setIsSaving(false);
+            setDoneSaving(true);
         }
     };
 
     return (
-        <div>
-            <button onClick={() => {
+        <div  className="text-white">
+            <button className="cursor-pointer" onClick={() => {
                 if (!isSaving) handleSave();
-            }} className="box-button">
-                {isSaving ? "Saving..." : "Save to Database"}
+            }}>
+
+                {!doneSaving ?
+                    (isSaving ?
+                    "Saving..." : "Save to database")
+                    :
+                    (success ?
+                            <p className="text-white">
+                                Saved successfully!
+                            </p>
+                            :
+                            <p className="text-red-600">
+                                {error}
+                            </p>
+                    )
+                }
             </button>
-            {success &&
-                <p className="text-green-600">
-                    Saved successfully!
-                </p>
-            }
-            {error &&
-                <p className="text-red-600">
-                    {error}
-                </p>
-            }
         </div>
     );
 };

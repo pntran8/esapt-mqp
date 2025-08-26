@@ -1,8 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { useState } from 'react';
-import SendToGem from "../components/SendToGem.tsx"
 import SendXMLToGem from "../components/SendXMLToGem.tsx"
-import SendImgToGem from "../components/SendImgToGem.tsx"
 import CodeExplanation from "../components/CodeExplanation"
 import CodeEvaluation from "../components/CodeEvaluation"
 import View from "../components/View.tsx";
@@ -16,9 +13,6 @@ const App = () => {
     const domain = import.meta.env.VITE_AUTH0_DOMAIN;
     const clientID = import.meta.env.VITE_AUTH0_CLIENT_ID;
     const { isAuthenticated, isLoading, user } = useAuth0();
-    const [code, setCode] = useState<string>("");
-    const [explanation, setExplanation] = useState<string>("");
-    const [imageUrl, setImageUrl] = useState<string | null>(null);
 
     useEffect(() => {
         if (isLoading) return;
@@ -41,41 +35,12 @@ const App = () => {
             <Router>
                 <Routes>
                     <Route path="/" element={<Home />} />
-                    <Route path="/gem" element={<SendToGem />} />
                     <Route path="/XMLgem" element={<SendXMLToGem />} />
-                    <Route
-                        path="/imggem"
-                        element={
-                            <SendImgToGem
-                                code={code}
-                                setCode={setCode}
-                                explanation={explanation}
-                                setExplanation={setExplanation}
-                                imageUrl={imageUrl}
-                                setImageUrl={setImageUrl}
-                            />
-                        }
-                    />
-                    <Route path="/imggem" element={<SendImgToGem
-                                                        code={code}
-                                                        setCode={setCode}
-                                                        explanation={explanation}
-                                                        setExplanation={setExplanation}
-                                                        imageUrl={imageUrl}
-                                                        setImageUrl={setImageUrl}
-                                                    />} />
-
                     <Route path="/viewHistory" element={<View />} />
                     <Route path="/viewHistory/:userID" element={<LogPage />} />
                     <Route
-                        path="/explanation"
-                        element={
-                            <CodeExplanation
-                                code={code}
-                                explanation={explanation}
-                                imageUrl={imageUrl}
-                            />
-                        }
+                        path="/imggem"
+                        element={ <CodeExplanation/> }
                     />
                   <Route path="/evaluation" element={<CodeEvaluation />} />
                 </Routes>
