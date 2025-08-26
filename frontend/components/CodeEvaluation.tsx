@@ -392,6 +392,13 @@ const CodeEvaluation = () => {
                     className="chat-input"
                     style={{fontSize:'2vh'}}
                 />
+
+                <button className="cursor-pointer clear-btn bg-[#BD0A0A] hover:bg-[#700606] text-white m-2" onClick={() => {
+                    localStorage.clear();
+                    window.location.reload();
+                }}>
+                    Clear
+                </button>
             </div>
 
             <div className={"flex"} style={{marginTop:"2vh"}}>
@@ -461,12 +468,6 @@ const CodeEvaluation = () => {
           {/*  </div>*/}
 
 
-            <button className={"box-button"} onClick={() => {
-                localStorage.clear();
-                window.location.reload();
-            }}>
-                clear
-            </button>
             <Footer/>
         </>
     );
