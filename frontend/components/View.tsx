@@ -151,7 +151,7 @@ const View: React.FC = () => {
                                             console.error("Failed to delete entry:", err);
                                         }
                                     }}
-                                    className="bg-red-600 text-white px-3 py-2 hover:bg-red-800 rounded-2xl cursor-pointer"
+                                    className="bg-[#981026] text-white p-2 hover:bg-[#c31431] px-3 py-2 rounded-2xl cursor-pointer"
                                 >
                                     Delete
                                 </button>
