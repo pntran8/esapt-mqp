@@ -20,11 +20,55 @@ const View: React.FC = () => {
     const openEntry = entries.find((e) => e.id === openEntryId) || null;
     const navigate = useNavigate();
 
-    function parseText(input: string): string {
+
+    function parseText(input: string){
         try {
+            console.log("INPUT", input);
             const parsed = JSON.parse(input);
+            const cleanedText = parsed.text.replace(/`/g, "").replace("sql","" ).replace(/\*\*(.*?)\*\*/g, "$1");
+            const code = cleanedText.split("-------")
+
+            console.log("type?? ", typeof cleanedText);
+            console.log("code ", typeof code[0]);
+
             return typeof parsed === "object" && parsed.text
-                ? parsed.text
+                ? cleanedText
+                : input;
+        } catch {
+            return input;
+        }
+    }
+
+    function parseCode(input: string){
+        try {
+            console.log("INPUT", input);
+            const parsed = JSON.parse(input);
+            const cleanedText = parsed.text.replace(/`/g, "").replace("sql","" ).replace(/\*\*(.*?)\*\*/g, "$1");
+            const code = cleanedText.split("-------")
+
+            console.log("type?? ", typeof cleanedText);
+            console.log("code ", typeof code[0]);
+
+            return typeof parsed === "object" && parsed.text
+                ? code[0]
+                : input;
+        } catch {
+            return input;
+        }
+    }
+
+    function parseExplanation(input: string){
+        try {
+            console.log("INPUT", input);
+            const parsed = JSON.parse(input);
+            const cleanedText = parsed.text.replace(/`/g, "").replace("sql","" ).replace(/\*\*(.*?)\*\*/g, "$1");
+            const code = cleanedText.split("-------")
+
+            console.log("type?? ", typeof cleanedText);
+            console.log("code ", typeof code[0]);
+
+            return typeof parsed === "object" && parsed.text
+                ? code[1]
                 : input;
         } catch {
             return input;
@@ -66,9 +110,7 @@ const View: React.FC = () => {
                             className="w-full h-32 object-cover rounded mb-1"
                         />
                         <div className="text-xs overflow-auto whitespace-pre-wrap break-words">
-                            <ReactMarkdown>
-                                {parseText(entry.textFile)}
-                            </ReactMarkdown>
+                            {parseText(entry.textFile)}
                         </div>
                         <p className="text-[10px] text-gray-500 mt-1">
                             {new Date(entry.timeCreated).toLocaleString()}
@@ -127,9 +169,15 @@ const View: React.FC = () => {
                             className="w-full max-h-96 object-contain rounded mb-4"
                         />
                         <div className="whitespace-pre-wrap break-words mb-4">
-                            <ReactMarkdown>
-                                {parseText(openEntry.textFile)}
-                            </ReactMarkdown>
+                            Schema:
+                            <p style={{ textAlign: 'left' }}>
+                                <pre className={"bg-[#E7E7E7] rounded-sm p-4"}>
+                                    <code>
+                                        {parseCode(openEntry.textFile)}
+                                    </code>
+                                </pre>
+                                {parseExplanation(openEntry.textFile)}
+                            </p>
                         </div>
                         <p className="text-sm text-gray-500">
                             {new Date(openEntry.timeCreated).toLocaleString()}
