@@ -5,7 +5,6 @@ import logger from "morgan";
 import cors from "cors";
 
 // Route imports
-import examplePy from "./routes/examplePy";
 import getHistory from "../api/getHistory.ts";
 import insertUpload from "../api/insertUpload.ts";
 import viewUpload from "../api/viewUpload.ts";
@@ -44,7 +43,6 @@ app.use(
 
 // Routes
 const APP_ROUTES = {
-    PYTHON: "/api/examplePy",
     DB: "/api/getHistory",
     INSERT_DB: "/api/insertUpload",
     VIEW_DB: "/api/viewUpload",
@@ -52,7 +50,6 @@ const APP_ROUTES = {
 
 app.use(APP_ROUTES.INSERT_DB, insertUpload);
 app.use(APP_ROUTES.VIEW_DB, viewUpload);
-app.use(APP_ROUTES.PYTHON, examplePy);
 app.use(APP_ROUTES.DB, getHistory);
 
 // Auth0 domain key
