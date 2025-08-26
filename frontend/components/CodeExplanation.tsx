@@ -107,6 +107,7 @@ const CodeExplanation = () => {
                     img.src = e.target.result as string;
                     const dataURL = img.src as string;
                     localStorage.setItem("imageDataURL", dataURL);
+                    console.log("imageDataURL ", localStorage.getItem("imageDataURL"));
                 };
 
                 img.onload = () => {
@@ -304,7 +305,7 @@ const CodeExplanation = () => {
                                             <h1 style={{marginBottom:'2vh', cursor: 'pointer'}} onClick={() => toggleSection('erd')}>
                                                 Your ERD ▼
                                             </h1>
-                                            <div style={{ height: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }} className="border-2 border-[#BD0A0A] cursor-pointer">
+                                            <div style={{ height: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }} className="border-2 bg-[#E7E7E7] border-[#BD0A0A] cursor-pointer">
                                                 {imageUrl ? (
                                                     <img
                                                         src={imageUrl}
@@ -377,7 +378,7 @@ const CodeExplanation = () => {
                                             <h1 style={{marginBottom:'2vh', cursor: 'pointer'}} onClick={() => toggleSection('erd')}>
                                                 Your ERD ▼
                                             </h1>
-                                            <div style={{ height: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="border-2 border-[#BD0A0A] cursor-pointer">
+                                            <div style={{ height: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center'}} className="border-2 bg-[#E7E7E7] border-[#BD0A0A] cursor-pointer">
                                                 {imageUrl ? (
                                                     <img
                                                         src={imageUrl}
@@ -449,7 +450,7 @@ const CodeExplanation = () => {
                                         <h1 style={{marginBottom:'2vh', cursor: 'pointer'}} onClick={() => toggleSection('erd')}>
                                             Your ERD ▼
                                         </h1>
-                                        <div style={{ height: '66vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="border-2 border-[#BD0A0A]">
+                                        <div style={{ height: '66vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="border-2 bg-[#E7E7E7] border-[#BD0A0A]">
                                             {imageUrl ? (
                                                 <img
                                                     src={imageUrl}
