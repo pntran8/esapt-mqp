@@ -3,7 +3,7 @@ import Footer from "./Footer";
 import "./gem.css";
 import "../src/App.css"
 import { useAuth0 } from "@auth0/auth0-react";
-import {ChangeEvent, useState} from "react";
+import {ChangeEvent, useEffect, useState} from "react";
 import Save from "./Save.tsx";
 import {createPartFromUri, createUserContent, GoogleGenAI} from "@google/genai";
 import {PulseLoader} from "react-spinners";
@@ -123,6 +123,12 @@ const CodeExplanation = () => {
     const [popup, setPopup] = useState<boolean>(false);
     const [zoomIn, setZoomIn] = useState<boolean>(false);
 
+
+    /*
+    uncomment if you local storage on page opening
+    useEffect(() => {
+        localStorage.clear();
+    }, []);*/
     const [expandedSections, setExpandedSections] = useState({
         erd: true,
         code: true,
@@ -475,11 +481,11 @@ const CodeExplanation = () => {
                                             <h1 style={{cursor: 'not-allowed'}} onClick={() => toggleSection('explanation')}>
                                                 AI Explanation ▼
                                             </h1>
-                                            <div className="inner-page-box" style={{ flex: 1, overflow: 'scroll' }}>
-                                                    {explanation || localStorage.getItem("explanation") ? (
+                                            <div className="inner-page-box" style={{ height:'60vh', overflow: 'auto'}}>
+                                                    {(localStorage.getItem("explanation") || explanation) ? (
                                                         <h3 style={{ fontSize: '20px', justifySelf: 'left' }}>
                                                         <LineTypeRenderer
-                                                            items={explanation ?? localStorage.getItem("explanation")}
+                                                            items={(localStorage.getItem("explanation") || explanation)}
                                                         />
                                                         </h3>
                                                     ) : isLoading ? (
@@ -570,11 +576,11 @@ const CodeExplanation = () => {
                                             <h1 style={{cursor: 'pointer'}} onClick={() => toggleSection('explanation')}>
                                                 AI Explanation ▼
                                             </h1>
-                                            <div className="inner-page-box" style={{ flex: 1, overflow: 'scroll' }}>
-                                                    {explanation || localStorage.getItem("explanation") ? (
+                                            <div className="inner-page-box" style={{ height:'60vh', overflow: 'auto'}}>
+                                                    {(localStorage.getItem("explanation") || explanation) ? (
                                                         <h3 style={{ fontSize: '20px', justifySelf: 'left' }}>
                                                             <LineTypeRenderer
-                                                                items={explanation ?? localStorage.getItem("explanation")}
+                                                                items={(localStorage.getItem("explanation") || explanation)}
                                                             />
                                                         </h3>
                                                     ) : isLoading ? (
@@ -666,10 +672,10 @@ const CodeExplanation = () => {
                                                 AI Explanation ▼
                                             </h1>
                                             <div className="inner-page-box" style={{ flex: 1, overflow: 'scroll' }}>
-                                                    {explanation || localStorage.getItem("explanation") ? (
+                                                    {(localStorage.getItem("explanation") || explanation) ? (
                                                         <h3 style={{ fontSize: '20px', justifySelf: 'left' }}>
                                                             <LineTypeRenderer
-                                                                items={explanation ?? localStorage.getItem("explanation")}
+                                                                items={(localStorage.getItem("explanation") || explanation)}
                                                             />
                                                         </h3>
                                                     ) : isLoading ? (
