@@ -23,17 +23,17 @@ export default function Header() {
                         alt="WPI Logo"
                         style={{height:'6vh', minHeight:'20px'}}
                     />
-                    <div className='text-5xl font-bold text-white font-serif' style={{fontSize:'max(15px, 5vh)'}}>
+                    <div className='text-5xl font-bold text-white font-serif ' style={{fontSize:'max(15px, 5vh)'}}>
                         WPI
                     </div>
                 </div>
 
                     <div className={'cursor-pointer text-2xl text-white font-bold font-sans flex justify-self-end'} style={{fontSize:'max(5px, 3vh)'}} onClick={goToGem}>
-                        SQL Generation
+                        <a className={'hover:underline'}>SQL Generation</a>
                     </div>
 
                     <div className={'cursor-pointer text-2xl text-white font-bold font-sans mx-8 flex justify-self-end'} style={{fontSize:'max(5px, 3vh)'}} onClick={goToEval}>
-                        Code Comparison
+                        <a className={'hover:underline'}>Code Comparison</a>
                     </div>
                 <div className={'flex justify-end'}>
                     <Profile />
