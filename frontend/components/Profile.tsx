@@ -4,7 +4,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { User } from "lucide-react";
 import { X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { FaUser } from "react-icons/fa";
+import {FaClock, FaUser} from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
 import { FaIdCard } from "react-icons/fa";
 
@@ -80,9 +80,12 @@ const Profile: React.FC = () => {
                             <div>
                                 <button
                                     onClick = {handleHistory}
-                                    className="bg-[#981026] text-white m-4 p-5 hover:bg-[#c31431] rounded-2xl cursor-pointer"
+                                    className="bg-[#981026] text-white p-3 hover:bg-[#c31431] rounded-xl cursor-pointer w-full flex justify-center"
                                 >
-                                    click here to view your history
+                                    <div className="flex flex-row gap-1 items-center leading-none">
+                                        <FaClock className="text-sm" />
+                                        <span className="text-sm">View History</span>
+                                    </div>
                                 </button>
                             </div>
                         )}
