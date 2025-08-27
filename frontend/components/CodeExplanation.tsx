@@ -230,7 +230,13 @@ const CodeExplanation = () => {
 
                         <div id="input-container" style={{border: "1vh light grey", borderRadius:"2vh", marginTop:"3vh", marginBottom:"3vh"}}>
                             <button className="cursor-pointer clear-btn bg-[#BD0A0A] hover:bg-[#700606] text-white" onClick={() => {
-                                const blob = new Blob([code], { type: 'text/plain' });
+                                let blob;
+                                if (localStorage.getItem("aiCode")) {
+                                    blob = new Blob([localStorage.getItem("aiCode")], { type: 'text/plain' });
+                                }
+                                else {
+                                    blob = new Blob([code], { type: 'text/plain' });
+                                }
                                 const url = URL.createObjectURL(blob);
                                 const link = document.createElement('a');
                                 link.href = url;
