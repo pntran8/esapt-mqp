@@ -13,6 +13,9 @@ import "../src/App.css"
 import {useNavigate} from "react-router-dom";
 import {useAuth0} from "@auth0/auth0-react";
 import { PulseLoader } from "react-spinners";
+import {splitRegExp} from "../src/common/types.ts"
+import {compressImageFile} from "../src/common/compress.ts";
+import {instruction} from "../src/common/instruction.ts";
 
 // Message type definition
 interface Message {
@@ -22,7 +25,6 @@ interface Message {
 const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_LLM_API_KEY });
 
 
-
 const CodeEvaluation = () => {
     const [response, setResponse] = useState<Message[]>([]);
     const { isAuthenticated} = useAuth0();
@@ -30,12 +32,14 @@ const CodeEvaluation = () => {
     const [userSchema, setUserSchema] = useState('');
     const [file, setFile] = useState<File | null>(null);
     const [responseString, setResponseString] = useState<string>("");
+    const [code, setCode] = useState<string>("");
 
     const handleFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
 
         const file = e.target.files?.[0];
         if (!file) return;
         setFile(file);
+        await compressImageFile(file)
         //const localUrl = URL.createObjectURL(file);
 
         let resStr = "";
@@ -54,15 +58,7 @@ const CodeEvaluation = () => {
                         model: "gemini-2.5-flash",
                         contents: createUserContent([
                             createPartFromUri(myfile.uri, myfile.mimeType),
-                            "I am providing you with a conceptual Entity-Relationship diagram that is in either Chen or Crow's Foot notation. " +
-                            "Return that diagram translated into SQL code. " +
-                            "Look at the lines between relationships and tables, and build extra tables if those lines have the features of a many-to-many relationship in either notation. " +
-                            "Do not make assumptions about relationships or attributes based on names, solely consider the picture. " +
-                            "Remember that in Chen notation, a 1 cardinality means one, and a letter cardinality means many, so 1 to M is one-to-many. Relationships are represented as diamonds, connected to the the entities they are relating." +
-                            "Also remember that primary keys are signified by underlined text, and partial keys are signified by text underlined with a dashed line. " +
-                            "Pay close attention to whether the text is underlined or not because the space between the text and underline may be small. " +
-                            "Do not assume anything is a primary or partial key unless it is underlined. " +
-                            "Print out the SQL code, then '----------' on a new line, then an explanation for the logic behind the code.",
+                            instruction,
                         ]),
                     });
 
@@ -76,8 +72,24 @@ const CodeEvaluation = () => {
 
                     resStr = response.text ?? "No bot response available";
                     //const resParts = resStr.split('----------');
-
                     setResponseString(resStr);
+                    const allParsedLines = splitRegExp(resStr);
+                    console.log(allParsedLines);
+                    localStorage.setItem("explanation", resStr);
+                    console.log("explanation ", localStorage.getItem("explanation"))
+                    localStorage.setItem("response", resStr);
+                    localStorage.setItem("allLines", JSON.stringify(allParsedLines));
+                    let finalCode = "";
+                    for (const lineLog of allParsedLines) {
+                        const line = lineLog.line
+                        const title = lineLog.title
+                        if (title == "STEP"){
+                            finalCode = line;
+                        }
+                    }
+                    console.log("Code:",finalCode);
+                    localStorage.setItem("aiCode", finalCode);
+                    setCode(finalCode)
                     setIsLoading(false);
 
 
@@ -408,7 +420,22 @@ const CodeEvaluation = () => {
                 <div className="inner-page-box" style={{ width: '28vw', height: '70vh', overflow: 'scroll', marginRight:"-16vh" }}>
                     {localStorage.getItem("aiCode") !== null && response.length === 0 ? (
                         <div>
-                            {localStorage.getItem("aiCode").replace("sql", "")}
+                            <pre
+                                style={{
+                                    margin: 0,
+                                    fontSize: '15px',
+                                    whiteSpace: 'pre-wrap',
+                                    wordBreak: 'break-word',
+                                    overflowWrap: 'anywhere',
+                                }}
+                            >
+                                {code ?
+                                    (code
+                                    ) : (
+                                        localStorage.getItem("aiCode")
+                                    )
+                                }
+                            </pre>
                         </div>
                     ) :
                         response.length === 0 ? (
@@ -417,11 +444,22 @@ const CodeEvaluation = () => {
                             : (<h1 style={{fontSize:'max(15px, 2.5vh)'}}>Upload your image to see code</h1>)
                     ) : (
                         <div>
-                            {response.map((msg, index) => (
-                                <div key={index}>
-                                    <ReactMarkdown>{msg.message}</ReactMarkdown>
-                                </div>
-                            ))}
+                            <pre
+                                style={{
+                                    margin: 0,
+                                    fontSize: '15px',
+                                    whiteSpace: 'pre-wrap',
+                                    wordBreak: 'break-word',
+                                    overflowWrap: 'anywhere',
+                                }}
+                            >
+                                {code ?
+                                    (code
+                                    ) : (
+                                        localStorage.getItem("aiCode")
+                                    )
+                                }
+                            </pre>
                         </div>
                     )}
                 </div>
