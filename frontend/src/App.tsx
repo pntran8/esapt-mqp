@@ -42,7 +42,7 @@ const App = () => {
                         path="/imggem"
                         element={ <CodeExplanation/> }
                     />
-                  <Route path="/evaluation" element={<CodeEvaluation />} />
+                    <Route path="/evaluation" element={<CodeEvaluation />} />
                 </Routes>
             </Router>
         </Auth0Provider>
