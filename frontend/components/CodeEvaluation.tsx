@@ -136,8 +136,19 @@ const CodeEvaluation = () => {
         const splitting = data.diff[0].split("(this=");
         console.log("splitting", splitting);
         const rawLine = data.diff[0];
-        const match = rawLine.match(/Identifier\(this=([A-Za-z0-9_]+)/);
-        const cleanedLine = match ? `Tables only in schema 1: ${match[1]}` : rawLine;
+        //const match = rawLine.match(/Identifier\(this=([A-Za-z0-9_]+)/);
+        const regex = /Identifier\(this=([A-Za-z0-9_]+)/g;
+
+        const matches = [];
+        let match;
+
+        while ((match = regex.exec(rawLine)) !== null) {
+            matches.push(match[1]);
+        }
+        //const cleanedLine = matches ? `Tables only in schema 1: ${matches}` : rawLine;
+        const cleanedLine = matches.length > 0
+            ? `Tables only in schema 1: ${matches.join(", ")}`
+            : rawLine;
         formattedBlocks.push(cleanedLine + "\n");
         if (data.diff[1].includes("only")) {
             startingNum += 1;
@@ -335,7 +346,7 @@ const CodeEvaluation = () => {
                                             return (
                                                 <ul className={"bg-red-400 font-bold"}>
                                                     {test.map((item, index) => (
-                                                        <li key={index}>{item}</li>
+                                                        <li key={index}>{item} </li>
                                                     ))}
                                                 </ul>
                                             );
