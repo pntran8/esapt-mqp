@@ -35,6 +35,11 @@ const CodeEvaluation = () => {
     const [code, setCode] = useState<string>("");
 
     const handleFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+        localStorage.clear();
+        setCode("");
+        setResponseString("");
+        setResponse("");
+
 
         const file = e.target.files?.[0];
         if (!file) return;
