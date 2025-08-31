@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import Header from "./Header.tsx";
-import ReactMarkdown from "react-markdown";
 import { useNavigate } from "react-router-dom";
-
 
 interface UploadEntry {
     id: number;
@@ -20,59 +18,125 @@ const View: React.FC = () => {
     const openEntry = entries.find((e) => e.id === openEntryId) || null;
     const navigate = useNavigate();
 
-
-    function parseText(input: string){
+    function parseText(input: string) {
         try {
-            console.log("INPUT", input);
             const parsed = JSON.parse(input);
-            const cleanedText = parsed.text.replace(/`/g, "").replace("sql","" ).replace(/\*\*(.*?)\*\*/g, "$1");
-            const code = cleanedText.split("-------")
-
-            console.log("type?? ", typeof cleanedText);
-            console.log("code ", typeof code[0]);
-
-            return typeof parsed === "object" && parsed.text
-                ? cleanedText
-                : input;
+            return typeof parsed === "object" && parsed.text ? parsed.text : input;
         } catch {
             return input;
         }
     }
 
-    function parseCode(input: string){
+    function parseAndRenderContent(input: string) {
         try {
-            console.log("INPUT", input);
             const parsed = JSON.parse(input);
-            const cleanedText = parsed.text.replace(/`/g, "").replace("sql","" ).replace(/\*\*(.*?)\*\*/g, "$1");
-            const code = cleanedText.split("-------")
-
-            console.log("type?? ", typeof cleanedText);
-            console.log("code ", typeof code[0]);
-
-            return typeof parsed === "object" && parsed.text
-                ? code[0]
-                : input;
+            const content = typeof parsed === "object" && parsed.text ? parsed.text : input;
+            return renderParsedContent(content);
         } catch {
-            return input;
+            return renderParsedContent(input);
         }
     }
 
-    function parseExplanation(input: string){
-        try {
-            console.log("INPUT", input);
-            const parsed = JSON.parse(input);
-            const cleanedText = parsed.text.replace(/`/g, "").replace("sql","" ).replace(/\*\*(.*?)\*\*/g, "$1");
-            const code = cleanedText.split("-------")
+    function renderParsedContent(content: string) {
+        const lines = content.split('\n');
+        const elements: JSX.Element[] = [];
+        let currentSection: string[] = [];
+        let inCodeBlock = false;
+        let codeBlock: string[] = [];
 
-            console.log("type?? ", typeof cleanedText);
-            console.log("code ", typeof code[0]);
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
 
-            return typeof parsed === "object" && parsed.text
-                ? code[1]
-                : input;
-        } catch {
-            return input;
+            // if line starts with ===
+            if (line.startsWith('===')) {
+                if (inCodeBlock && codeBlock.length > 0) {
+                    elements.push(
+                        <pre key={`code-${i}`} className="bg-[#E7E7E7] rounded-sm p-4 mb-4 whitespace-pre-wrap break-words">
+                            <code>{codeBlock.join('\n')}</code>
+                        </pre>
+                    );
+                    codeBlock = [];
+                    inCodeBlock = false;
+                }
+
+                if (currentSection.length > 0) {
+                    elements.push(
+                        <div key={`section-${i}`} className="mb-4 whitespace-pre-wrap ">
+                            {currentSection.join('\n')}
+                        </div>
+                    );
+                    currentSection = [];
+                }
+
+                elements.push(
+                    <h3 key={`header-${i}`} className="font-bold text-lg mb-2 text-[#981026]">
+                        {line}
+                    </h3>
+                );
+            }
+            // if line starts with CREATE TABLE
+            else if (line.trim().startsWith('CREATE TABLE')) {
+                if (currentSection.length > 0) {
+                    elements.push(
+                        <div key={`section-before-code-${i}`} className="mb-4 whitespace-pre-wrap">
+                            {currentSection.join('\n')}
+                        </div>
+                    );
+                    currentSection = [];
+                }
+
+                inCodeBlock = true;
+                codeBlock.push(line);
+            }
+            else if (inCodeBlock) {
+                // if this line is part of the SQL (contains SQL keywords or is indented/part of table definition)
+                if (line.trim() === '' ||
+                    line.includes('(') ||
+                    line.includes(')') ||
+                    line.includes('PRIMARY KEY') ||
+                    line.includes('VARCHAR') ||
+                    line.includes('INT') ||
+                    line.includes('NUMERIC') ||
+                    line.includes(',') ||
+                    line.trim().endsWith(';') ||
+                    (line.startsWith(' ') && codeBlock.length > 0)) {
+                    codeBlock.push(line);
+                } else {
+                    elements.push(
+                        <pre key={`code-${i}`} className="bg-[#E7E7E7] rounded-sm p-4 mb-4">
+                            <code>{codeBlock.join('\n')}</code>
+                        </pre>
+                    );
+                    codeBlock = [];
+                    inCodeBlock = false;
+
+                    if (line.trim() !== '') {
+                        currentSection.push(line);
+                    }
+                }
+            }
+            else {
+                currentSection.push(line);
+            }
         }
+
+        if (inCodeBlock && codeBlock.length > 0) {
+            elements.push(
+                <pre key="final-code" className="bg-[#E7E7E7] rounded-sm p-4 mb-4">
+                    <code>{codeBlock.join('\n')}</code>
+                </pre>
+            );
+        }
+
+        if (currentSection.length > 0) {
+            elements.push(
+                <div key="final-section" className="mb-4 whitespace-pre-wrap">
+                    {currentSection.join('\n')}
+                </div>
+            );
+        }
+
+        return <div>{elements}</div>;
     }
 
     useEffect(() => {
@@ -127,7 +191,7 @@ const View: React.FC = () => {
                 >
                     <div
                         onClick={(e) => e.stopPropagation()}
-                        className="bg-white rounded-xl shadow-xl max-w-3xl w-full max-h-full overflow-auto p-6 flex flex-col items-center"
+                        className="bg-white rounded-xl shadow-xl max-w-4xl w-full max-h-full overflow-auto p-6 flex flex-col items-center"
                     >
                         <div className="w-full flex justify-between items-center mb-4">
                             <div className="flex gap-2">
@@ -168,18 +232,10 @@ const View: React.FC = () => {
                             alt="Upload preview large"
                             className="w-full max-h-96 object-contain rounded mb-4"
                         />
-                        <div className="whitespace-pre-wrap break-words mb-4">
-                            Schema:
-                            <p style={{ textAlign: 'left' }}>
-                                <pre className={"bg-[#E7E7E7] rounded-sm p-4"}>
-                                    <code>
-                                        {parseCode(openEntry.textFile)}
-                                    </code>
-                                </pre>
-                                {parseExplanation(openEntry.textFile)}
-                            </p>
+                        <div className="w-full text-left">
+                            {parseAndRenderContent(openEntry.textFile)}
                         </div>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 mt-4">
                             {new Date(openEntry.timeCreated).toLocaleString()}
                         </p>
                     </div>
