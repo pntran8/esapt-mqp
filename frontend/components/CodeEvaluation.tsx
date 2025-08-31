@@ -81,7 +81,7 @@ const CodeEvaluation = () => {
                     const allParsedLines = splitRegExp(resStr);
                     console.log(allParsedLines);
                     localStorage.setItem("explanation", resStr);
-                    console.log("explanation ", localStorage.getItem("explanation"))
+                    // console.log("explanation ", localStorage.getItem("explanation"))
                     localStorage.setItem("response", resStr);
                     localStorage.setItem("allLines", JSON.stringify(allParsedLines));
                     let finalCode = "";
@@ -141,8 +141,19 @@ const CodeEvaluation = () => {
         const splitting = data.diff[0].split("(this=");
         console.log("splitting", splitting);
         const rawLine = data.diff[0];
-        const match = rawLine.match(/Identifier\(this=([A-Za-z0-9_]+)/);
-        const cleanedLine = match ? `Tables only in schema 1: ${match[1]}` : rawLine;
+        //const match = rawLine.match(/Identifier\(this=([A-Za-z0-9_]+)/);
+        const regex = /Identifier\(this=([A-Za-z0-9_]+)/g;
+
+        const matches = [];
+        let match;
+
+        while ((match = regex.exec(rawLine)) !== null) {
+            matches.push(match[1]);
+        }
+        //const cleanedLine = matches ? `Tables only in schema 1: ${matches}` : rawLine;
+        const cleanedLine = matches.length > 0
+            ? `Tables only in schema 1: ${matches.join(", ")}`
+            : rawLine;
         formattedBlocks.push(cleanedLine + "\n");
         if (data.diff[1].includes("only")) {
             startingNum += 1;
@@ -200,6 +211,7 @@ const CodeEvaluation = () => {
     }
 
     const handleCompare = async () => {
+        console.log("SIJFIDOSFVOIAKDFOIAKDIFAWNIDFEHNWAKFEWDNAJFENDFLJNEWDS")
         setLoading(true);
         setError(null);
         setDiffResult(null);
@@ -211,8 +223,8 @@ const CodeEvaluation = () => {
         }
         else if (response.length > 0){
             console.log("2")
-            schema1 = response[0].message
-            localStorage.setItem("aiCode", response[0].message);
+            schema1 = code
+            localStorage.setItem("aiCode", code);
         }
         else{
             console.log("3")
@@ -222,6 +234,7 @@ const CodeEvaluation = () => {
         schema1.replace("sql", "")
         schema1.replace("`", "")
 
+        console.log("=============================================================================================")
         console.log("AI SCHEMA", schema1);
         console.log("USER", userSchema);
         const cleanedSchema = schema1
@@ -338,7 +351,7 @@ const CodeEvaluation = () => {
                                             return (
                                                 <ul className={"bg-red-400 font-bold"}>
                                                     {test.map((item, index) => (
-                                                        <li key={index}>{item}</li>
+                                                        <li key={index}>{item} </li>
                                                     ))}
                                                 </ul>
                                             );
@@ -423,7 +436,7 @@ const CodeEvaluation = () => {
 
             <div style={{ height: '75vh', display: 'flex', justifyContent: 'space-around', alignItems: 'flex-start', marginTop:"-2vh"}}>
                 <div className="inner-page-box" style={{ width: '28vw', height: '70vh', overflow: 'scroll', marginRight:"-16vh" }}>
-                    {localStorage.getItem("aiCode") !== null && response.length === 0 ? (
+                    {localStorage.getItem("aiCode") !== null && code.length === 0 ? (
                         <div>
                             <pre
                                 style={{
