@@ -113,9 +113,12 @@ const CodeExplanation = () => {
 
     const handleFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
 
+        localStorage.clear();
+        setCode("");
+        setExplanation("");
+        setResponseString("");
+
         setIsLoading(true);
-
-
 
 
         const file = e.target.files?.[0];
@@ -128,9 +131,9 @@ const CodeExplanation = () => {
         const localUrl = URL.createObjectURL(file);
         setImageUrl(localUrl);
 
-        console.log("imageurl ", localUrl)
-        console.log("local ", localStorage.getItem("localURL"));
-        console.log("equivlanet?? ", localUrl === localStorage.getItem("localURL"))
+        // console.log("imageurl ", localUrl)
+        // console.log("local ", localStorage.getItem("localURL"));
+        // console.log("equivlanet?? ", localUrl === localStorage.getItem("localURL"))
 
         let resStr = "";
 
