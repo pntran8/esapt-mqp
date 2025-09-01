@@ -1,0 +1,28 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+#root {
+    margin: 0 auto;
+    text-align: center;
+    height: 100vh;
+}
+
+.h1-tut {
+    font-size: 6vh;
+    margin-top: 3vh;
+    text-align: left;
+}
+
+.h2-tut {
+    text-align: left;
+    font-size: 4vh;
+    margin-top: 2vh;
+}
+
+.h3-tut {
+    font-size: 2vh;
+    margin-top: 2vh;
+}
+
