@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { useParams, useSearchParams } from "react-router-dom";
 import Header from "./Header.tsx";
-import { useRouter } from 'next/router';
 
 interface LogEntry {
     id: number;
@@ -11,12 +11,12 @@ interface LogEntry {
 }
 
 const LogPage: React.FC = () => {
-    const router = useRouter();
-    const { userID } = router.query;
-    const id = router.query.id;
-    const timeCreated = router.query.timeCreated;
-
+    const { userID } = useParams();
+    const [searchParams] = useSearchParams();
     const [entry, setEntry] = useState<LogEntry | null>(null);
+
+    const id = searchParams.get("id");
+    const timeCreated = searchParams.get("timeCreated");
 
     function parseAndRenderContent(input: string) {
         try {
@@ -142,7 +142,7 @@ const LogPage: React.FC = () => {
         const fetchUploads = async () => {
             try {
                 const res = await fetch(
-                    `/api/viewUpload/getLog?userID=${userID}&id=${id}&timeCreated=${encodeURIComponent(timeCreated)}`
+                    `/api/viewUpload/userID=${userID}&id=${id}&timeCreated=${encodeURIComponent(timeCreated)}`
                 );
 
                 console.log("after trying to fetch image");
