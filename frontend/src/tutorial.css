@@ -24,5 +24,10 @@
 .h3-tut {
     font-size: 2vh;
     margin-top: 2vh;
+    margin-bottom: 2vh;
 }
 
+img {
+    border: solid 1px black;
+    justify-self: center;
+}
