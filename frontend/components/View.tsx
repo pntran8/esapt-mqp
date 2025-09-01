@@ -161,6 +161,8 @@ const View: React.FC = () => {
     return (
         <>
             <Header />
+            <header className="text-center text-4xl mt-8 font-bold">User History</header>
+
             <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
                 {entries.map((entry) => (
                     <div

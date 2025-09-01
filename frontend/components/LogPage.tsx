@@ -175,6 +175,8 @@ const LogPage: React.FC = () => {
     return (
         <>
             <Header />
+            <header className="text-center text-4xl mt-8 font-bold">Log for User {userID}</header>
+
             <div className="w-full flex justify-center mb-4 mt-4">
                 <img
                     src={entry.decodedImage}
