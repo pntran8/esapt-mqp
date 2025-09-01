@@ -208,7 +208,7 @@ const View: React.FC = () => {
                                 <button
                                     onClick={async () => {
                                         try {
-                                            await fetch(`http://localhost:3001/api/removeUpload?id=${openEntry.id}`, {
+                                            await fetch(`api/removeUpload?id=${openEntry.id}`, {
                                                 method: "DELETE",
                                             });
                                             setEntries(entries.filter((e) => e.id !== openEntry.id));
