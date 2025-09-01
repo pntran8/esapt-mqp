@@ -142,7 +142,7 @@ const LogPage: React.FC = () => {
         const fetchUploads = async () => {
             try {
                 const res = await fetch(
-                    `/api/viewUpload/userID=${userID}&id=${id}&timeCreated=${encodeURIComponent(timeCreated)}`
+                    `/api/viewUpload?userID=${userID}&id=${id}&timeCreated=${encodeURIComponent(timeCreated)}`
                 );
 
                 console.log("after trying to fetch image");
