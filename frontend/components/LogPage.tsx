@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
 import Header from "./Header.tsx";
+import { useRouter } from 'next/router';
 
 interface LogEntry {
     id: number;
@@ -11,12 +11,12 @@ interface LogEntry {
 }
 
 const LogPage: React.FC = () => {
-    const { userID } = useParams();
-    const [searchParams] = useSearchParams();
-    const [entry, setEntry] = useState<LogEntry | null>(null);
+    const router = useRouter();
+    const { userID } = router.query;
+    const id = router.query.id;
+    const timeCreated = router.query.timeCreated;
 
-    const id = searchParams.get("id");
-    const timeCreated = searchParams.get("timeCreated");
+    const [entry, setEntry] = useState<LogEntry | null>(null);
 
     function parseAndRenderContent(input: string) {
         try {
