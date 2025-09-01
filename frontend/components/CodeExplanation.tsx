@@ -3,12 +3,17 @@ import Footer from "./Footer";
 import "./gem.css";
 import "../src/App.css"
 import { useAuth0 } from "@auth0/auth0-react";
-import {ChangeEvent, useState} from "react";
+import {ChangeEvent, useEffect, useState} from "react";
 import Save from "./Save.tsx";
 import {createPartFromUri, createUserContent, GoogleGenAI} from "@google/genai";
 import {PulseLoader} from "react-spinners";
+import LineTypeRenderer from "../components/StepByStep.tsx"
+import {splitRegExp} from "../src/common/types.ts"
+import {compressImageFile} from "../src/common/compress.ts";
+import {instruction} from "../src/common/instruction.ts";
 
 const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_LLM_API_KEY });
+
 
 const CodeExplanation = () => {
     const { isAuthenticated } = useAuth0();
@@ -21,6 +26,12 @@ const CodeExplanation = () => {
     const [popup, setPopup] = useState<boolean>(false);
     const [zoomIn, setZoomIn] = useState<boolean>(false);
 
+
+    /*
+    uncomment if you local storage on page opening
+    useEffect(() => {
+        localStorage.clear();
+    }, []);*/
     const [expandedSections, setExpandedSections] = useState({
         erd: true,
         code: true,
@@ -115,52 +126,12 @@ const CodeExplanation = () => {
 
     const handleFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
 
+        localStorage.clear();
+        setCode("");
+        setExplanation("");
+        setResponseString("");
+
         setIsLoading(true);
-
-        const compressImageFile = (file: File): Promise<File> => {
-            return new Promise((resolve) => {
-                const img = new Image();
-                const reader = new FileReader();
-
-                reader.onload = (e) => {
-                    if (!e.target?.result) return;
-                    img.src = e.target.result as string;
-                    const dataURL = img.src as string;
-                    localStorage.setItem("imageDataURL", dataURL);
-                    console.log("imageDataURL ", localStorage.getItem("imageDataURL"));
-                };
-
-                img.onload = () => {
-                    const canvas = document.createElement("canvas");
-                    const maxSize = 1200;
-                    const scale = Math.min(maxSize / img.width, maxSize / img.height);
-
-                    canvas.width = img.width * scale;
-                    canvas.height = img.height * scale;
-
-                    const ctx = canvas.getContext("2d");
-                    if (!ctx) return;
-
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    canvas.toBlob(
-                        (blob) => {
-                            if (!blob) return;
-                            const newFile = new File([blob], file.name, {
-                                type: "image/jpeg",
-                                lastModified: Date.now(),
-                            });
-                            resolve(newFile);
-                        },
-                        "image/jpeg",
-                        1
-                    );
-                };
-
-                reader.readAsDataURL(file);
-
-            });
-        };
-
 
 
         const file = e.target.files?.[0];
@@ -173,9 +144,9 @@ const CodeExplanation = () => {
         const localUrl = URL.createObjectURL(file);
         setImageUrl(localUrl);
 
-        console.log("imageurl ", localUrl)
-        console.log("local ", localStorage.getItem("localURL"));
-        console.log("equivlanet?? ", localUrl === localStorage.getItem("localURL"))
+        // console.log("imageurl ", localUrl)
+        // console.log("local ", localStorage.getItem("localURL"));
+        // console.log("equivlanet?? ", localUrl === localStorage.getItem("localURL"))
 
         let resStr = "";
 
@@ -193,16 +164,7 @@ const CodeExplanation = () => {
                         model: "gemini-2.5-flash",
                         contents: createUserContent([
                             createPartFromUri(myfile.uri, myfile.mimeType),
-                            "I am providing you with a conceptual Entity-Relationship diagram that is in either Chen or Crow's Foot notation. " +
-                            "Return that diagram translated into SQL code. " +
-                            "Look at the lines between relationships and tables, and build extra tables if those lines have the features of a many-to-many relationship in either notation. " +
-                            "Do not make assumptions about relationships or attributes based on names, solely consider the picture. " +
-                            "Remember that in Chen notation, a 1 cardinality means one, and a letter cardinality means many, so 1 to M is one-to-many. Relationships are represented as diamonds, connected to the the entities they are relating." +
-                            "Also remember that primary keys are signified by underlined text, and partial keys are signified by text underlined with a dashed line. " +
-                            "Pay close attention to whether the text is underlined or not because the space between the text and underline may be small. " +
-                            "Do not assume anything is a primary or partial key unless it is underlined. " +
-                            "Do not create foreign keys or addtional tables unless there is a relationship between entities" +
-                            "Print out the SQL code, then '----------' on a new line, then an explanation for the logic behind the code.",
+                            instruction,
                         ]),
                     });
 
@@ -210,17 +172,25 @@ const CodeExplanation = () => {
                     //console.log(text);
 
                     resStr = response.text ?? "No bot response available";
-                    const resParts = resStr.split('----------');
-                    setCode(resParts[0]);
-                    localStorage.setItem("aiCode", resParts[0]);
-                    setExplanation(resParts[1]);
-                    localStorage.setItem("explanation", resParts[1]);
-                    console.log(code);
-                    console.log(explanation);
                     setResponseString(resStr);
+                    const allParsedLines = splitRegExp(resStr);
+                    console.log(allParsedLines);
+                    setExplanation(resStr);
+                    localStorage.setItem("explanation", resStr);
                     localStorage.setItem("response", resStr);
+                    localStorage.setItem("allLines", JSON.stringify(allParsedLines));
+                    let finalCode = "";
+                    for (const lineLog of allParsedLines) {
+                        const line = lineLog.line
+                        const title = lineLog.title
+                        if (title == "STEP"){
+                            finalCode = line;
+                        }
+                    }
+                    console.log("Code:",finalCode);
+                    setCode(finalCode);
+                    localStorage.setItem("aiCode", finalCode);
                     setIsLoading(false);
-
 
                 } catch (err) {
                     console.error("Gemini error:", err);
@@ -231,6 +201,19 @@ const CodeExplanation = () => {
                 }
             }
         }
+    }
+
+    function dataURLtoFile(dataUrl: string, filename: string): File {
+        const arr = dataUrl.split(",");
+        const mimeMatch = arr[0].match(/:(.*?);/);
+        const mime = mimeMatch ? mimeMatch[1] : "application/octet-stream";
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        while (n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        return new File([u8arr], filename, { type: mime });
     }
 
     return (
@@ -272,11 +255,17 @@ const CodeExplanation = () => {
                     <div>
                         <Header />
 
-                        <header className="text-center text-4xl mt-8 font-bold">Code Generation</header>
+                        <header className="text-center text-4xl mt-8 font-bold">SQL Generation</header>
 
                         <div id="input-container" style={{border: "1vh light grey", borderRadius:"2vh", marginTop:"3vh", marginBottom:"3vh"}}>
                             <button className="cursor-pointer clear-btn bg-[#BD0A0A] hover:bg-[#700606] text-white" onClick={() => {
-                                const blob = new Blob([code], { type: 'text/plain' });
+                                let blob;
+                                if (localStorage.getItem("aiCode")) {
+                                    blob = new Blob([localStorage.getItem("aiCode")], { type: 'text/plain' });
+                                }
+                                else {
+                                    blob = new Blob([code], { type: 'text/plain' });
+                                }
                                 const url = URL.createObjectURL(blob);
                                 const link = document.createElement('a');
                                 link.href = url;
@@ -362,16 +351,23 @@ const CodeExplanation = () => {
                                                 Code Output ▼
                                             </h1>
                                             <div className={"inner-page-box"} style={{ height: '60vh', width: '100%', overflow: 'scroll' }}>
-                                                <h3 style={{fontSize:'20px', justifySelf:'left'}}>{code}</h3>
-                                                <h3 style={{fontSize:'20px', justifySelf:'left'}}>
+                                                    <pre
+                                                        style={{
+                                                            margin: 0,
+                                                            fontSize: '20px',
+                                                            whiteSpace: 'pre-wrap',
+                                                            wordBreak: 'break-word',
+                                                            overflowWrap: 'anywhere',
+                                                        }}
+                                                    >
                                                     {code ?
                                                         (code
                                                         ) : (
                                                             localStorage.getItem("aiCode")
                                                         )
                                                     }
-                                                </h3>
-                                                {!(code || localStorage.getItem("aiCode")) &&(isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Loading SQL, please wait...</h1>
+                                                    </pre>
+                                                {!code && (isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Loading SQL, please wait...</h1>
                                                         <PulseLoader color={"black"} loading={isLoading} size={10} margin={4} aria-label="Loading Spinner" data-testid="loader"/></div>)
                                                     : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your image to see code</h1>))}
                                             </div>
@@ -382,18 +378,33 @@ const CodeExplanation = () => {
                                             <h1 style={{cursor: 'not-allowed'}} onClick={() => toggleSection('explanation')}>
                                                 AI Explanation ▼
                                             </h1>
-                                            <div className={"inner-page-box"} style={{ height: '60vh', width: '100%', overflow: 'scroll' }}>
-                                                <h3 style={{fontSize:'20px', justifySelf:'left'}}>
-                                                    {explanation ? (
-                                                        explanation
+                                            <div className="inner-page-box" style={{ height:'60vh', overflow: 'auto'}}>
+                                                    {(localStorage.getItem("explanation") || explanation) ? (
+                                                        <h3 style={{ fontSize: '20px', justifySelf: 'left' }}>
+                                                        <LineTypeRenderer
+                                                            items={(localStorage.getItem("explanation") || explanation)}
+                                                        />
+                                                        </h3>
+                                                    ) : isLoading ? (
+                                                        <>
+                                                            <h1 style={{ fontSize: 'max(15px, 2vh)' }}>
+                                                                Generating explanation, please wait...
+                                                            </h1>
+                                                            <PulseLoader
+                                                                color="black"
+                                                                loading={isLoading}
+                                                                size={10}
+                                                                margin={4}
+                                                                aria-label="Loading Spinner"
+                                                                data-testid="loader"
+                                                            />
+                                                        </>
                                                     ) : (
-                                                        localStorage.getItem("explanation")
-                                                    )
-                                                    }
-                                                </h3>
-                                                {!(explanation || localStorage.getItem("explanation")) && (isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Generating explanation, please wait...</h1>
-                                                        <PulseLoader color={"black"} loading={isLoading} size={10} margin={4} aria-label="Loading Spinner" data-testid="loader"/></div>)
-                                                    : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your ERD to see an explanation</h1>))}
+                                                        <h1 style={{ fontSize: 'max(15px, 2vh)' }}>
+                                                            Upload your ERD to see an explanation
+                                                        </h1>
+                                                    )}
+
                                             </div>
                                         </div>
                                     )}
@@ -435,15 +446,23 @@ const CodeExplanation = () => {
                                                 Code Output ▼
                                             </h1>
                                             <div className={"inner-page-box"} style={{ height: '60vh', overflow: 'scroll' }}>
-                                                <h3 style={{fontSize:'20px', justifySelf:'left'}}>
-                                                    {code ?
-                                                        (code
-                                                        ) : (
-                                                            localStorage.getItem("aiCode")
-                                                        )
-                                                    }
-                                                </h3>
-                                                {!(code || localStorage.getItem("aiCode")) &&(isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Loading SQL, please wait...</h1>
+                                                <pre
+                                                    style={{
+                                                        margin: 0,
+                                                        fontSize: '20px',
+                                                        whiteSpace: 'pre-wrap',
+                                                        wordBreak: 'break-word',
+                                                        overflowWrap: 'anywhere',
+                                                    }}
+                                                >
+                                                {code ?
+                                                    (code
+                                                    ) : (
+                                                        localStorage.getItem("aiCode")
+                                                    )
+                                                }
+                                                </pre>
+                                                {!(code || localStorage.getItem("aiCode")) && (isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Loading SQL, please wait...</h1>
                                                         <PulseLoader color={"black"} loading={isLoading} size={10} margin={4} aria-label="Loading Spinner" data-testid="loader"/></div>)
                                                     : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your image to see code</h1>))}
                                             </div>
@@ -454,19 +473,34 @@ const CodeExplanation = () => {
                                             <h1 style={{cursor: 'pointer'}} onClick={() => toggleSection('explanation')}>
                                                 AI Explanation ▼
                                             </h1>
-                                            <div className={"inner-page-box"} style={{ height: '60vh', overflow: 'scroll' }}>
-                                                <h3 style={{fontSize:'20px', justifySelf:'left'}}>
-                                                    {explanation ? (
-                                                        explanation
+                                            <div className="inner-page-box" style={{ height:'60vh', overflow: 'auto'}}>
+                                                    {(localStorage.getItem("explanation") || explanation) ? (
+                                                        <h3 style={{ fontSize: '20px', justifySelf: 'left' }}>
+                                                            <LineTypeRenderer
+                                                                items={(localStorage.getItem("explanation") || explanation)}
+                                                            />
+                                                        </h3>
+                                                    ) : isLoading ? (
+                                                        <>
+                                                            <h1 style={{ fontSize: 'max(15px, 2vh)' }}>
+                                                                Generating explanation, please wait...
+                                                            </h1>
+                                                            <PulseLoader
+                                                                color="black"
+                                                                loading={isLoading}
+                                                                size={10}
+                                                                margin={4}
+                                                                aria-label="Loading Spinner"
+                                                                data-testid="loader"
+                                                            />
+                                                        </>
                                                     ) : (
-                                                        localStorage.getItem("explanation")
-                                                    )
-                                                    }
-                                                </h3>
-                                                {!(explanation || localStorage.getItem("explanation")) &&(isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Generating explanation, please wait...</h1>
-                                                        <PulseLoader color={"black"} loading={isLoading} size={10} margin={4} aria-label="Loading Spinner" data-testid="loader"/></div>)
-                                                    : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your ERD to see an explanation</h1>))}
+                                                        <h1 style={{ fontSize: 'max(15px, 2vh)' }}>
+                                                            Upload your ERD to see an explanation
+                                                        </h1>
+                                                    )}
                                             </div>
+
                                         </div>
                                     )}
                                 </>
@@ -508,15 +542,23 @@ const CodeExplanation = () => {
                                                 Code Output ▼
                                             </h1>
                                             <div className={"inner-page-box"} style={{ flex: 1, overflow: 'scroll' }}>
-                                                <h3 style={{fontSize:'20px', justifySelf:'left'}}>
-                                                    {code ?
-                                                        (code
-                                                        ) : (
-                                                            localStorage.getItem("aiCode")
-                                                        )
-                                                    }
-                                                </h3>
-                                                {!(code || localStorage.getItem("aiCode")) &&(isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Loading SQL, please wait...</h1>
+                                                <pre
+                                                    style={{
+                                                        margin: 0,
+                                                        fontSize: '20px',
+                                                        whiteSpace: 'pre-wrap',
+                                                        wordBreak: 'break-word',
+                                                        overflowWrap: 'anywhere',
+                                                    }}
+                                                >
+                                                {code ?
+                                                    (code
+                                                    ) : (
+                                                        localStorage.getItem("aiCode")
+                                                    )
+                                                }
+                                                </pre>
+                                                {!code && (isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Loading SQL, please wait...</h1>
                                                         <PulseLoader color={"black"} loading={isLoading} size={10} margin={4} aria-label="Loading Spinner" data-testid="loader"/></div>)
                                                     : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your image to see code</h1>))}
                                             </div>
@@ -526,19 +568,34 @@ const CodeExplanation = () => {
                                             <h1 style={{cursor: 'pointer'}} onClick={() => toggleSection('explanation')}>
                                                 AI Explanation ▼
                                             </h1>
-                                            <div className={"inner-page-box"} style={{ flex: 1, overflow: 'scroll' }}>
-                                                <h3 style={{fontSize:'20px', justifySelf:'left'}}>
-                                                    {explanation ? (
-                                                        explanation
+                                            <div className="inner-page-box" style={{ flex: 1, overflow: 'scroll' }}>
+                                                    {(localStorage.getItem("explanation") || explanation) ? (
+                                                        <h3 style={{ fontSize: '20px', justifySelf: 'left' }}>
+                                                            <LineTypeRenderer
+                                                                items={(localStorage.getItem("explanation") || explanation)}
+                                                            />
+                                                        </h3>
+                                                    ) : isLoading ? (
+                                                        <>
+                                                            <h1 style={{ fontSize: 'max(15px, 2vh)' }}>
+                                                                Generating explanation, please wait...
+                                                            </h1>
+                                                            <PulseLoader
+                                                                color="black"
+                                                                loading={isLoading}
+                                                                size={10}
+                                                                margin={4}
+                                                                aria-label="Loading Spinner"
+                                                                data-testid="loader"
+                                                            />
+                                                        </>
                                                     ) : (
-                                                        localStorage.getItem("explanation")
-                                                    )
-                                                    }
-                                                </h3>
-                                                {!(explanation || localStorage.getItem("explanation")) && (isLoading ? (<div><h1 style={{fontSize:'max(15px, 2vh)'}}>Generating explanation, please wait...</h1>
-                                                        <PulseLoader color={"black"} loading={isLoading} size={10} margin={4} aria-label="Loading Spinner" data-testid="loader"/></div>)
-                                                    : (<h1 style={{fontSize:'max(15px, 2vh)'}}>Upload your ERD to see an explanation</h1>))}
+                                                        <h1 style={{ fontSize: 'max(15px, 2vh)' }}>
+                                                            Upload your ERD to see an explanation
+                                                        </h1>
+                                                    )}
                                             </div>
+
                                         </div>
                                     </div>
                                 </>
