@@ -151,7 +151,7 @@ const View: React.FC = () => {
                 console.log(data);
                 setEntries(data);
             } catch (err) {
-                console.error("Failed to fetch uploads:", err);
+                console.error("Failed to fetch uploads 1:", err);
             }
         };
 

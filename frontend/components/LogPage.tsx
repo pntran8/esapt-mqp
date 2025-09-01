@@ -157,7 +157,7 @@ const LogPage: React.FC = () => {
                     });
                 }
             } catch (err) {
-                console.error("Failed to fetch uploads:", err);
+                console.error("Failed to fetch uploads 2:", err);
             }
         };
 
