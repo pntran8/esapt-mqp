@@ -145,6 +145,10 @@ const LogPage: React.FC = () => {
                     `/api/viewUpload/getLog?userID=${userID}&id=${id}&timeCreated=${encodeURIComponent(timeCreated)}`
                 );
 
+                console.log("after trying to fetch image");
+                console.log("Response status:", res.status);
+                console.log("Response headers:", res.headers);
+
                 const data = await res.json();
                 if (data.length > 0) {
                     const d = data[0];

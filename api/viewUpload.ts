@@ -4,7 +4,7 @@ import { PrismaClient } from "../.prisma/client";
 const prisma = new PrismaClient();
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    const userID = req.query.userID as string;
+    const { userID, id, timeCreated } = req.query;
 
     if (!userID) {
         res.status(400).send("didn't pass in a user id.");
@@ -12,7 +12,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     try {
-        const uploads = await prisma.accounts.findMany({ where: { userID } });
+        const uploads = await prisma.accounts.findMany({
+            where: {
+                userID,
+                id: id ? parseInt(id as string) : undefined,
+                timeCreated: timeCreated as string
+            }
+        });
 
         const processed = uploads.map((entry) => ({
             ...entry,
