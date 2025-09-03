@@ -253,6 +253,9 @@ const CodeEvaluation = () => {
                     schema2: userSchema
                 })
             });
+            console.log("after fetch");
+            console.log("res headers: ", res.headers);
+            console.log("res status: ", res.status);
 
             if (!res.ok) {
                 const err = await res.json();
@@ -375,6 +378,7 @@ const CodeEvaluation = () => {
             console.log("there", diffResult);
         } catch (e) {
             console.log("here???")
+            console.error(e);
             setError(e.message);
             setFormattedResult(e.message);
         } finally {
