@@ -75,7 +75,7 @@ const View: React.FC = () => {
                 );
             }
             // if line starts with CREATE TABLE
-            else if (line.trim().startsWith('CREATE TABLE')) {
+            else if (line.trim().startsWith('CREATE TABLE') || line.trim().startsWith('ALTER TABLE')) {
                 if (currentSection.length > 0) {
                     elements.push(
                         <div key={`section-before-code-${i}`} className="mb-4 whitespace-pre-wrap">
