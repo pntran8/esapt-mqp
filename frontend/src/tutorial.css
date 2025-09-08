@@ -10,7 +10,7 @@
 }
 
 .h1-tut {
-    font-size: 6vh;
+    font-size: 4vh;
     margin-top: 3vh;
     text-align: left;
 }
@@ -27,7 +27,4 @@
     margin-bottom: 2vh;
 }
 
-img {
-    border: solid 1px black;
-    justify-self: center;
-}
+

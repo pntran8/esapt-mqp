@@ -56,7 +56,7 @@ const Home = () => {
                         onClick={() => {
                             goToGem()
                         }}>
-                        <img src={download} alt="" style={{justifySelf: "center", width: '70%', border: "0px"}}/>
+                        <img src={download} alt="" style={{justifySelf: "center", width: '70%'}}/>
                     </button>
                     <h2 style={{fontSize: '2.5vh'}}>ERD to Code</h2>
                     <h3>Generate SQL Code from conceptual ERD</h3>
@@ -67,7 +67,7 @@ const Home = () => {
                         onClick={() => {
                             goToEval()
                         }}>
-                        <img src={upload} alt="" style={{justifySelf: "center", width: '70%', border: "0px"}}/>
+                        <img src={upload} alt="" style={{justifySelf: "center", width: '70%'}}/>
                     </button>
                     <h2 style={{fontSize: '2.5vh'}}>Grade your code</h2>
                     <h3>Let our AI tools compare your code to your goals!</h3>
