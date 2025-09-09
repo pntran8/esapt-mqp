@@ -131,16 +131,14 @@ const Normalization = () => {
             function comparePartitions (partitionsByLevel : Record<string, any[]>){
                 for (let levelNum = 1; levelNum < Object.keys(partitionsByLevel).length; levelNum++){ // level
                     const level = partitionsByLevel[levelNum];
+                    if (Object.keys(level).length === 0) continue;
                     console.log(`LEVEL ${levelNum}`, level);
                     // [a: Array(1), b: Array(1), c: Array(1), d: Array(1)]
 
                     for (let j = 0; j < Object.values(level).length; j++) {
-                        // console.log("equivalent ", Object.values(level)[j]);
                         const arr = Object.values(level)[j];
                         const partition1 = Object.values(arr[0]);
                         const key1 = Object.keys(level)[j];
-                        // console.log("j arr", partition1);
-                        // console.log("key?", Object.keys(level)[j]);
                         for (let k = 0; k < Object.values(partitionsByLevel[1]).length; k++) {
                             const arr2 = Object.values(partitionsByLevel[1])[k];
                             const partition2 = Object.values(arr2[0]);
@@ -180,9 +178,12 @@ const Normalization = () => {
                                         console.log("this is also a superkey i think idk im a little lost");
                                         for (let i = levelNum; i < Object.keys(partitionsByLevel).length; i++) {
                                             const currentLevel = partitionsByLevel[i];
+
+                                            if (Object.keys(currentLevel).length === 0) continue;
+
                                             console.log("Current level:", currentLevel);
 
-                                            // Make a copy of keys so deleting doesn’t mess up the loop
+                                            // copy of keys
                                             const keys = Object.keys(currentLevel);
                                             for (const key of keys) {
                                                 // console.log("Checking key:", key);
@@ -191,41 +192,9 @@ const Normalization = () => {
                                                 if (key.includes(key1) && currentLevel !== level) {
                                                     console.log(`Deleting key "${key}" from currentLevel`);
                                                     delete currentLevel[key];
-                                                    console.log("is it acc deleting??", partitionsByLevel);
                                                 }
                                             }
                                         }
-                                        // for (let i = levelNum; i < Object.keys(partitionsByLevel).length; i++) { // level
-                                        //     const currentLevel = partitionsByLevel[i];
-                                        //     console.log("fuck you ", currentLevel)
-                                        //     for (let j = 0; j < Object.values(currentLevel).length; j++) {
-                                        //         const key = Object.keys(currentLevel)[j];
-                                        //         console.log("key", key);
-                                        //         console.log("key1", key1);
-                                        //         console.log("incluedes?", key.includes(key1))
-                                        //         console.log("current", currentLevel);
-                                        //         console.log("level", level)
-                                        //         console.log("yeah this is ok", currentLevel[key]);
-                                        //         if (key.includes(key1) && currentLevel !== level){
-                                        //             console.log("is it filtering here");
-                                        //             // go thru all powersets in each partitions by level, if key1 is a substring of key, remove that powerset
-                                        //             delete currentLevel[key];
-                                        //             // delete partitionsByLevel.i[key];
-                                        //         }
-                                        //     }
-                                        //     // for (const key in currentLevel){
-                                        //     //     console.log("key", key);
-                                        //     //     console.log("key1", key1);
-                                        //     //     console.log("incluedes?", key.includes(key1))
-                                        //     //     console.log("current", currentLevel);
-                                        //     //     console.log("level", level)
-                                        //     //     if (key.includes(key1) && currentLevel !== level){
-                                        //     //         console.log("is it filtering here");
-                                        //     //         // go thru all powersets in each partitions by level, if key1 is a substring of key, remove that powerset
-                                        //     //         delete key;
-                                        //     //     }
-                                        //     // }
-                                        // }
 
                                     }
                                 }
@@ -239,20 +208,6 @@ const Normalization = () => {
                         }
 
                     }
-
-
-
-                    // no clue wtf this is for
-                    // for (const arr of Object.values(level)) { // just partition a or b or c or etc
-                    //     console.log("arr", arr);
-                    //     const partition1 = Object.values(arr[0]); // 2d array of all different outputs in a/b/..
-                    //     console.log(partition1);
-                    //     for (const arr2 of Object.values(partitionsByLevel[levelNum])) {
-                    //         const partition2 = Object.values(arr2[0]);
-                    //
-                    //         console.log(Object.keys(arr2)[0])
-                    //     }
-                    // }
                 }
             }
 
@@ -260,89 +215,93 @@ const Normalization = () => {
             console.log("ALL DA KEYS", fds);
 
 
-            /**
-             * Get candidate keys from TANE FD output
-             */
-            function getCandidateKeys(fds: FD[], allAttrs: string[]): string[][] {
-                // Step 1: Get all LHS sets that determine all attributes
-                let superKeys: string[][] = fds
-                    .map(fd => fd.lhs)
-                    .filter(lhs => {
-                        // compute closure of lhs
-                        const closureSet = closure(lhs, fds);
-                        return allAttrs.every(attr => closureSet.has(attr));
-                    });
 
-                // Step 2: Remove duplicates
-                superKeys = superKeys.filter((lhs, idx, arr) =>
-                    idx === arr.findIndex(other => other.join(',') === lhs.join(','))
-                );
+            // function that makes new array that removes candidate keys from all fds
+            // check lhs. add to lhs key. grab rhs, add it to array value
+            // check next lhs. has it already been added to lhs? if so, add rhs to same array value
+            // else, make new lhs key
 
-                // Step 3: Keep only minimal sets (no subset of another superkey)
-                const candidateKeys: string[][] = superKeys.filter(lhs =>
-                    !superKeys.some(other =>
-                        other.length < lhs.length && other.every(attr => lhs.includes(attr))
-                    )
-                );
+            // what does it need? just the fds and all attributes i guess idfk i FUCKING HATE THIS FUCKASS MAJOR IM SO DUMB BRO
+            // function killYourself(fds: FD[], allAttrs: string[]) {
+            //     const shootYourself : Record<string, string[]>;
+            //     for (const fd of fds) {
+            //         // if fd.lhs is in shootYourself
+            //             // add fd.rhs into the value of shootYourself
+            //         // else
+            //             // add new entry into shootYourself w/ lhs as the key and rhs as the value
+            //     }
+            //
+            //     // then we want an array called candidateKey
+            //     // then we check for all of shootYourself
+            //     // for possibleCandidateKey in shootYourself
+            //         // if possibleCandidateKey.rhs.length === allAttrs.length
+            //             // add possibleCandidateKey.rhs into candidateKey
+            //             // remove that entry of possibleCandidateKey
+            //
+            //     // then we want to have a record<string, string[]> called results
+            //     // first key would be Candidatekeys, and we would  add the array candidate key as the value
+            //     // second key would be other keys, value would be shootyourself
+            //
+            //     // return results
+            // }
 
-                return candidateKeys;
+
+            function groupFDsByLHS(fds: FD[]): Record<string, string[]> {
+                const lhsMap: Record<string, string[]> = {};
+
+                for (const fd of fds) {
+                    const key = fd.lhs.join(","); // stringify LHS as key
+                    if (!lhsMap[key]) {
+                        lhsMap[key] = [];
+                    }
+                    lhsMap[key].push(...fd.rhs);
+                }
+
+                return lhsMap;
             }
 
-            /**
-             * Closure function (you already have this)
-             */
-            function closure(attributes: string[], fds: FD[]): Set<string> {
-                const result = new Set(attributes);
-                let changed = true;
+            function identifyCandidateKeys(lhsMap: Record<string, string[]>, allAttrs: string[]) {
+                const candidateKeys: string[] = [];
+                const otherKeys: Record<string, string[]> = { ...lhsMap }; // clone lhsMap
 
-                while (changed) {
-                    changed = false;
-                    for (const fd of fds) {
-                        const lhsSet = new Set(fd.lhs);
-                        const rhsSet = new Set(fd.rhs);
+                for (const lhsStr of Object.keys(lhsMap)) {
+                    const lhsAttrs = lhsStr.split(",");
+                    const closure = Array.from(new Set([...lhsAttrs, ...lhsMap[lhsStr]])); // LHS + RHS
 
-                        // if lhs ⊆ result and rhs has something new
-                        if ([...lhsSet].every(attr => result.has(attr))) {
-                            for (const attr of rhsSet) {
-                                if (!result.has(attr)) {
-                                    result.add(attr);
-                                    changed = true;
-                                }
-                            }
-                        }
+                    if (closure.length === allAttrs.length) {
+                        candidateKeys.push(lhsStr);
+                        delete otherKeys[lhsStr];
                     }
                 }
 
-                return result;
+                return { candidateKeys, otherKeys };
             }
 
-
-
-            const candidateKeys = getCandidateKeys(fds, arrAttributeNames);
-            console.log("Candidate Keys:", candidateKeys);
-
-
-            // function that removes candidate keys from
+            const lhsMap = groupFDsByLHS(fds);
+            const results = identifyCandidateKeys(lhsMap, arrAttributeNames);
+            console.log("BANG!", results);
 
 
 
 
-            // const level1Partitions : Record<string, any[]> = {};
-            // for (let j = 0; j < arrAttributeNames.length; j++){
-            //     const room: Record<string, any[]> = {};
-            //     for (let i = 0; i < sanitizedData.length; i++) {
-            //         const key = sanitizedData[i][arrAttributeNames[j]];
-            //         if (room.hasOwnProperty(key)) { // this combination alr exists
-            //             room[key].push(i); // add to combination
-            //         }
-            //         else{
-            //             room[key] = [i]; // combination doesn't exist, just append to whole thing
-            //         }
-            //     }
-            //     level1Partitions[arrAttributeNames[j]] = [room];
-            // }
-            //
-            // console.log("level1Partitions ", level1Partitions);
+            function getShortestCandidateKeys(candidateKeys: string[]): string[] {
+                if (candidateKeys.length === 0) return [];
+
+                // First, find the minimum length
+                const lengths = candidateKeys.map(key => key.split(",").length);
+                const minLength = Math.min(...lengths);
+
+                // Then, keep only keys with that minimum length
+                return candidateKeys.filter(key => key.split(",").length === minLength);
+            }
+
+            console.log("shortest candidate keys", getShortestCandidateKeys(results.candidateKeys))
+            console.log("other fds", results.otherKeys);
+
+
+
+
+
         };
 
 
