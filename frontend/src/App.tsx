@@ -9,7 +9,7 @@ import {useEffect} from 'react';
 import LogPage from "../components/LogPage.tsx";
 import Home from "../routes/Home.tsx"
 import Tutorial from "../components/Tutorial.tsx";
-import ConvertXMLNotation from "@/components/NotationConverter.tsx";
+import ConvertXMLNotation from "../components/NotationConverter.tsx";
 
 const App = () => {
     const domain = import.meta.env.VITE_AUTH0_DOMAIN;
