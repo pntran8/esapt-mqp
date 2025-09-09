@@ -87,7 +87,8 @@ const Normalization = () => {
 
             console.log("array power set: ", arrAttributeNames);
 
-            const allPartitions : Record<string, any[]> = {};
+            const partitionsByLevel : Record <string, any[]> = {};
+            // const allPartitions : Record<string, any[]> = {};
             function partitionsAllLevels  (rows : any[], powerSet : any[]){
 
                 for (let i = 0; i < powerSet.length; i++) {// iterate through subsets (ie a,b, a, whatever)
@@ -105,13 +106,103 @@ const Normalization = () => {
                         }
 
                     }
-                    allPartitions[currentSubset.toString()] = [partition];
+
+                    if (!partitionsByLevel[powerSet[i].length]) {
+                        partitionsByLevel[powerSet[i].length] = []; // if it bugs out try {} instead of []
+                    }
+
+                    partitionsByLevel[powerSet[i].length][currentSubset.toString()] = [partition];
                 }
 
             }
 
             partitionsAllLevels(sanitizedData, powerSet);
-            console.log("allPartitions ", allPartitions);
+            // console.log("allPartitions ", allPartitions);
+            console.log("partitions by level, ", partitionsByLevel)
+            console.log("length, ", Object.keys(partitionsByLevel).length)
+
+            function comparePartitions (partitionsByLevel : Record<string, any[]>){
+                for (let i = 1; i < Object.keys(partitionsByLevel).length; i++){ // level
+                    const level = partitionsByLevel[i];
+                    console.log(`LEVEL ${i}`, level);
+                    // [a: Array(1), b: Array(1), c: Array(1), d: Array(1)]
+
+                    for (let j = 0; j < Object.values(level).length; j++) {
+                        // console.log("equivalent ", Object.values(level)[j]);
+                        const arr = Object.values(level)[j];
+                        const partition1 = Object.values(arr[0]);
+                        const key1 = Object.keys(level)[j];
+                        // console.log("j arr", partition1);
+                        // console.log("key?", Object.keys(level)[j]);
+                        for (let k = 0; k < Object.values(partitionsByLevel[1]).length; k++) {
+                            const arr2 = Object.values(partitionsByLevel[1])[k];
+                            const partition2 = Object.values(arr2[0]);
+                            const key2 = Object.keys(partitionsByLevel[1])[k];
+                            console.log(`Testing ${key1} -> ${key2}`);
+
+                            if (key1 === key2){
+                                // want it to ignore it, since its trivial
+                                console.log(`Trivial`);
+                            }
+                            else if (partition1.length !== partition2.length){
+                                // ignore it, since if length not the same they clearly not equal
+                                console.log(`NOPE! ${key1} ! -> ${key2}`);
+                            }
+                            else {
+                                // length is equal.
+                                const combinedArray = partition1.concat(partition2);
+                                const combinedSet: Set<unknown> = new Set(combinedArray);
+                                // const combinedNoDuplicates = Array.from(combinedSet);
+                                // now we need to check if combinedset is equal to left hand side (partition1)
+                                // for (let row = 0; row < combinedNoDuplicates.length; row++) { // each array in a partition
+                                //     if (combinedNoDuplicates[row].length !== partition1[row].length) {
+                                //         // return false
+                                //     }
+                                //     for (let col = 0; col < combinedNoDuplicates[row].length; col++) {
+                                //         if (combinedNoDuplicates[row][col] !== partition2[row][col]) {
+                                //             // return false
+                                //         }
+                                //     }
+                                // }
+                                function normalize(rows: any[][]): Set<string> {
+                                    return new Set(rows.map(r => JSON.stringify(r)));
+                                }
+
+                                const set1 = normalize(partition1);
+                                const set2 = normalize(partition2);
+
+                                // equal if they have the same size and every row from set1 is in set2
+                                const equal = set1.size === set2.size && [...set1].every(r => set2.has(r));
+
+                                if (equal) {
+                                    console.log("Partitions are equivalent!");
+                                }
+                                else{
+                                    console.log("Partitions are not equivalent!");
+                                }
+
+
+                            }
+
+                        }
+
+                    }
+
+
+                    for (const arr of Object.values(level)) { // just partition a or b or c or etc
+                        console.log("arr", arr);
+                        const partition1 = Object.values(arr[0]); // 2d array of all different outputs in a/b/..
+                        console.log(partition1);
+                        for (const arr2 of Object.values(partitionsByLevel[i])) {
+                            const partition2 = Object.values(arr2[0]);
+
+                            console.log(Object.keys(arr2)[0])
+                        }
+                    }
+                }
+            }
+
+            comparePartitions(partitionsByLevel);
 
 
 
