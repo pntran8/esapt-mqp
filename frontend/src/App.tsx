@@ -8,7 +8,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import {useEffect} from 'react';
 import LogPage from "../components/LogPage.tsx";
 import Home from "../routes/Home.tsx"
-import ConvertXMLNotation from "../components/NotationConverter.tsx";
+import Tutorial from "../components/Tutorial.tsx";
 
 const App = () => {
     const domain = import.meta.env.VITE_AUTH0_DOMAIN;
@@ -43,8 +43,8 @@ const App = () => {
                         path="/imggem"
                         element={ <CodeExplanation/> }
                     />
-                  <Route path="/evaluation" element={<CodeEvaluation />} />
-                    <Route path="/DANIEL" element={<ConvertXMLNotation/>}/>
+                    <Route path="/evaluation" element={<CodeEvaluation />} />
+                    <Route path="/tutorial" element={<Tutorial />} />
                 </Routes>
             </Router>
         </Auth0Provider>
