@@ -1,4 +1,4 @@
-import {SetStateAction, useEffect, useState} from "react";
+import {SetStateAction, useState} from "react";
 import Papa from "papaparse";
 import Header from "./Header";
 import Footer from "./Footer";
@@ -121,10 +121,17 @@ const Normalization = () => {
             console.log("partitions by level, ", partitionsByLevel)
             console.log("length, ", Object.keys(partitionsByLevel).length)
 
+            type FD = {
+                lhs: string[];
+                rhs: string[];
+            };
+
+            const fds: FD[] = [];
+
             function comparePartitions (partitionsByLevel : Record<string, any[]>){
-                for (let i = 1; i < Object.keys(partitionsByLevel).length; i++){ // level
-                    const level = partitionsByLevel[i];
-                    console.log(`LEVEL ${i}`, level);
+                for (let levelNum = 1; levelNum < Object.keys(partitionsByLevel).length; levelNum++){ // level
+                    const level = partitionsByLevel[levelNum];
+                    console.log(`LEVEL ${levelNum}`, level);
                     // [a: Array(1), b: Array(1), c: Array(1), d: Array(1)]
 
                     for (let j = 0; j < Object.values(level).length; j++) {
@@ -140,30 +147,18 @@ const Normalization = () => {
                             const key2 = Object.keys(partitionsByLevel[1])[k];
                             console.log(`Testing ${key1} -> ${key2}`);
 
-                            if (key1 === key2){
+                            // key2.includes(key1)
+                            if (key1.includes(key2)){
                                 // want it to ignore it, since its trivial
                                 console.log(`Trivial`);
                             }
-                            else if (partition1.length !== partition2.length){
-                                // ignore it, since if length not the same they clearly not equal
-                                console.log(`NOPE! ${key1} ! -> ${key2}`);
-                            }
+                            // else if (partition1.length !== partition2.length){
+                            //     // ignore it, since if length not the same they clearly not equal
+                            //     console.log(`NOPE! ${key1} ! -> ${key2}`);
+                            // }
                             else {
                                 // length is equal.
-                                const combinedArray = partition1.concat(partition2);
-                                const combinedSet: Set<unknown> = new Set(combinedArray);
-                                // const combinedNoDuplicates = Array.from(combinedSet);
-                                // now we need to check if combinedset is equal to left hand side (partition1)
-                                // for (let row = 0; row < combinedNoDuplicates.length; row++) { // each array in a partition
-                                //     if (combinedNoDuplicates[row].length !== partition1[row].length) {
-                                //         // return false
-                                //     }
-                                //     for (let col = 0; col < combinedNoDuplicates[row].length; col++) {
-                                //         if (combinedNoDuplicates[row][col] !== partition2[row][col]) {
-                                //             // return false
-                                //         }
-                                //     }
-                                // }
+                                // const combinedArray = partition1.concat(partition2);
                                 function normalize(rows: any[][]): Set<string> {
                                     return new Set(rows.map(r => JSON.stringify(r)));
                                 }
@@ -172,10 +167,67 @@ const Normalization = () => {
                                 const set2 = normalize(partition2);
 
                                 // equal if they have the same size and every row from set1 is in set2
-                                const equal = set1.size === set2.size && [...set1].every(r => set2.has(r));
+                                const equal = partition1.every(block1 =>
+                                    partition2.some(block2 =>
+                                        block1.every(idx => block2.includes(idx))
+                                    )
+                                );
 
                                 if (equal) {
                                     console.log("Partitions are equivalent!");
+                                    fds.push({ lhs: key1.split(","), rhs: key2.split(",") });
+                                    if (set1.size === sanitizedData.length) {
+                                        console.log("this is also a superkey i think idk im a little lost");
+                                        for (let i = levelNum; i < Object.keys(partitionsByLevel).length; i++) {
+                                            const currentLevel = partitionsByLevel[i];
+                                            console.log("Current level:", currentLevel);
+
+                                            // Make a copy of keys so deleting doesn’t mess up the loop
+                                            const keys = Object.keys(currentLevel);
+                                            for (const key of keys) {
+                                                // console.log("Checking key:", key);
+                                                // console.log("key1:", key1);
+
+                                                if (key.includes(key1) && currentLevel !== level) {
+                                                    console.log(`Deleting key "${key}" from currentLevel`);
+                                                    delete currentLevel[key];
+                                                    console.log("is it acc deleting??", partitionsByLevel);
+                                                }
+                                            }
+                                        }
+                                        // for (let i = levelNum; i < Object.keys(partitionsByLevel).length; i++) { // level
+                                        //     const currentLevel = partitionsByLevel[i];
+                                        //     console.log("fuck you ", currentLevel)
+                                        //     for (let j = 0; j < Object.values(currentLevel).length; j++) {
+                                        //         const key = Object.keys(currentLevel)[j];
+                                        //         console.log("key", key);
+                                        //         console.log("key1", key1);
+                                        //         console.log("incluedes?", key.includes(key1))
+                                        //         console.log("current", currentLevel);
+                                        //         console.log("level", level)
+                                        //         console.log("yeah this is ok", currentLevel[key]);
+                                        //         if (key.includes(key1) && currentLevel !== level){
+                                        //             console.log("is it filtering here");
+                                        //             // go thru all powersets in each partitions by level, if key1 is a substring of key, remove that powerset
+                                        //             delete currentLevel[key];
+                                        //             // delete partitionsByLevel.i[key];
+                                        //         }
+                                        //     }
+                                        //     // for (const key in currentLevel){
+                                        //     //     console.log("key", key);
+                                        //     //     console.log("key1", key1);
+                                        //     //     console.log("incluedes?", key.includes(key1))
+                                        //     //     console.log("current", currentLevel);
+                                        //     //     console.log("level", level)
+                                        //     //     if (key.includes(key1) && currentLevel !== level){
+                                        //     //         console.log("is it filtering here");
+                                        //     //         // go thru all powersets in each partitions by level, if key1 is a substring of key, remove that powerset
+                                        //     //         delete key;
+                                        //     //     }
+                                        //     // }
+                                        // }
+
+                                    }
                                 }
                                 else{
                                     console.log("Partitions are not equivalent!");
@@ -189,20 +241,88 @@ const Normalization = () => {
                     }
 
 
-                    for (const arr of Object.values(level)) { // just partition a or b or c or etc
-                        console.log("arr", arr);
-                        const partition1 = Object.values(arr[0]); // 2d array of all different outputs in a/b/..
-                        console.log(partition1);
-                        for (const arr2 of Object.values(partitionsByLevel[i])) {
-                            const partition2 = Object.values(arr2[0]);
 
-                            console.log(Object.keys(arr2)[0])
-                        }
-                    }
+                    // no clue wtf this is for
+                    // for (const arr of Object.values(level)) { // just partition a or b or c or etc
+                    //     console.log("arr", arr);
+                    //     const partition1 = Object.values(arr[0]); // 2d array of all different outputs in a/b/..
+                    //     console.log(partition1);
+                    //     for (const arr2 of Object.values(partitionsByLevel[levelNum])) {
+                    //         const partition2 = Object.values(arr2[0]);
+                    //
+                    //         console.log(Object.keys(arr2)[0])
+                    //     }
+                    // }
                 }
             }
 
             comparePartitions(partitionsByLevel);
+            console.log("ALL DA KEYS", fds);
+
+
+            /**
+             * Get candidate keys from TANE FD output
+             */
+            function getCandidateKeys(fds: FD[], allAttrs: string[]): string[][] {
+                // Step 1: Get all LHS sets that determine all attributes
+                let superKeys: string[][] = fds
+                    .map(fd => fd.lhs)
+                    .filter(lhs => {
+                        // compute closure of lhs
+                        const closureSet = closure(lhs, fds);
+                        return allAttrs.every(attr => closureSet.has(attr));
+                    });
+
+                // Step 2: Remove duplicates
+                superKeys = superKeys.filter((lhs, idx, arr) =>
+                    idx === arr.findIndex(other => other.join(',') === lhs.join(','))
+                );
+
+                // Step 3: Keep only minimal sets (no subset of another superkey)
+                const candidateKeys: string[][] = superKeys.filter(lhs =>
+                    !superKeys.some(other =>
+                        other.length < lhs.length && other.every(attr => lhs.includes(attr))
+                    )
+                );
+
+                return candidateKeys;
+            }
+
+            /**
+             * Closure function (you already have this)
+             */
+            function closure(attributes: string[], fds: FD[]): Set<string> {
+                const result = new Set(attributes);
+                let changed = true;
+
+                while (changed) {
+                    changed = false;
+                    for (const fd of fds) {
+                        const lhsSet = new Set(fd.lhs);
+                        const rhsSet = new Set(fd.rhs);
+
+                        // if lhs ⊆ result and rhs has something new
+                        if ([...lhsSet].every(attr => result.has(attr))) {
+                            for (const attr of rhsSet) {
+                                if (!result.has(attr)) {
+                                    result.add(attr);
+                                    changed = true;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return result;
+            }
+
+
+
+            const candidateKeys = getCandidateKeys(fds, arrAttributeNames);
+            console.log("Candidate Keys:", candidateKeys);
+
+
+            // function that removes candidate keys from
 
 
 
@@ -248,6 +368,10 @@ const Normalization = () => {
                     className="chat-input border rounded p-2"
                     style={{ fontSize: "2vh" }}
                 />
+            </div>
+
+            <div>
+                deez nuts rofl XD
             </div>
 
             {/* show parsed CSV */}
