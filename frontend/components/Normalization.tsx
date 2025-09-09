@@ -216,35 +216,6 @@ const Normalization = () => {
 
 
 
-            // function that makes new array that removes candidate keys from all fds
-            // check lhs. add to lhs key. grab rhs, add it to array value
-            // check next lhs. has it already been added to lhs? if so, add rhs to same array value
-            // else, make new lhs key
-
-            // what does it need? just the fds and all attributes i guess idfk i FUCKING HATE THIS FUCKASS MAJOR IM SO DUMB BRO
-            // function killYourself(fds: FD[], allAttrs: string[]) {
-            //     const shootYourself : Record<string, string[]>;
-            //     for (const fd of fds) {
-            //         // if fd.lhs is in shootYourself
-            //             // add fd.rhs into the value of shootYourself
-            //         // else
-            //             // add new entry into shootYourself w/ lhs as the key and rhs as the value
-            //     }
-            //
-            //     // then we want an array called candidateKey
-            //     // then we check for all of shootYourself
-            //     // for possibleCandidateKey in shootYourself
-            //         // if possibleCandidateKey.rhs.length === allAttrs.length
-            //             // add possibleCandidateKey.rhs into candidateKey
-            //             // remove that entry of possibleCandidateKey
-            //
-            //     // then we want to have a record<string, string[]> called results
-            //     // first key would be Candidatekeys, and we would  add the array candidate key as the value
-            //     // second key would be other keys, value would be shootyourself
-            //
-            //     // return results
-            // }
-
 
             function groupFDsByLHS(fds: FD[]): Record<string, string[]> {
                 const lhsMap: Record<string, string[]> = {};
@@ -287,11 +258,9 @@ const Normalization = () => {
             function getShortestCandidateKeys(candidateKeys: string[]): string[] {
                 if (candidateKeys.length === 0) return [];
 
-                // First, find the minimum length
                 const lengths = candidateKeys.map(key => key.split(",").length);
                 const minLength = Math.min(...lengths);
 
-                // Then, keep only keys with that minimum length
                 return candidateKeys.filter(key => key.split(",").length === minLength);
             }
 
