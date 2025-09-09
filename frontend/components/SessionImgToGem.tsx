@@ -22,10 +22,16 @@ interface Message {
     message: string;
 }
 
+export interface LineType {
+    line: string;
+    title: string;
+}
+
 interface Props {
     code: string;
     setCode: (code: string) => void;
-    setExplanation: (exp: string) => void;
+    explanation: LineType[];
+    setExplanation: React.Dispatch<React.SetStateAction<LineType[]>>;
     imageUrl: string | null;
     setImageUrl: (url: string) => void;
 }
@@ -172,7 +178,7 @@ const SessionImgToGem:React.FC<Props> = ({ imageUrl, setImageUrl, code, setCode,
             resStr = response.text ?? "No bot response available";
             const resParts = resStr.split('----------');
             setCode(resParts[0]);
-            setExplanation(resParts[1]);
+            setExplanation([]);
             //console.log(code);
             //console.log(explanation);
             setResponseString(resStr);
