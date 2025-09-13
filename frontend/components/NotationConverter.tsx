@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import Header from "./Header";
 import Footer from "./Footer";
 import "./gem.css";
+import NotConvEx from "../src/images/notation_conversion_ex.png"
+
 
 interface Shape {
     type: "Entity" | "Attribute" | "Relationship" | "Edge" | "Unknown";
@@ -326,7 +328,7 @@ const ConvertXMLNotation: React.FC = () => {
                 <div style={{display: 'inline-block'}} className="mr-5">
                     <select
                         aria-label="Choose your notation"
-                        className="border-1 border-[#ddd] p-3 rounded-md"
+                        className="border-1 border-[#ddd] p-3 rounded-md cursor-pointer"
                         style={{ width: "auto", fontSize: "small" }}
                         value={selectedNot}
                         onChange={(e) => setSelectedNot(e.target.value)}
@@ -334,11 +336,13 @@ const ConvertXMLNotation: React.FC = () => {
                         <option value="" disabled>
                             Your ERD notation
                         </option>
-                        <option value="infix">Chen</option>
-                        <option value="prefix">Crow's Foot</option>
-                        <option value="postfix">UML</option>
+                        <option value="chen">Chen</option>
+                        <option value="crow">Crow's Foot</option>
+                        <option value="uml">UML</option>
                     </select>
-                    <p className="text-[10px] text-gray-600 font-bold">Select your ERD notation</p>
+                    <p className="text-[10px] text-gray-600 font-bold h-4">
+                        Select your ERD notation
+                    </p>
                 </div>
 
                 <div style={{display: 'inline-block'}}>
@@ -356,6 +360,9 @@ const ConvertXMLNotation: React.FC = () => {
                             Select your current notation first.
                         </p>
                     )}
+                    {selectedNot && (
+                        <p className="text-[10px] text-white font-bold">,</p>
+                    )}
                 </div>
 
                 <div style={{display: 'inline-block'}}>
@@ -369,61 +376,38 @@ const ConvertXMLNotation: React.FC = () => {
                 </div>
             </div>
 
-            <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-md p-6 mb-8">
-                <h3 className="text-xl font-semibold mb-4">Notation Conversion Examples</h3>
-                <div className="overflow-x-auto">
-                    <table className="w-full border-collapse border border-gray-300">
-                        <thead>
-                        <tr className="bg-gray-50">
-                            <th className="border border-gray-300 px-4 py-2 text-left">Cardinality</th>
-                            <th className="border border-gray-300 px-4 py-2 text-left">Chen</th>
-                            <th className="border border-gray-300 px-4 py-2 text-left">Crow's Foot</th>
-                            <th className="border border-gray-300 px-4 py-2 text-left">UML</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {examples.map((ex) => (
-                            <tr key={ex.label} className="hover:bg-gray-50">
-                                <td className="border border-gray-300 px-4 py-2 font-medium">{ex.label}</td>
-                                <td className="border border-gray-300 px-4 py-2">
-                                    <code className="text-xs bg-gray-100 px-2 py-1 rounded">{ex.chen}</code>
-                                </td>
-                                <td className="border border-gray-300 px-4 py-2">
-                                    <code className="text-xs bg-gray-100 px-2 py-1 rounded">{ex.crow}</code>
-                                </td>
-                                <td className="border border-gray-300 px-4 py-2">
-                                    <code className="text-xs bg-gray-100 px-2 py-1 rounded">{ex.uml}</code>
-                                </td>
-                            </tr>
-                        ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            {/* download btns */}
-            {convertedDocs.size > 0 && (
-                <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6">
-                    <h3 className="text-xl font-semibold mb-4">Download Converted Files</h3>
-                    <div className="space-x-4">
-                        {Array.from(convertedDocs.entries()).map(([notation, doc]) => (
-                            <button
-                                key={notation}
-                                onClick={() => downloadXml(doc, `${fileName}-${notation.toLowerCase().replace("'", "").replace(" ", "-")}.drawio`)}
-                                className={`px-6 py-3 rounded-md text-white font-medium transition-colors ${
-                                    notation === "Chen"
-                                        ? "bg-[#da627d] hover:bg-[#a53860]"
-                                        : notation === "Crow's Foot"
-                                            ? "bg-[#ad2831] hover:bg-[#800e13]"
-                                            : "bg-[#f27059] hover:bg-[#f25c54]"
-                                }`}
-                            >
-                                Download {notation}
-                            </button>
-                        ))}
+            <div className="flex items-start max-w-6xl mx-auto">
+                <div className="max-w-xl mx-auto bg-white rounded-lg shadow-lg p-5 mb-4 mt-4">
+                    <h3 className="text-xl font-semibold mb-4">Notation Conversion Examples</h3>
+                    <div className="flex justify-center">
+                        <img src={NotConvEx} />
                     </div>
                 </div>
-            )}
+
+                {/* download btns */}
+                {convertedDocs.size > 0 && (
+                    <div className="max-w-xl mx-auto bg-white rounded-lg shadow-md p-5 mb-8 mt-5 w-[30vw]">
+                        <h3 className="text-xl font-semibold mb-4">Download Converted Files</h3>
+                        <div className="flex flex-col space-y-4">
+                            {Array.from(convertedDocs.entries()).map(([notation, doc]) => (
+                                <button
+                                    key={notation}
+                                    onClick={() => downloadXml(doc, `${fileName}-${notation.toLowerCase().replace("'", "").replace(" ", "-")}.drawio`)}
+                                    className={`cursor-pointer px-6 py-3 m-1 rounded-md text-white font-medium transition-colors ${
+                                        notation === "Chen"
+                                            ? "bg-[#da627d] hover:bg-[#a53860]"
+                                            : notation === "Crow's Foot"
+                                                ? "bg-[#ad2831] hover:bg-[#800e13]"
+                                                : "bg-[#f27059] hover:bg-[#f25c54]"
+                                    }`}
+                                >
+                                    Download {notation}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </div>
 
             <Footer />
         </>
