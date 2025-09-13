@@ -1,5 +1,4 @@
 import { useState, ChangeEvent } from "react";
-import ReactMarkdown from "react-markdown";
 import Header from "./Header";
 import Footer from "./Footer";
 import "./gem.css";
@@ -10,7 +9,6 @@ import {
 } from "@google/genai";
 import Save from "./Save.tsx";
 import "../src/App.css"
-import {useNavigate} from "react-router-dom";
 import {useAuth0} from "@auth0/auth0-react";
 import { PulseLoader } from "react-spinners";
 import {splitRegExp} from "../src/common/types.ts"
