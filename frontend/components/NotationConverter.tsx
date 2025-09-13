@@ -8,7 +8,7 @@ interface Shape {
     label?: string;
 }
 
-// Define the possible shape of a style entry
+// def the possible shape of a style entry
 interface StyleEntry {
     end_style?: string;
     start_style?: string;
@@ -184,7 +184,7 @@ const ConvertXMLNotation: React.FC = () => {
     const detectCardinalityFromStyle = (style: string, value: string): string => {
         const trimmedValue = value.trim();
 
-        // First check the value attribute
+        // check the value attribute
         if (trimmedValue) {
             if (trimmedValue === "1" || trimmedValue.toLowerCase() === "one") return "1";
             if (trimmedValue === "*" || trimmedValue === "0..*") return "*";
@@ -193,7 +193,7 @@ const ConvertXMLNotation: React.FC = () => {
             if (/^\d+\.\.\d+$/.test(trimmedValue) && trimmedValue !== "0..*" && trimmedValue !== "0..1") return "1..*";
         }
 
-        // Then check the style for arrow types
+        // check the style for arrow types
         if (style.includes("endArrow=open") || style.includes("startArrow=open")) return "1";
         if (style.includes("endArrow=block") || style.includes("startArrow=block") ||
             style.includes("endArrow=blockThin") || style.includes("startArrow=blockThin")) return "0..1";
@@ -202,7 +202,7 @@ const ConvertXMLNotation: React.FC = () => {
         if (style.includes("endArrow=ERoneToMany") || style.includes("startArrow=ERoneToMany")) return "*";
         if (style.includes("endArrow=ERmany") || style.includes("startArrow=ERmany")) return "1..*";
         if (style.includes("endArrow=none") && style.includes("endFill=0")) {
-            // Could be Chen * or 1..*, or UML - need to check value
+            // can be Chen * or 1..*, or UML - need to check value
             return trimmedValue || "*";
         }
 
@@ -218,7 +218,7 @@ const ConvertXMLNotation: React.FC = () => {
                 const style = cell.getAttribute("style") || "";
                 const rawValue = cell.getAttribute("value") || "";
 
-                // Detect cardinality from both style and value
+                // get cardinality from both style and value
                 const cardinality = detectCardinalityFromStyle(style, rawValue);
 
                 if (cardinality && styleMap.has(cardinality)) {
@@ -228,7 +228,7 @@ const ConvertXMLNotation: React.FC = () => {
 
                     let newStyle = style;
 
-                    // Apply styles based on connection direction
+                    // use styles based on connection direction
                     const sourceShape = shapeMap.get(source);
                     const targetShape = shapeMap.get(target);
 
@@ -237,11 +237,11 @@ const ConvertXMLNotation: React.FC = () => {
                     } else if (targetShape?.type === "Entity" && sourceShape?.type === "Relationship" && styleEntry.end_style) {
                         newStyle = setArrows(newStyle, styleEntry.end_style);
                     } else if (styleEntry.end_style) {
-                        // Default to end_style if direction is unclear
+                        // default end_style if direction is unclear
                         newStyle = setArrows(newStyle, styleEntry.end_style);
                     }
 
-                    // Handle value changes
+                    // value changes
                     if (styleEntry.remove_value) {
                         cell.removeAttribute("value");
                     } else if (styleEntry.value) {
@@ -323,16 +323,16 @@ const ConvertXMLNotation: React.FC = () => {
             <header className="text-center text-4xl mt-8 font-bold">Notation Converter</header>
 
             <div id="input-container" style={{border: "1vh light grey", borderRadius:"2vh", marginTop:"3vh"}}>
-                <div className="relative">
+                <div style={{display: 'inline-block'}} className="mr-5">
                     <select
                         aria-label="Choose your notation"
-                        className="chat-input"
+                        className="border-1 border-[#ddd] p-3 rounded-md"
                         style={{ width: "auto", fontSize: "small" }}
                         value={selectedNot}
                         onChange={(e) => setSelectedNot(e.target.value)}
                     >
                         <option value="" disabled>
-                            ERD notation
+                            Your ERD notation
                         </option>
                         <option value="infix">Chen</option>
                         <option value="prefix">Crow's Foot</option>
@@ -341,7 +341,7 @@ const ConvertXMLNotation: React.FC = () => {
                     <p className="text-[10px] text-gray-600 font-bold">Select your ERD notation</p>
                 </div>
 
-                <div>
+                <div style={{display: 'inline-block'}}>
                     <input
                         type="file"
                         accept=".xml,.drawio"
@@ -349,21 +349,24 @@ const ConvertXMLNotation: React.FC = () => {
                         className="chat-input"
                         disabled={!selectedNot}
                         multiple
-                        style={{fontSize:'2vh'}}
+                        style={{fontSize:'2vh', width: '100vh', marginRight: '2vh'}}
                     />
                     {!selectedNot && (
-                        <p className="text-sm text-gray-500 mt-1">
+                        <p className="text-[10px] text-gray-600 font-bold">
                             Select your current notation first.
                         </p>
                     )}
                 </div>
 
-                <button className="cursor-pointer clear-btn bg-[#BD0A0A] hover:bg-[#700606] text-white m-2" onClick={() => {
-                    handleClear();
-                    window.location.reload();
-                }}>
-                    Clear
-                </button>
+                <div style={{display: 'inline-block'}}>
+                    <button className="cursor-pointer clear-btn bg-[#BD0A0A] hover:bg-[#700606] text-white" onClick={() => {
+                        handleClear();
+                        window.location.reload();
+                    }}>
+                        Clear
+                    </button>
+                    <p className="text-[10px] text-white font-bold">,</p>
+                </div>
             </div>
 
             <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-md p-6 mb-8">
