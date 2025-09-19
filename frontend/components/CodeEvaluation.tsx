@@ -433,7 +433,7 @@ const CodeEvaluation = () => {
             </div>
 
             <div style={{ height: '75vh', display: 'flex', justifyContent: 'space-around', alignItems: 'flex-start', marginTop:"-2vh"}}>
-                <div className="inner-page-box" style={{ width: '28vw', height: '70vh', overflow: 'scroll', marginRight:"-16vh" }}>
+                <div className="inner-page-box" style={{ width: '28vw', height: '70vh', overflow: 'scroll', marginRight:"-16vh", textAlign: 'left' }}>
                     {localStorage.getItem("aiCode") !== null && code.length === 0 ? (
                         <div>
                             <pre
@@ -467,6 +467,7 @@ const CodeEvaluation = () => {
                                     whiteSpace: 'pre-wrap',
                                     wordBreak: 'break-word',
                                     overflowWrap: 'anywhere',
+                                    textAlign: 'left'
                                 }}
                             >
                                 {code ?
@@ -485,7 +486,7 @@ const CodeEvaluation = () => {
                         value={userSchema}
                         onChange={handleUserSchema}
                         placeholder="Enter your schema"
-                        style={{ width: '100%', height: '100%', boxSizing: 'border-box', border: 0, outline: 0 }}
+                        style={{ width: '100%', height: '100%', boxSizing: 'border-box', border: 0, outline: 0, fontFamily: 'monospace', fontSize: '15px' }}
                     ></textarea>
                 </div>
 
