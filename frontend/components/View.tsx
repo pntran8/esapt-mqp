@@ -215,7 +215,7 @@ const View: React.FC = () => {
                                     }}
                                     className="bg-[#981026] text-white p-2 hover:bg-[#c31431] rounded-2xl cursor-pointer"
                                 >
-                                    Copy to Clipboard
+                                    Copy Link to Clipboard
                                 </button>
                                 <button
                                     onClick={async () => {
