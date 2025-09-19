@@ -338,7 +338,7 @@ const CodeExplanation = () => {
                                             <h1 style={{cursor: 'not-allowed'}} onClick={() => toggleSection('code')}>
                                                 Code Output ▼
                                             </h1>
-                                            <div className={"inner-page-box"} style={{ height: '60vh', width: '100%', overflow: 'scroll' }}>
+                                            <div className={"inner-page-box"} style={{ height: '60vh', width: '100%', overflow: 'scroll', textAlign: 'left' }}>
                                                     <pre
                                                         style={{
                                                             margin: 0,
@@ -429,7 +429,7 @@ const CodeExplanation = () => {
                                         </div>
                                     )}
                                     {expandedSections.code && (
-                                        <div style={{ width: '45vw', display: 'flex', flexDirection: 'column' }}>
+                                        <div style={{ width: '45vw', display: 'flex', flexDirection: 'column', textAlign: 'left'  }}>
                                             <h1 style={{cursor: 'pointer'}} onClick={() => toggleSection('code')}>
                                                 Code Output ▼
                                             </h1>
@@ -524,7 +524,7 @@ const CodeExplanation = () => {
                                     </div>
 
                                     {/* code and explanation stacked */}
-                                    <div style={{width: '45vw', display: 'flex', flexDirection: 'column', gap: '2vh', height: '66vh'}}>
+                                    <div style={{width: '45vw', display: 'flex', flexDirection: 'column', gap: '2vh', height: '66vh', textAlign: 'left' }}>
                                         <div style={{ height: '33vh', display: 'flex', flexDirection: 'column', marginBottom: '3vh'}}>
                                             <h1 style={{cursor: 'pointer'}} onClick={() => toggleSection('code')}>
                                                 Code Output ▼
