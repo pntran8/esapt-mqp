@@ -9,6 +9,8 @@ import {useEffect} from 'react';
 import LogPage from "../components/LogPage.tsx";
 import Home from "../routes/Home.tsx"
 import Normalization from "../components/Normalization";
+import Tutorial from "../components/Tutorial.tsx";
+import ConvertXMLNotation from "../components/NotationConverter.tsx";
 
 const App = () => {
     const domain = import.meta.env.VITE_AUTH0_DOMAIN;
@@ -45,6 +47,9 @@ const App = () => {
                     />
                     <Route path="/normalization" element={<Normalization />} />
                   <Route path="/evaluation" element={<CodeEvaluation />} />
+                    <Route path="/evaluation" element={<CodeEvaluation />} />
+                    <Route path="/tutorial" element={<Tutorial />} />
+                    <Route path="ConvertNotation" element={<ConvertXMLNotation/>}/>.
                 </Routes>
             </Router>
         </Auth0Provider>
