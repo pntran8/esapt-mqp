@@ -1,4 +1,4 @@
-import {SetStateAction, useState} from "react";
+import React, {SetStateAction, useState} from "react";
 import Papa from "papaparse";
 import Header from "./Header";
 import Footer from "./Footer";
@@ -6,6 +6,12 @@ import Footer from "./Footer";
 const Normalization = () => {
     const [data, setData] = useState<any[]>([]);
     const [pk, setPK] = useState<string>("");
+    const [popUp, setPopUp] = useState<boolean>(false);
+    const [isBlurred, setIsBlurred] = useState(false);
+
+    const toggleBlur = () => {
+        setIsBlurred(!isBlurred);
+    };
     const [transitiveDependencies, setTransitiveDependencies] = useState<string[]>([]);
     // const [powerSet, setPowerSet] = useState<any[]>([]);
     let attributeNames = new Set<string>();
@@ -470,6 +476,7 @@ const Normalization = () => {
 
     return (
         <>
+
             <Header />
             <header className="text-center text-4xl mt-8 font-bold">
                 Normalization
@@ -525,12 +532,58 @@ const Normalization = () => {
             </div>
 
 
-
+            <div className={"bg-opacity-30"}></div>
             {/*<div style={{ height: '75vh', display: 'flex', justifyContent: 'space-around', alignItems: 'flex-start', marginTop:"-2vh"}}>*/}
             {/*</div>*/}
             {/*<div className={"p-20"}>*/}
             {/*    HELLO*/}
             {/*</div>*/}
+            {popUp ? (
+                <div
+                    className="fixed inset-0 bg-gray-400/50 flex justify-center items-center z-50 p-4">
+
+                    <div className={"h-1/2 w-3/5 bg-[#F0F0F0] rounded-lg border-3 border-[#B3B3B3]"}>
+                        <div className={"flex justify-end"}>
+                            <button
+                                onClick={() => setPopUp(false)}
+                                className="cursor-pointer text-lg text-gray-600 hover:text-gray-900 p-4 font-bold"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <div className={"flex justify-start"}>
+                            <h2 className={"ml-6 font-bold text-3xl text-[#353535]"}>Edit Dataset </h2>
+
+                        </div>
+                        <div className="flex justify-start font-bold text-[#353535] ml-6 mt-2 text-lg">
+                            Candidate Key(s) Found:
+                        </div>
+                        <div className="flex justify-start">
+                            <div>
+                                <ul className="ml-8 mt-2 space-y-2">
+                                    {transitiveDependencies.map((item, index) => (
+                                        <li key={index} className="flex items-center">
+                                            <input type="checkbox" className="w-4 h-4" />
+                                            <span className="ml-2">{item}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div className={"flex justify-start flex-row ml-6"}>
+                            <div className={"font-bold text-[#353535] text-lg"}>
+                                Transitive Dependencies Found:
+                            </div>
+
+
+                        </div>
+
+                    </div>
+                </div>
+            ) : (<div></div>)}
+
 
             {/* show parsed CSV as a table */}
             <div className="mx-20 overflow-x-auto">
@@ -570,7 +623,8 @@ const Normalization = () => {
                         </div>
 
                         <div className={"flex justify-end font-bold"}>
-                            <button className={"text-[#BD0A0A] hover:underline w-1/3"}>
+                            <button className={"text-[#BD0A0A] hover:underline w-1/3"}
+                                    onClick={() => setPopUp(true)}>
                                 Data not normalized correctly?
                             </button>
                         </div>
