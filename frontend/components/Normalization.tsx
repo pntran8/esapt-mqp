@@ -5,6 +5,8 @@ import Footer from "./Footer";
 
 const Normalization = () => {
     const [data, setData] = useState<any[]>([]);
+    const [pk, setPK] = useState<string>("");
+    const [transitiveDependencies, setTransitiveDependencies] = useState<string[]>([]);
     // const [powerSet, setPowerSet] = useState<any[]>([]);
     let attributeNames = new Set<string>();
     
@@ -298,7 +300,104 @@ const Normalization = () => {
         return fds;
     }
 
+    // for each side
+    // iterate through left side
+    // take count of how many times it went thru
+    // if it went thru size of attr - num of things on right string
+    // save as candidate key
+    // then after that's found, we find minimal key- counting number of attributes on each of the stuff just collected
+    // have an empty array
+    // current smallest = 100
+    // check array against current largest
+    // save to array only ones that are smaller OR equivalent
 
+    function rewriteFDs(fds: [string, string][]) {
+        const fds_rewritten = new Map<string, string[]>;
+        for (const fd of fds) {
+
+            const lhs = fd[0];
+            const rhs = fd[1];
+            if (fds_rewritten.has(lhs)) {
+
+                const rhsArr = fds_rewritten.get(lhs);
+                console.log("fd", fd)
+                console.log("rhsArr", rhsArr)
+                if (rhsArr) {
+                    rhsArr.push(rhs);
+                    fds_rewritten.set(lhs, rhsArr);
+                }
+
+            } else {
+                fds_rewritten.set(lhs, [rhs]);
+            }
+
+        }
+        return fds_rewritten;
+    }
+
+    function getCandidateKeys(fds_rewritten: Map<any, any>, numAttr: number) {
+        const candidateKeys = new Set<string>;
+        for (const key of fds_rewritten.keys()) {
+            // now key is the lhs. we need to split it and see how many attr are in lhs.
+            // then, we subtract totalAttrs - lhs. if that number is equal to the amount in rhs, then its a candidate key
+
+            const lhsAttrs = key.split(",").filter(x => x.length > 0);
+            const AttrLeft = numAttr - lhsAttrs.length;
+            const rhsLen = fds_rewritten.get(key)!.length;
+            if (AttrLeft == rhsLen) {
+                candidateKeys.add(key);
+            }
+        }
+        return candidateKeys;
+    }
+
+    function getMinimalKeys(candidateKeys: Set<any>) {
+        const minimalKeys = new Set<string>;
+        let currentMinimum = 1000;
+        for (const key of candidateKeys) {
+            const keyLength = key.split(",").filter(x => x.length > 0).length;
+            if (keyLength == currentMinimum) {
+                minimalKeys.add(key);
+            } else if (keyLength < currentMinimum) {
+                minimalKeys.clear();
+                currentMinimum = keyLength;
+                minimalKeys.add(key);
+            }
+        }
+        return minimalKeys;
+    }
+
+
+    // to get transitive dependencies
+    // we have fds rewritten
+    // remove the candidate keys from fds
+    // transtivie dependency becomes pk -> lhs -> rhs
+
+    function getTransitiveDependencies(fdsRewritten: Map<string, string[]>, candidateKeys: Set<string>, primaryKey:string) {
+        // remove candidate keys from fds
+        for (const candidateKey of candidateKeys) {
+            console.log("candidatekey here", candidateKey)
+            if (fdsRewritten.has(candidateKey)) {
+                console.log("HERE!?")
+                console.log("before", fdsRewritten)
+                fdsRewritten.delete(candidateKey);
+                console.log("after", fdsRewritten)
+            }
+        }
+
+        // const transitiveDependencies: [string, string, string][] = [];
+        //
+        // for (const fd of fdsRewritten) {
+        //     transitiveDependencies.push([primaryKey, fd[0], fd[1].join()]);
+        // }
+
+        const transDepen : string[] = [];
+        for (const fd of fdsRewritten){
+            transDepen.push(primaryKey + " → " + fd[0] + " → " + fd[1].join(", "))
+        }
+
+        return transDepen;
+    }
 
 
 
@@ -338,9 +437,28 @@ const Normalization = () => {
             console.log("Partitions by level:", partitionsByLevel);
             console.log("RHS+ map:", rhsPlusMap);
             console.log("Discovered FDs:", fds);
+            const fds_rewritten = rewriteFDs(fds);
+
+            console.log("FDs Rewritten:", fds_rewritten);
+
+            const candidateKeys = getCandidateKeys(fds_rewritten, attributeNames.size);
+            console.log("Candidate Keys:", candidateKeys);
+
+            // now i want minimal keys.
+            const minimalKeys = getMinimalKeys(candidateKeys);
+
+            console.log("Minimal Keys", minimalKeys);
+
+            const primaryKey = Array.from(minimalKeys)[0];
+
+            setPK(Array.from(minimalKeys)[0]);
+
+            const transitiveDependencies = getTransitiveDependencies(fds_rewritten, candidateKeys, primaryKey);
+
+            console.log("Transitive Dependencies:", transitiveDependencies)
 
 
-
+            setTransitiveDependencies(transitiveDependencies);
         };
 
 
@@ -367,59 +485,106 @@ const Normalization = () => {
                     style={{ fontSize: "2vh" }}
                 />
             </div>
-
-            {/*<div>*/}
-            {/*    deez nuts rofl XD*/}
-            {/*</div>*/}
-
-            {/* show parsed CSV as a table */}
-            <div className="p-10 overflow-x-auto">
+            <div>
                 {data.length > 0 ? (
-                    <table className="min-w-full border border-gray-300">
-                        <thead className="bg-gray-100">
-                        <tr>
-                            {Object.keys(data[0]).map((key) => (
-                                <th
-                                    key={key}
-                                    className="border px-4 py-2 text-left"
-                                >
-                                    {key}
-                                </th>
-                            ))}
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {data.map((row, rowIndex) => (
-                            <tr
-                                key={rowIndex}
-                                className={rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"}
-                            >
-                                {Object.keys(row).map((key) => (
-                                    <td key={key} className="border px-4 py-2">
-                                        {row[key]?.toString() ?? ""}
-                                    </td>
-                                ))}
-                            </tr>
-                        ))}
-                        </tbody>
-                    </table>
+                    <div className="text-left mx-20 my-5">
+                        <div className="flex flex-row gap-2">
+                            <div className="font-bold">Primary Key(s) Found:</div>
+                            <div>
+                                {pk}
+                            </div>
+                        </div>
+
+                        <div className="">
+                            <div className="font-bold">Transitive Dependencies Found:</div>
+                            <div className={"ml-10"}>
+                                <li>
+                                    {transitiveDependencies.map((item, index) => (
+                                        <li key={index}>{item}</li>
+                                    ))}
+                                </li>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div className="font-bold">Explanation:</div>
+                            <div>
+                                <p>
+                                    We found that the third item was dependent on the second item rather than directly on the key.
+                                    This created a transitive dependency chain that violated normalization. To resolve this, we restructured the relation by splitting the original table into two separate tables. One table maintains the direct dependency between the key and the second item, while the other captures the dependency between the second and third items.
+                                    This eliminates the transitive dependency and ensures that each non-key attribute depends only on the key.
+                                </p>
+                            </div>
+                        </div>
+
+                    </div>
                 ) : (
-                    <p className="text-center mt-4">Upload a CSV to see results</p>
+                    <div>
+                    </div>
                 )}
-                <button className={"text-[#BD0A0A]"}>
-                    singsong
-                </button>
             </div>
 
 
-            {/* show parsed CSV */}
-            {/*<div className="p-4">*/}
-            {/*    {data.length > 0 ? (*/}
-            {/*        <pre>{JSON.stringify(data, null, 2)}</pre>*/}
-            {/*    ) : (*/}
-            {/*        <p className="text-center mt-4">Upload a CSV to see results</p>*/}
-            {/*    )}*/}
+
+            {/*<div style={{ height: '75vh', display: 'flex', justifyContent: 'space-around', alignItems: 'flex-start', marginTop:"-2vh"}}>*/}
             {/*</div>*/}
+            {/*<div className={"p-20"}>*/}
+            {/*    HELLO*/}
+            {/*</div>*/}
+
+            {/* show parsed CSV as a table */}
+            <div className="mx-20 overflow-x-auto">
+                {data.length > 0 ? (
+                    <div>
+                        <h2 className="text-xl mt-2 font-bold">Normalized Dataset</h2>
+                        <div className="bg-[#D9D9D9] p-5 rounded-md h-150">
+                            <div className="table-container bg-[#D9D9D9] rounded-md text-center overflow-auto h-full border border-[#6B6B6B]">
+                                <table className="w-full table-fixed border-collapse h-full">
+                                    <thead className="bg-[#C7C7C7] sticky top-0 z-10 border-b border-[#6B6B6B]">
+                                    <tr>
+                                        {Object.keys(data[0]).map((key) => (
+                                            <th key={key} className="px-4 py-2 text-left border-r border-[#6B6B6B]">
+                                                {key}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                    </thead>
+
+                                    <tbody className="h-full">
+                                    {data.map((row, rowIndex) => (
+                                        <tr
+                                            key={rowIndex}
+                                            className="bg-[#C7C7C7]"
+                                            style={{ height: `${100 / Math.max(data.length, 1)}%` }} // stretch rows to fill table
+                                        >
+                                            {Object.keys(row).map((key) => (
+                                                <td key={key} className="border px-4 py-2 border-[#6B6B6B] truncate">
+                                                    {row[key]?.toString() ?? ""}
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div className={"flex justify-end font-bold"}>
+                            <button className={"text-[#BD0A0A] hover:underline w-1/3"}>
+                                Data not normalized correctly?
+                            </button>
+                        </div>
+
+                    </div>
+
+                ) : (
+                    <p className="text-center mt-4">Upload a CSV to see results</p>
+                )}
+
+            </div>
+
+
+
 
             <Footer />
         </>
@@ -428,6 +593,14 @@ const Normalization = () => {
 
 export default Normalization;
 
+{/* show parsed CSV */}
+{/*<div className="p-4">*/}
+{/*    {data.length > 0 ? (*/}
+{/*        <pre>{JSON.stringify(data, null, 2)}</pre>*/}
+{/*    ) : (*/}
+{/*        <p className="text-center mt-4">Upload a CSV to see results</p>*/}
+{/*    )}*/}
+{/*</div>*/}
 
 // function buildLevels (powerSet :any[]) {
 //     let levels = new Map<number, any[]>();    // should be like {1:{{a},{b}}, 2:{{a,b}}
