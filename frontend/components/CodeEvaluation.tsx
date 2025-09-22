@@ -279,20 +279,21 @@ const CodeEvaluation = () => {
                 const tableNames = new Set<string>;
                 const attributeNames = new Map<number, string[]>
                 const foreignKeys = new Map<number, [string, string][]>();
+                let primaryKey = "";
                 let tableNum = -1;
                 for (const line of parsedVers) {
                     if (line.includes("CREATE TABLE")) {
-                        const tableName = line.replace("CREATE TABLE", "").replace("(", "");
+                        const tableName = line.replace("CREATE TABLE", "").replace("(", "").trim();
                         console.log("table name", tableName);
                         tableNames.add(tableName);
                         tableNum ++;
                     }
+                    // ONLY ACCOUNTS FOR ONE PK RN. ALSO NOT PK ON ITS OWN LINE WITH CONSTRAINT
                     else if (line.includes("PRIMARY KEY")){
                         const amITheGoat = line.replace("PRIMARY KEY", "").split(" ");
-                        let primaryKey = "";
                         for (const goat of amITheGoat) {
                             if (goat !== "") {
-                                primaryKey = goat;
+                                primaryKey = goat.trim();
                                 break;
                             }
                         }
@@ -353,6 +354,10 @@ const CodeEvaluation = () => {
                 console.log("TABLE NAMES", tableNames)
                 console.log("ATTRIBUTE NAMES", attributeNames)
                 console.log("FOREIGN KEYS", foreignKeys)
+                console.log("PRIMARY KEYS", primaryKey)
+
+
+
             }
 
 
