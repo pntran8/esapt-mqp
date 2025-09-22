@@ -208,6 +208,10 @@ const CodeEvaluation = () => {
         console.log("bullets", bullets[i]);
     }
 
+    function hasLetter(str: string): boolean {
+        return /[A-Za-z]/.test(str);
+    }
+
     const handleCompare = async () => {
         console.log("SIJFIDOSFVOIAKDFOIAKDIFAWNIDFEHNWAKFEWDNAJFENDFLJNEWDS")
         setLoading(true);
@@ -259,7 +263,100 @@ const CodeEvaluation = () => {
             }
 
             const data = await res.json();
+            console.log(data.diff)
             setDiffResult(data.diff);
+
+            if (data.diff){
+                // first have all of the attributes of user and ai schemas
+                // then we print by things in LLM code
+                // thne we print stuff in user code
+                // then things in both
+                const allInformation = new Map<string, Map<string, string[]>>();
+                console.log("cleaned", userSchema)
+                const parsedVers = userSchema.split("\n");
+                console.log("parsed", parsedVers);
+
+                const tableNames = new Set<string>;
+                const attributeNames = new Map<number, string[]>
+                const foreignKeys = new Map<number, [string, string][]>();
+                let tableNum = -1;
+                for (const line of parsedVers) {
+                    if (line.includes("CREATE TABLE")) {
+                        const tableName = line.replace("CREATE TABLE", "").replace("(", "");
+                        console.log("table name", tableName);
+                        tableNames.add(tableName);
+                        tableNum ++;
+                    }
+                    else if (line.includes("PRIMARY KEY")){
+                        const amITheGoat = line.replace("PRIMARY KEY", "").split(" ");
+                        let primaryKey = "";
+                        for (const goat of amITheGoat) {
+                            if (goat !== "") {
+                                primaryKey = goat;
+                                break;
+                            }
+                        }
+                        if (attributeNames.has(tableNum)) {
+                            const current = attributeNames.get(tableNum) ?? [];
+                            current.push(primaryKey);
+                            attributeNames.set(tableNum, current);
+                        }
+                        else{
+                            attributeNames.set(tableNum, [primaryKey]);
+                        }
+                        console.log("primaryKey", primaryKey);
+                    }
+                    // HAVE NOT ACCOUNTED FOR FOREIGN KEY AND REFERENCE BEING ON DIFFERENT LINE
+                    else if (line.includes("FOREIGN KEY")){
+                        console.log("fk!")
+                        console.log(line)
+                        if (line.includes("REFERENCES")){
+                            const fk = line.split("REFERENCES");
+                            console.log("split", fk)
+                            const actualFK = fk[0].split("FOREIGN KEY")
+                            const references = fk[1].replace(");", "").replace(",", "");
+                            const attrFK = actualFK[1].trim().replace("(", "").replace(")", "")
+                            console.log("attrFK", attrFK);
+                            console.log("ref", references)
+                            if (foreignKeys.has(tableNum)) {
+                                const current = foreignKeys.get(tableNum) ?? [];
+                                current.push([attrFK, references]);
+                                foreignKeys.set(tableNum, current);
+                            }
+                            else{
+                                foreignKeys.set(tableNum, [[attrFK, references]])
+                            }
+                        }
+
+                    }
+                    else if (line.includes("REFERENCES")){
+                        console.log("da reference");
+                        console.log(line)
+                    }
+                    else{
+                        if (line.length > 0){
+                            if (hasLetter(line)){
+                                const amITheGoat = line.trim().split(" ");
+                                if (attributeNames.has(tableNum)) {
+                                    const current = attributeNames.get(tableNum) ?? [];
+                                    current.push(amITheGoat[0]);
+                                    attributeNames.set(tableNum, current);
+                                }
+                                else{
+                                    attributeNames.set(tableNum, [amITheGoat[0]])
+                                }
+                            }
+                        }
+                    }
+                }
+
+                console.log("TABLE NAMES", tableNames)
+                console.log("ATTRIBUTE NAMES", attributeNames)
+                console.log("FOREIGN KEYS", foreignKeys)
+            }
+
+
+
 
             const formattedBlocks = [];
             const tableNameDiffs = [];
