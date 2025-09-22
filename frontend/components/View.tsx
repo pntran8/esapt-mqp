@@ -169,7 +169,7 @@ const View: React.FC = () => {
                     <div
                         key={entry.id}
                         onClick={() => setOpenEntryId(entry.id)}
-                        className="cursor-pointer border shadow-[0_15px_40px_rgba(0,0,0,0.8)] rounded-xl p-2 flex flex-col items-center w-auto h-95 overflow-hidden"
+                        className="cursor-pointer border shadow-[0_10px_20px_rgba(0,0,0,0.4)] rounded-xl p-2 flex flex-col items-center w-auto h-95 overflow-hidden"
                     >
                         <img
                             src={entry.decodedImage}
