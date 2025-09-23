@@ -7,12 +7,12 @@ const Normalization = () => {
     const [data, setData] = useState<any[]>([]);
     const [pk, setPK] = useState<string>("");
     const [popUp, setPopUp] = useState<boolean>(false);
-    const [isBlurred, setIsBlurred] = useState(false);
     const [transitiveDependencies, setTransitiveDependencies] = useState<string[]>([]);
     const [minimalKeys, setMinimalKeys] = useState<string[]>([]);
     const [fdsRewritten, setFdsRewritten] = useState(new Map());
     const [candidateKeys, setCandidateKeys] = useState<string[]>([]);
-    const [normalized, setNormalized] = useState<any[]>([]);
+    const [splitDatasetResult, setSplitDatasetResult] = useState<any[]>([]);
+    const [usedInSplitting, setUsedInSplitting] = useState<string>(true);
 
     // const [powerSet, setPowerSet] = useState<any[]>([]);
     let attributeNames = new Set<string>();
@@ -404,22 +404,34 @@ const Normalization = () => {
         return transDepen;
     }
 
-    function splitDataset (sanitizedData, transitiveDependency:string){
-        const splitTransitive = transitiveDependency.split("→");
+    function splitDataset(sanitizedData, transitiveDependency: string) {
+        const splitTransitive = transitiveDependency.split("→").map(s => s.trim());
         const secondDependent = splitTransitive[1];
         const thirdDependent = splitTransitive[2];
-        // we only care about the second and third one.
 
         const copySanitized = structuredClone(sanitizedData);
-        const additionalTable = copySanitized.map(item => ({
+
+        const additionalTableRaw = copySanitized.map(item => ({
             [secondDependent]: item[secondDependent],
-            [thirdDependent]: item[thirdDependent]
+            [thirdDependent]: item[thirdDependent],
         }));
-        const removedSanitized = copySanitized.map(({ [secondDependent]: _, [thirdDependent]: __, ...rest }) => rest);
 
-        return { originalData: removedSanitized, dependentTable: additionalTable };
+        const seen = new Set();
+        const additionalTable = additionalTableRaw.filter(item => {
+            const key = `${item[secondDependent]}|${item[thirdDependent]}`;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
 
+        const removedSanitized = copySanitized.map(
+            ({ [secondDependent]: _, [thirdDependent]: __, ...rest }) => rest
+        );
+
+        return [removedSanitized, additionalTable];
     }
+
+
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -484,7 +496,10 @@ const Normalization = () => {
 
             setTransitiveDependencies(transitiveDependencies);
 
-
+            console.log("what does this return", splitDataset(sanitizedData, transitiveDependencies[0]));
+            setUsedInSplitting(transitiveDependencies[0])
+            const normalized = splitDataset(sanitizedData, transitiveDependencies[0]);
+            setSplitDatasetResult(normalized);
         };
 
 
@@ -502,7 +517,7 @@ const Normalization = () => {
                 Normalization
             </header>
 
-            {/* File input */}
+            {/* file input */}
             <div className="flex justify-center mt-6">
                 <input
                     type="file"
@@ -608,7 +623,15 @@ const Normalization = () => {
                                 <ul className="ml-8 mt-2 space-y-2">
                                     {transitiveDependencies.map((item, index) => (
                                         <li key={index} className="flex items-center">
-                                            <input type="checkbox" className="w-4 h-4" />
+                                            <input
+                                                type="checkbox"
+                                                className="w-4 h-4"
+                                                checked={item === usedInSplitting}
+                                                onChange={() => {
+                                                    setSplitDatasetResult(splitDataset(data, item));
+                                                    setUsedInSplitting(item);
+                                                }}
+                                            />
                                             <span className="ml-2">{item}</span>
                                         </li>
                                     ))}
@@ -621,11 +644,80 @@ const Normalization = () => {
             ) : (<div></div>)}
 
 
-            {/* show parsed CSV as a table */}
+
+            {/*test of the ages...*/}
             <div className="mx-20 overflow-x-auto">
                 {data.length > 0 ? (
                     <div>
                         <h2 className="text-xl mt-2 font-bold">Normalized Dataset</h2>
+                        <div className="bg-[#D9D9D9] p-5 rounded-md border border-[#6B6B6B] h-150">
+                            <div className="flex flex-row gap-6 h-full overflow-x-auto">
+                                {splitDatasetResult.map((tableData, tableIndex) => (
+                                    <div
+                                        key={tableIndex}
+                                        className="flex-1 overflow-auto border border-[#6B6B6B] rounded-md min-w-[400px] h-full"
+                                    >
+                                        <table className="w-full table-fixed border-collapse h-full">
+                                            <thead className="bg-[#C7C7C7] sticky top-0 z-10 border-b border-[#6B6B6B]">
+                                            <tr>
+                                                {Object.keys(tableData[0] ?? {}).map((key) => (
+                                                    <th
+                                                        key={key}
+                                                        className="px-4 py-2 text-left border-r border-[#6B6B6B]"
+                                                    >
+                                                        {key}
+                                                    </th>
+                                                ))}
+                                            </tr>
+                                            </thead>
+                                            <tbody className="h-full">
+                                            {tableData.map((row, rowIndex) => (
+                                                <tr
+                                                    key={rowIndex}
+                                                    className="bg-[#C7C7C7]"
+                                                    style={{
+                                                        height: `${100 / Math.max(tableData.length, 1)}%`,
+                                                    }}
+                                                >
+                                                    {Object.keys(row).map((key) => (
+                                                        <td
+                                                            key={key}
+                                                            className="border px-4 py-2 border-[#6B6B6B] truncate"
+                                                        >
+                                                            {row[key]?.toString() ?? ""}
+                                                        </td>
+                                                    ))}
+                                                </tr>
+                                            ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+
+
+                        <div className={"flex justify-end font-bold"}>
+                            <button className={"text-[#BD0A0A] hover:underline w-1/3"}
+                                    onClick={() => setPopUp(true)}>
+                                Data not normalized correctly?
+                            </button>
+                        </div>
+
+                    </div>
+
+                ) : (
+                    <p className="text-center mt-4">Upload a CSV to see results</p>
+                )}
+
+            </div>
+
+            {/* show parsed CSV as a table */}
+            <div className="mx-20 overflow-x-auto">
+                {data.length > 0 ? (
+                    <div>
+                        <h2 className="text-xl mt-2 font-bold">Original Dataset</h2>
                         <div className="bg-[#D9D9D9] p-5 rounded-md h-150">
                             <div className="table-container bg-[#D9D9D9] rounded-md text-center overflow-auto h-full border border-[#6B6B6B]">
                                 <table className="w-full table-fixed border-collapse h-full">
@@ -658,17 +750,11 @@ const Normalization = () => {
                             </div>
                         </div>
 
-                        <div className={"flex justify-end font-bold"}>
-                            <button className={"text-[#BD0A0A] hover:underline w-1/3"}
-                                    onClick={() => setPopUp(true)}>
-                                Data not normalized correctly?
-                            </button>
-                        </div>
 
                     </div>
 
                 ) : (
-                    <p className="text-center mt-4">Upload a CSV to see results</p>
+                    <div></div>
                 )}
 
             </div>
