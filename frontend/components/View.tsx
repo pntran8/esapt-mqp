@@ -179,7 +179,7 @@ const View: React.FC = () => {
                         <div className="text-xs overflow-auto whitespace-pre-wrap break-words">
                             {parseText(entry.textFile)}
                         </div>
-                        <p className="text-[10px] text-gray-500 mt-1">
+                        <p className="text-md text-gray-600 mt-1 font-bold">
                             {new Date(entry.timeCreated).toLocaleString()}
                         </p>
                     </div>
