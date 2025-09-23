@@ -244,13 +244,13 @@ const CodeExplanation = () => {
 
                         <header className="text-center text-4xl mt-8 font-bold">SQL Generation</header>
 
-                        <div id="input-container" className={"bg-[#e7e7e7] p-4 mx-27 rounded-md border-[2px] border-[#BD0A0A] mt-10"} >
+                        <div id="input-container" className={"bg-[#e7e7e7] p-4 mx-27 rounded-md border-[2px] border-[#BD0A0A] mt-10 flex items-center"} >
 
                             <input
                                 type="file"
                                 accept=".png,.jpg"
                                 onChange={handleFileUpload}
-                                className="chat-input bg-gray-100 w-[77%]"
+                                className="chat-input bg-gray-100 flex-grow mr-4"
                                 style={{fontSize:'2vh'}}
                             />
 

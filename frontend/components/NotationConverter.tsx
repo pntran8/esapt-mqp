@@ -324,25 +324,24 @@ const ConvertXMLNotation: React.FC = () => {
 
             <header className="text-center text-4xl mt-8 font-bold">Notation Converter</header>
 
-            <div id="input-container" className={"bg-[#e7e7e7] p-4 mx-27 rounded-md border-[2px] border-[#BD0A0A] mt-10 flex flex-row"}>
-
-                <div style={{display: 'inline-block'}} className={""}>
+            <div id="input-container" className="bg-[#e7e7e7] p-4 mx-27 rounded-md border-[2px] border-[#BD0A0A] mt-10 flex items-center">
+                <div className="w-full flex flex-col mr-2">
                     <input
                         type="file"
                         accept=".xml,.drawio"
                         onChange={handleFileUpload}
-                        className="chat-input bg-gray-100 w-380"
+                        className="chat-input bg-gray-100 flex-grow"
                         disabled={!selectedNot}
                         multiple
-                        style={{fontSize:'2vh', marginRight: '2vh'}}
+                        style={{ fontSize: "2vh", marginBottom: "1vh" }}
                     />
                     {!selectedNot && (
-                        <p className="text-[10px] text-gray-600 font-bold">
+                        <p className="text-[10px] text-gray-600 font-bold text-center w-full">
                             Select your current notation first.
                         </p>
                     )}
                     {selectedNot && (
-                        <p className="text-[10px] text-white font-bold">,</p>
+                        <p className="text-[10px] text-white font-bold text-center w-full">,</p>
                     )}
                 </div>
 
@@ -361,7 +360,7 @@ const ConvertXMLNotation: React.FC = () => {
                         <option value="crow">Crow's Foot</option>
                         <option value="uml">UML</option>
                     </select>
-                    <p className="text-[10px] text-gray-600 font-bold h-4">
+                    <p className="text-[10px] text-gray-600 font-bold h-4 mt-3">
                         Select your ERD notation
                     </p>
                 </div>
