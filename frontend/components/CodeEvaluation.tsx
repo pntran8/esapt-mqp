@@ -612,13 +612,22 @@ const CodeEvaluation = () => {
 
             <header className="text-center text-4xl mt-8 font-bold">Code Comparison</header>
 
-            <div id="input-container" style={{border: "1vh light grey", borderRadius:"2vh", marginTop:"3vh"}}>
+            <div id="input-container" className={"bg-[#e7e7e7] p-4 mx-27 rounded-md border-[2px] border-[#BD0A0A] mt-10 flex items-center"} >
 
-                {file !== null && responseString !== "" && isAuthenticated && (
-                    <button className="cursor-pointer clear-btn">
-                        <Save file={file} responseText={responseString} />
-                    </button>
-                )}
+                <input
+                    type="file"
+                    accept=".png,.jpg"
+                    onChange={handleFileUpload}
+                    className="chat-input bg-gray-100 flex-grow mr-4"
+                    style={{fontSize:'2vh'}}
+                />
+
+                <button className="cursor-pointer clear-btn bg-[#BD0A0A] hover:bg-[#700606] text-white mx-4" onClick={() => {
+                    localStorage.clear();
+                    window.location.reload();
+                }}>
+                    Clear
+                </button>
 
                 <button
                     className={"cursor-pointer clear-btn"}
@@ -632,22 +641,9 @@ const CodeEvaluation = () => {
                 >
                     {loading ? "Comparing..." : "Compare"}
                 </button>
-
-                <input
-                    type="file"
-                    accept=".png,.jpg"
-                    onChange={handleFileUpload}
-                    className="chat-input"
-                    style={{fontSize:'2vh'}}
-                />
-
-                <button className="cursor-pointer clear-btn bg-[#BD0A0A] hover:bg-[#700606] text-white m-2" onClick={() => {
-                    localStorage.clear();
-                    window.location.reload();
-                }}>
-                    Clear
-                </button>
             </div>
+
+
 
             <div className={"flex"} style={{marginTop:"2vh"}}>
                 <h2 className={"w-2/5 font-bold "}>LLM Code</h2>

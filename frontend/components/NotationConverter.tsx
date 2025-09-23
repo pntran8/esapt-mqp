@@ -324,11 +324,31 @@ const ConvertXMLNotation: React.FC = () => {
 
             <header className="text-center text-4xl mt-8 font-bold">Notation Converter</header>
 
-            <div id="input-container" style={{border: "1vh light grey", borderRadius:"2vh", marginTop:"3vh"}}>
+            <div id="input-container" className="bg-[#e7e7e7] p-4 mx-27 rounded-md border-[2px] border-[#BD0A0A] mt-10 flex items-center">
+                <div className="w-full flex flex-col mr-2">
+                    <input
+                        type="file"
+                        accept=".xml,.drawio"
+                        onChange={handleFileUpload}
+                        className="chat-input bg-gray-100 flex-grow"
+                        disabled={!selectedNot}
+                        multiple
+                        style={{ fontSize: "2vh", marginBottom: "1vh" }}
+                    />
+                    {!selectedNot && (
+                        <p className="text-[10px] text-gray-600 font-bold text-center w-full">
+                            Select your current notation first.
+                        </p>
+                    )}
+                    {selectedNot && (
+                        <p className="text-[10px] text-white font-bold text-center w-full">,</p>
+                    )}
+                </div>
+
                 <div style={{display: 'inline-block'}} className="mr-5">
                     <select
                         aria-label="Choose your notation"
-                        className="border-1 border-[#ddd] p-3 rounded-md cursor-pointer"
+                        className="border-1 border-gray-400 p-3 rounded-md cursor-pointer bg-gray-100 "
                         style={{ width: "auto", fontSize: "small" }}
                         value={selectedNot}
                         onChange={(e) => setSelectedNot(e.target.value)}
@@ -340,29 +360,9 @@ const ConvertXMLNotation: React.FC = () => {
                         <option value="crow">Crow's Foot</option>
                         <option value="uml">UML</option>
                     </select>
-                    <p className="text-[10px] text-gray-600 font-bold h-4">
+                    <p className="text-[10px] text-gray-600 font-bold h-4 mt-3">
                         Select your ERD notation
                     </p>
-                </div>
-
-                <div style={{display: 'inline-block'}}>
-                    <input
-                        type="file"
-                        accept=".xml,.drawio"
-                        onChange={handleFileUpload}
-                        className="chat-input"
-                        disabled={!selectedNot}
-                        multiple
-                        style={{fontSize:'2vh', width: '100vh', marginRight: '2vh'}}
-                    />
-                    {!selectedNot && (
-                        <p className="text-[10px] text-gray-600 font-bold">
-                            Select your current notation first.
-                        </p>
-                    )}
-                    {selectedNot && (
-                        <p className="text-[10px] text-white font-bold">,</p>
-                    )}
                 </div>
 
                 <div style={{display: 'inline-block'}}>
