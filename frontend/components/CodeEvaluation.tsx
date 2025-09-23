@@ -31,6 +31,7 @@ const CodeEvaluation = () => {
     const [file, setFile] = useState<File | null>(null);
     const [responseString, setResponseString] = useState<string>("");
     const [code, setCode] = useState<string>("");
+    const [tableDiffs, setTableDiffs] = useState<string[]>([]);
 
     const handleFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
         localStorage.clear();
@@ -130,12 +131,132 @@ const CodeEvaluation = () => {
     const [loading, setLoading] = useState(false);
 
     const formatForeignKeys = (fkArray: string[][]) => {
-        return fkArray.map(pair => pair.join(",")).join(" |");
+        return fkArray.map(pair => pair.join("")).join(", ");
     };
 
 
 
-    function getTableNameDiffs(data, formattedBlocks: any[], startingNum: number) {
+    // function getTableNameDiffs(data, formattedBlocks: any[], startingNum: number) {
+    //     const splitting = data.diff[0].split("(this=");
+    //     console.log("splitting", splitting);
+    //     const rawLine = data.diff[0];
+    //     //const match = rawLine.match(/Identifier\(this=([A-Za-z0-9_]+)/);
+    //     const regex = /Identifier\(this=([A-Za-z0-9_]+)/g;
+    //
+    //     const matches = [];
+    //     let match;
+    //
+    //     while ((match = regex.exec(rawLine)) !== null) {
+    //         matches.push(match[1]);
+    //     }
+    //     //const cleanedLine = matches ? `Tables only in schema 1: ${matches}` : rawLine;
+    //     const cleanedLine = matches.length > 0
+    //         ? `Tables only in schema 1: ${matches.join(", ")}`
+    //         : rawLine;
+    //     formattedBlocks.push(cleanedLine + "\n");
+    //     if (data.diff[1].includes("only")) {
+    //         startingNum += 1;
+    //         const rawLine2 = data.diff[1];
+    //         console.log(data.diff[1]);
+    //         const match2 = rawLine2.match(/Identifier\(this=([A-Za-z0-9_]+)/);
+    //         const cleanedLine2 = match2 ? `Tables only in schema 2: ${match2[1]}` : rawLine2;
+    //         formattedBlocks.push(cleanedLine2);
+    //     }
+    //     return startingNum;
+    // }
+
+    function getAttributeDiffs(bullets: any[], i: number) {
+        const rawArr = bullets[i].replace("Attribute differences: ", "").trim();
+
+        const inner = rawArr.slice(1, -1);
+
+        const parts = inner.split(/",\s*"/).map(str => str.replace(/^"|"$/g, ""));
+
+        const diffs :[string, string] = [];
+        for (let k = 0; k < parts.length; k++) {
+            if (parts[k].includes("only in 1")) {
+                diffs[0] = parts[k]
+                    .replace(/only in\s+\d:\s*/i, "")
+                    .replace(/[\{\}']/g, "")
+                    .trim();
+            }
+            else{
+                diffs[1] = parts[k]
+                    .replace(/only in\s+\d:\s*/i, "")
+                    .replace(/[\{\}']/g, "")
+                    .trim();
+            }
+        }
+
+        let line = "Attribute differences: |";
+        if (diffs[0] && diffs[1]) {
+            if (diffs[0]) {
+                line += `LLM Schema includes ${diffs[0]}`;
+            }
+
+            if (diffs[1]) {
+                if (diffs[0]) line += " | ";
+                line += `User Schema includes ${diffs[1]}`;
+            }
+        }
+        else if (diffs[0] && !diffs[1]) {
+            line += `LLM Schema includes ${diffs[0]}`;
+        }
+        else if (!diffs[0] && diffs[1]) {
+            line += `User Schema includes ${diffs[1]}`;
+
+        }
+
+        bullets[i] = line;
+
+    }
+
+    function getForeignKeyDiffs(bullets: any[], i: number | number) {
+        const rawArr = bullets[i].split(":");
+        const strSchema1Raw = rawArr[2].replace(/\s*\n\s*schema2/, "");
+        const cleaned = strSchema1Raw.trim().replace(/'/g, '"');
+        const cleaned2 = rawArr[3].trim().replace(/'/g, '"');
+
+        const arr = JSON.parse(cleaned2);
+        const arr2 = JSON.parse(cleaned);
+
+
+        for (let i = 0; i < arr.length; i++) {
+            arr[i][0] =  arr[i][0].replace(",", "");
+            arr[i][1] = "(" + arr[i][1] + ")";
+        }
+
+        for (let i = 0; i < arr2.length; i++) {
+            arr2[i][0] = arr2[i][0].replace(",", "");
+            arr2[i][1] = "(" + arr2[i][1] + ")";
+        }
+
+        console.log("arr", arr)
+        console.log("arr2", arr2)
+
+        const flat1 = arr.map(JSON.stringify);
+        const flat2 = arr2.map(JSON.stringify);
+
+        const uniqueToArr1 = flat1.filter(x => !flat2.includes(x)).map(JSON.parse);
+        const uniqueToArr2 = flat2.filter(x => !flat1.includes(x)).map(JSON.parse);
+
+        let line = "Foreign Key differences: | ";
+        if (uniqueToArr1.length > 0) {
+            line += `User Schema includes foreign key(s) that reference ${formatForeignKeys(uniqueToArr1)}`;
+        }
+
+        if (uniqueToArr2.length > 0) {
+            if (uniqueToArr1) line += " | ";
+            line += `LLM Schema includes foreign key(s) that reference ${formatForeignKeys(uniqueToArr2)}`;
+        }
+
+        console.log("lined up", line)
+
+        bullets[i] = line;
+
+    }
+
+    function getTableNameDiffs2(data, formattedBlocks: any[], startingNum: number) {
         const splitting = data.diff[0].split("(this=");
         console.log("splitting", splitting);
         const rawLine = data.diff[0];
@@ -148,23 +269,25 @@ const CodeEvaluation = () => {
         while ((match = regex.exec(rawLine)) !== null) {
             matches.push(match[1]);
         }
-        //const cleanedLine = matches ? `Tables only in schema 1: ${matches}` : rawLine;
-        const cleanedLine = matches.length > 0
-            ? `Tables only in schema 1: ${matches.join(", ")}`
-            : rawLine;
-        formattedBlocks.push(cleanedLine + "\n");
+
+        if (data.diff[0].includes("only")) {
+            const rawLine1 = data.diff[0];
+            const matches1 = [...rawLine1.matchAll(/this=Identifier\(this=([^,)\s]+)/g)];
+            const results1: string[] = matches1.map(m => m[1]);
+            formattedBlocks.push(`Tables only in LLM Schema: ${results1.join(", ")}` + '\n')
+        }
+
         if (data.diff[1].includes("only")) {
             startingNum += 1;
             const rawLine2 = data.diff[1];
-            console.log(data.diff[1]);
-            const match2 = rawLine2.match(/Identifier\(this=([A-Za-z0-9_]+)/);
-            const cleanedLine2 = match2 ? `Tables only in schema 2: ${match2[1]}` : rawLine2;
-            formattedBlocks.push(cleanedLine2);
+            const matches = [...rawLine2.matchAll(/this=Identifier\(this=([^,)\s]+)/g)];
+            const results: string[] = matches.map(m => m[1]);
+            formattedBlocks.push(`Tables only in User Schema: ${results.join(", ")}` + '\n')
         }
         return startingNum;
     }
 
-    function getAttributeDiffs(bullets: any[], i: number) {
+    function getAttributeDiffs2(bullets: any[], i: number) {
         const rawArr = bullets[i].replace("Attribute differences: ", "").trim();
 
         const inner = rawArr.slice(1, -1);
@@ -172,16 +295,16 @@ const CodeEvaluation = () => {
         const parts = inner.split(/",\s*"/).map(str => str.replace(/^"|"$/g, "")); // remove outer quotes
 
         for (let k = 0; k < parts.length; k++) {
-            parts[k] = parts[k]
-                .replace(/only in\s+\d:\s*/i, "")
-                .replace(/[\{\}']/g, "")
-                .trim();
+            parts[k] = parts[k].replace(/only in\s+\d:\s*/i, "").replace(/[\{\}']/g, "").trim();
         }
 
-        bullets[i] = "Attribute differences: | Schema 1: " + (parts[0] || "None") + " | Schema 2: " + (parts[1] || "None");
+
+        bullets[i] = "Attribute differences: | LLM Schema: " + (parts[0] || "None") + " | User Schema: " + (parts[1] || "None");
+
+        const whateverMan = new Map<string, string[]>;
     }
 
-    function getForeignKeyDiffs(bullets: any[], i: number | number) {
+    function getForeignKeyDiffs2(bullets: any[], i: number | number) {
         const rawArr = bullets[i].split(":");
         const strSchema1Raw = rawArr[2].replace(/\s*\n\s*schema2/, "");
         const cleaned = strSchema1Raw.trim().replace(/'/g, '"');
@@ -210,6 +333,85 @@ const CodeEvaluation = () => {
 
     function hasLetter(str: string): boolean {
         return /[A-Za-z]/.test(str);
+    }
+
+    function getAdditionalInfo(parsedVers: string[]) {
+        const tableNames = new Set<string>;
+        const attributeNames = new Map<number, string[]>
+        const foreignKeys = new Map<number, [string, string][]>();
+        let primaryKey = "";
+        let tableNum = -1;
+        for (const line of parsedVers) {
+            if (line.includes("CREATE TABLE")) {
+                const tableName = line.replace("CREATE TABLE", "").replace("(", "").trim();
+                console.log("table name", tableName);
+                tableNames.add(tableName);
+                tableNum++;
+            }
+            // ONLY ACCOUNTS FOR ONE PK RN. ALSO NOT PK ON ITS OWN LINE WITH CONSTRAINT
+            else if (line.includes("PRIMARY KEY")) {
+                const amITheGoat = line.replace("PRIMARY KEY", "").split(" ");
+                for (const goat of amITheGoat) {
+                    if (goat !== "") {
+                        primaryKey = goat.trim();
+                        break;
+                    }
+                }
+                if (attributeNames.has(tableNum)) {
+                    const current = attributeNames.get(tableNum) ?? [];
+                    current.push(primaryKey);
+                    attributeNames.set(tableNum, current);
+                } else {
+                    attributeNames.set(tableNum, [primaryKey]);
+                }
+                console.log("primaryKey", primaryKey);
+            }
+            // HAVE NOT ACCOUNTED FOR FOREIGN KEY AND REFERENCE BEING ON DIFFERENT LINE
+            else if (line.includes("FOREIGN KEY")) {
+                console.log("fk!")
+                console.log(line)
+                if (line.includes("REFERENCES")) {
+                    const fk = line.split("REFERENCES");
+                    console.log("split", fk)
+                    const actualFK = fk[0].split("FOREIGN KEY")
+                    const references = fk[1].replace(");", "").replace(",", "");
+                    const attrFK = actualFK[1].trim().replace("(", "").replace(")", "")
+                    console.log("attrFK", attrFK);
+                    console.log("ref", references)
+                    if (foreignKeys.has(tableNum)) {
+                        const current = foreignKeys.get(tableNum) ?? [];
+                        current.push([attrFK, references]);
+                        foreignKeys.set(tableNum, current);
+                    } else {
+                        foreignKeys.set(tableNum, [[attrFK, references]])
+                    }
+                }
+
+            } else if (line.includes("REFERENCES")) {
+                console.log("da reference");
+                console.log(line)
+            } else {
+                if (line.length > 0) {
+                    if (hasLetter(line)) {
+                        const amITheGoat = line.trim().split(" ");
+                        if (attributeNames.has(tableNum)) {
+                            const current = attributeNames.get(tableNum) ?? [];
+                            current.push(amITheGoat[0]);
+                            attributeNames.set(tableNum, current);
+                        } else {
+                            attributeNames.set(tableNum, [amITheGoat[0]])
+                        }
+                    }
+                }
+            }
+        }
+
+        console.log("TABLE NAMES", tableNames)
+        console.log("ATTRIBUTE NAMES", attributeNames)
+        console.log("FOREIGN KEYS", foreignKeys)
+        console.log("PRIMARY KEYS", primaryKey)
+        // we only ended up needing table names, so this function didnt finish
+        return tableNames;
     }
 
     const handleCompare = async () => {
@@ -266,112 +468,29 @@ const CodeEvaluation = () => {
             console.log(data.diff)
             setDiffResult(data.diff);
 
-            if (data.diff){
-                // first have all of the attributes of user and ai schemas
-                // then we print by things in LLM code
-                // thne we print stuff in user code
-                // then things in both
-                const allInformation = new Map<string, Map<string, string[]>>();
-                console.log("cleaned", userSchema)
-                const parsedVers = userSchema.split("\n");
-                console.log("parsed", parsedVers);
-
-                const tableNames = new Set<string>;
-                const attributeNames = new Map<number, string[]>
-                const foreignKeys = new Map<number, [string, string][]>();
-                let primaryKey = "";
-                let tableNum = -1;
-                for (const line of parsedVers) {
-                    if (line.includes("CREATE TABLE")) {
-                        const tableName = line.replace("CREATE TABLE", "").replace("(", "").trim();
-                        console.log("table name", tableName);
-                        tableNames.add(tableName);
-                        tableNum ++;
-                    }
-                    // ONLY ACCOUNTS FOR ONE PK RN. ALSO NOT PK ON ITS OWN LINE WITH CONSTRAINT
-                    else if (line.includes("PRIMARY KEY")){
-                        const amITheGoat = line.replace("PRIMARY KEY", "").split(" ");
-                        for (const goat of amITheGoat) {
-                            if (goat !== "") {
-                                primaryKey = goat.trim();
-                                break;
-                            }
-                        }
-                        if (attributeNames.has(tableNum)) {
-                            const current = attributeNames.get(tableNum) ?? [];
-                            current.push(primaryKey);
-                            attributeNames.set(tableNum, current);
-                        }
-                        else{
-                            attributeNames.set(tableNum, [primaryKey]);
-                        }
-                        console.log("primaryKey", primaryKey);
-                    }
-                    // HAVE NOT ACCOUNTED FOR FOREIGN KEY AND REFERENCE BEING ON DIFFERENT LINE
-                    else if (line.includes("FOREIGN KEY")){
-                        console.log("fk!")
-                        console.log(line)
-                        if (line.includes("REFERENCES")){
-                            const fk = line.split("REFERENCES");
-                            console.log("split", fk)
-                            const actualFK = fk[0].split("FOREIGN KEY")
-                            const references = fk[1].replace(");", "").replace(",", "");
-                            const attrFK = actualFK[1].trim().replace("(", "").replace(")", "")
-                            console.log("attrFK", attrFK);
-                            console.log("ref", references)
-                            if (foreignKeys.has(tableNum)) {
-                                const current = foreignKeys.get(tableNum) ?? [];
-                                current.push([attrFK, references]);
-                                foreignKeys.set(tableNum, current);
-                            }
-                            else{
-                                foreignKeys.set(tableNum, [[attrFK, references]])
-                            }
-                        }
-
-                    }
-                    else if (line.includes("REFERENCES")){
-                        console.log("da reference");
-                        console.log(line)
-                    }
-                    else{
-                        if (line.length > 0){
-                            if (hasLetter(line)){
-                                const amITheGoat = line.trim().split(" ");
-                                if (attributeNames.has(tableNum)) {
-                                    const current = attributeNames.get(tableNum) ?? [];
-                                    current.push(amITheGoat[0]);
-                                    attributeNames.set(tableNum, current);
-                                }
-                                else{
-                                    attributeNames.set(tableNum, [amITheGoat[0]])
-                                }
-                            }
-                        }
-                    }
-                }
-
-                console.log("TABLE NAMES", tableNames)
-                console.log("ATTRIBUTE NAMES", attributeNames)
-                console.log("FOREIGN KEYS", foreignKeys)
-                console.log("PRIMARY KEYS", primaryKey)
-
-
-
-            }
-
-
-
-
             const formattedBlocks = [];
             const tableNameDiffs = [];
 
 
             if(data.diff){
+                const parsedVersUser = userSchema.split("\n");
+                console.log("parsed", parsedVersUser);
+                const parsedVersLLM = cleanedSchema.split("\n");
+
+                const userTables = getAdditionalInfo(parsedVersUser);
+                const LLMTables = getAdditionalInfo(parsedVersLLM);
+
+                const numLLM = `Number of Tables in LLM Schema : ${LLMTables.size}` + '\n';
+                const numUser = `Number of Tables in User Schema : ${userTables.size}` + '\n';
+
+                const numbers = [numLLM, numUser];
+                setTableDiffs(numbers);
+
                 let startingNum = 0;
                 if (!data.diff[0].includes("Comparing")){
                     startingNum += 1;
-                    startingNum = getTableNameDiffs(data, tableNameDiffs, startingNum);
+                    startingNum = getTableNameDiffs2(data, tableNameDiffs, startingNum);
+                    setTableDiffs(prev => [...prev, ...tableNameDiffs]);
                 }
                 for (; startingNum < data.diff.length; startingNum += 4) {
                     if (data.diff[startingNum].includes("Comparing")) {
@@ -382,6 +501,7 @@ const CodeEvaluation = () => {
                             if (!bullets[i].includes("same")) {
                                 if (i === 0) {
                                     getAttributeDiffs(bullets, i);
+
                                 }
 
                                 if (i === 2) {
@@ -405,14 +525,10 @@ const CodeEvaluation = () => {
 
                         formattedBlocks.push(
                             <div key={startingNum}>
-                                {tableNameDiffs.length > 0 && tableNameDiffs.map((diff, index) => (
-                                    <h1 key={index} className="font-bold">{diff}</h1>
-                                ))}
 
-                                <h1 className="font-bold">{header}</h1>
+                                <h2 className="font-bold text-xl">{header}</h2>
                                 <ul>
                                     {bullets.map((b, j) => {
-                                        console.log("BBBBB", b)
                                         if (b.includes("mismatch:")) {
                                             const [before, afterRaw] = b.split("mismatch:");
 
@@ -429,35 +545,44 @@ const CodeEvaluation = () => {
                                                 const schema2 = schema2Match ? schema2Match[1] : "[]";
 
                                                 return (
-                                                    <li key={j} className={"bg-red-400 font-bold"}>
+                                                    <li key={j} className={"font-bold"}>
                                                         {before}mismatch:<br />
                                                         Schema1: [{columnNames.join(", ")}]<br />
                                                         Schema2: {schema2}
                                                     </li>
                                                 );
                                             } else {
-                                                const after = afterRaw.replace(/\s*schema2:/, ", Schema2:").replace(/[\[\]']/g, "").replace(/\s*schema1:/, "Schema1:");
+                                                const after = afterRaw.replace(/\s*schema2:/, ", User Schema's Primary key was ").replace(/[\[\]]/g, "").replace(/\s*schema1:/, "While LLM Schema's Primary key was");
                                                 return (
-                                                    <li key={j} className={"bg-red-400 font-bold"}>
-                                                        {before}mismatch:<br />
+                                                    <li key={j} className={" "}>
+                                                        <div className={"font-bold"}>{before}mismatch:<br /> </div>
                                                         {after}
                                                     </li>
                                                 );
                                             }
                                         }
-                                        else if (b.includes("differences:")) {
+                                        else if (b.includes("Attribute differences:")) {
                                             const test = b.split("|");
-                                            console.log("here we are ", test);
                                             return (
-                                                <ul className={"bg-red-400 font-bold"}>
+                                                <ul className={""}>
                                                     {test.map((item, index) => (
-                                                        <li key={index}>{item} </li>
+                                                        <li key={index} className={index === 0 ? "font-bold" : ""} >{item} </li>
+                                                    ))}
+                                                </ul>
+                                            );
+                                        }
+                                        else if (b.includes("Foreign Key differences:")) {
+                                            const test = b.split("|");
+                                            return (
+                                                <ul className={""}>
+                                                    {test.map((item, index) => (
+                                                        <li key={index} className={index === 0 ? "font-bold" : ""}>{item} </li>
                                                     ))}
                                                 </ul>
                                             );
                                         }
                                         else {
-                                            return <li key={j}>{b}</li>;
+                                            return <li key={j} >{b}</li>;
                                         }
                                     })}
                                 </ul>
@@ -470,12 +595,8 @@ const CodeEvaluation = () => {
 
             setFormattedResult(formattedBlocks);
 
-            console.log("typeof", typeof data.diff);
-            console.log("here", data.diff);
-            console.log("why it not formatting doe", formattedBlocks);
-            console.log("there", diffResult);
+
         } catch (e) {
-            console.log("here???")
             setError(e.message);
             setFormattedResult(e.message);
         } finally {
@@ -593,7 +714,17 @@ const CodeEvaluation = () => {
                 </div>
 
                 <div className="inner-page-box" style={{ width: '28vw', height: '70vh', overflow: 'scroll' }}>
-                    {formattedResult}
+
+                    <div className={"font-bold"}>
+                        {tableDiffs.map((diff, index) => (
+                            <div key={index} className={"text-left"}>{diff}</div>
+                        ))}
+                    </div>
+                    <br></br>
+                    <div className={"text-left"}>
+                        {formattedResult}
+                    </div>
+
                 </div>
             </div>
 
