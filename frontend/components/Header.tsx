@@ -16,6 +16,9 @@ export default function Header() {
     const goToConversion = () => {
         navigate("/ConvertNotation");
     }
+    const goToNormalization = () => {
+        navigate("/normalization");
+    }
     return (
         <>
             <div className='relative mx-auto p-1 bg-[#BD0A0A] flex items-center justify-end' style={{border:'0.25vh solid black', height:'8vh', minHeight:'25px'}}>
@@ -41,6 +44,9 @@ export default function Header() {
 
                 <div className={'cursor-pointer text-2xl text-white font-bold font-sans mx-8 flex justify-self-end'} style={{fontSize:'max(5px, 3vh)'}} onClick={goToConversion}>
                     <a className={'hover:underline'}>Notation Converter</a>
+                </div>
+                <div className={'cursor-pointer text-2xl text-white font-bold font-sans mx-8 flex justify-self-end'} style={{fontSize:'max(5px, 3vh)'}} onClick={goToNormalization}>
+                    <a className={'hover:underline'}>Normalization</a>
                 </div>
                 <div className={'flex justify-end'}>
                     <Profile />

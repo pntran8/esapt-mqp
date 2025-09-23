@@ -8,11 +8,12 @@ const Normalization = () => {
     const [pk, setPK] = useState<string>("");
     const [popUp, setPopUp] = useState<boolean>(false);
     const [isBlurred, setIsBlurred] = useState(false);
-
-    const toggleBlur = () => {
-        setIsBlurred(!isBlurred);
-    };
     const [transitiveDependencies, setTransitiveDependencies] = useState<string[]>([]);
+    const [minimalKeys, setMinimalKeys] = useState<string[]>([]);
+    const [fdsRewritten, setFdsRewritten] = useState(new Map());
+    const [candidateKeys, setCandidateKeys] = useState<string[]>([]);
+    const [normalized, setNormalized] = useState<any[]>([]);
+
     // const [powerSet, setPowerSet] = useState<any[]>([]);
     let attributeNames = new Set<string>();
     
@@ -173,7 +174,7 @@ const Normalization = () => {
                 const keySet = new Set(key.split(","));
                 let isSuperset = true;
 
-                // Check that every attribute in key1 is also present in key
+                // checking that every attribute in key1 is also present in key
                 for (const attr of key1Set) {
                     if (!keySet.has(attr)) {
                         isSuperset = false;
@@ -260,7 +261,7 @@ const Normalization = () => {
         allAttributes: Set<string>,
         rhsPlusMap: Map<string, Set<string>>,
         partitionsByLevel: Map<number, Map<string, number[][]>>,
-        totalRows: number  // <-- new argument
+        totalRows: number
     ): [string, string][] {
         const fds: [string, string][] = [];
 
@@ -268,9 +269,7 @@ const Normalization = () => {
             for (const [subsetKey, partitionX] of subsetsMap.entries()) {
                 const subset = new Set(subsetKey.split(",").filter(x => x.length > 0));
 
-                // 🔹 use totalRows instead of sanitizedData.length
                 if (isSuperKey(partitionX, totalRows)) {
-                    // add key -> all other attributes
                     const remainingAttrs = Array.from(allAttributes).filter(a => !subset.has(a));
                     for (const attr of remainingAttrs) {
                         fds.push([subsetKey, attr]);
@@ -405,7 +404,22 @@ const Normalization = () => {
         return transDepen;
     }
 
+    function splitDataset (sanitizedData, transitiveDependency:string){
+        const splitTransitive = transitiveDependency.split("→");
+        const secondDependent = splitTransitive[1];
+        const thirdDependent = splitTransitive[2];
+        // we only care about the second and third one.
 
+        const copySanitized = structuredClone(sanitizedData);
+        const additionalTable = copySanitized.map(item => ({
+            [secondDependent]: item[secondDependent],
+            [thirdDependent]: item[thirdDependent]
+        }));
+        const removedSanitized = copySanitized.map(({ [secondDependent]: _, [thirdDependent]: __, ...rest }) => rest);
+
+        return { originalData: removedSanitized, dependentTable: additionalTable };
+
+    }
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -424,6 +438,7 @@ const Normalization = () => {
 
             const sanitizedData = sanitizeColumns(data);
             setData(sanitizedData);
+            console.log("sanitized data,", sanitizedData)
             if (!sanitizedData || sanitizedData.length === 0) return;
 
             // attribute names as a Set<string>
@@ -444,14 +459,18 @@ const Normalization = () => {
             console.log("RHS+ map:", rhsPlusMap);
             console.log("Discovered FDs:", fds);
             const fds_rewritten = rewriteFDs(fds);
+            setFdsRewritten(fds_rewritten);
 
             console.log("FDs Rewritten:", fds_rewritten);
 
+
             const candidateKeys = getCandidateKeys(fds_rewritten, attributeNames.size);
             console.log("Candidate Keys:", candidateKeys);
+            setCandidateKeys(Array.from(candidateKeys));
 
             // now i want minimal keys.
             const minimalKeys = getMinimalKeys(candidateKeys);
+            setMinimalKeys(Array.from(minimalKeys));
 
             console.log("Minimal Keys", minimalKeys);
 
@@ -463,8 +482,9 @@ const Normalization = () => {
 
             console.log("Transitive Dependencies:", transitiveDependencies)
 
-
             setTransitiveDependencies(transitiveDependencies);
+
+
         };
 
 
@@ -532,7 +552,7 @@ const Normalization = () => {
             </div>
 
 
-            <div className={"bg-opacity-30"}></div>
+            {/*<div className={"bg-opacity-30"}></div>*/}
             {/*<div style={{ height: '75vh', display: 'flex', justifyContent: 'space-around', alignItems: 'flex-start', marginTop:"-2vh"}}>*/}
             {/*</div>*/}
             {/*<div className={"p-20"}>*/}
@@ -542,7 +562,7 @@ const Normalization = () => {
                 <div
                     className="fixed inset-0 bg-gray-400/50 flex justify-center items-center z-50 p-4">
 
-                    <div className={"h-1/2 w-3/5 bg-[#F0F0F0] rounded-lg border-3 border-[#B3B3B3]"}>
+                    <div className={"h-1/2 w-2/5 bg-[#F0F0F0] rounded-lg border-3 border-[#B3B3B3]"}>
                         <div className={"flex justify-end"}>
                             <button
                                 onClick={() => setPopUp(false)}
@@ -553,11 +573,35 @@ const Normalization = () => {
                         </div>
 
                         <div className={"flex justify-start"}>
-                            <h2 className={"ml-6 font-bold text-3xl text-[#353535]"}>Edit Dataset </h2>
-
+                            <h2 className={"ml-6 mb-5 font-bold text-3xl text-[#353535]"}>Edit Dataset </h2>
                         </div>
                         <div className="flex justify-start font-bold text-[#353535] ml-6 mt-2 text-lg">
                             Candidate Key(s) Found:
+                        </div>
+                        <div className="flex justify-start">
+                            <div>
+                                <ul className="flex flex-row ml-8 mt-3 space-y-2">
+                                    {minimalKeys.map((item, index) => (
+                                        <li key={index} className="flex">
+                                            <input
+                                                type="radio"
+                                                name="candidateKey"
+                                                className="w-4 h-4"
+                                                checked={item === pk}
+                                                onChange={() => {
+                                                    setPK(item);
+                                                    setTransitiveDependencies(getTransitiveDependencies(fdsRewritten, new Set(candidateKeys), item));
+                                                }}
+                                            />
+                                            <span className="ml-2 mr-4 relative -top-1">{item}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div className="flex justify-start font-bold text-[#353535] ml-6 mt-2 text-lg">
+                            Transitive Dependencies Found:
                         </div>
                         <div className="flex justify-start">
                             <div>
@@ -570,14 +614,6 @@ const Normalization = () => {
                                     ))}
                                 </ul>
                             </div>
-                        </div>
-
-                        <div className={"flex justify-start flex-row ml-6"}>
-                            <div className={"font-bold text-[#353535] text-lg"}>
-                                Transitive Dependencies Found:
-                            </div>
-
-
                         </div>
 
                     </div>
@@ -608,7 +644,7 @@ const Normalization = () => {
                                         <tr
                                             key={rowIndex}
                                             className="bg-[#C7C7C7]"
-                                            style={{ height: `${100 / Math.max(data.length, 1)}%` }} // stretch rows to fill table
+                                            style={{ height: `${100 / Math.max(data.length, 1)}%` }}
                                         >
                                             {Object.keys(row).map((key) => (
                                                 <td key={key} className="border px-4 py-2 border-[#6B6B6B] truncate">

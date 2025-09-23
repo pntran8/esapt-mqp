@@ -42,6 +42,18 @@
   visibility: visible;
 }
 
+input[type="checkbox"] {
+  accent-color: #7a7a7a;
+  background-color: #7a7a7a;
+  height: 25px;
+  width: 25px;
+}
+
+input[type="radio"] {
+  accent-color: #7a7a7a;
+  height: 20px;
+  width: 20px;
+}
 
 #root {
   margin: 0 auto;
