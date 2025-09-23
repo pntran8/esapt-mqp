@@ -425,11 +425,12 @@ const Normalization = () => {
         });
 
         const removedSanitized = copySanitized.map(
-            ({ [secondDependent]: _, [thirdDependent]: __, ...rest }) => rest
+            ({ [thirdDependent]: _, ...rest }) => rest
         );
 
         return [removedSanitized, additionalTable];
     }
+
 
 
 
