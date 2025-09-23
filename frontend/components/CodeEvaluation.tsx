@@ -650,9 +650,9 @@ const CodeEvaluation = () => {
             </div>
 
             <div className={"flex"} style={{marginTop:"2vh"}}>
-                <h1 className={"w-2/5 font-bold"}>LLM Code</h1>
-                <h1 className={"w-1/5 font-bold"}>Your Code</h1>
-                <h1 className={"w-2/5 font-bold"}>Comparison</h1>
+                <h2 className={"w-2/5 font-bold "}>LLM Code</h2>
+                <h2 className={"w-1/5 font-bold"}>Your Code</h2>
+                <h2 className={"w-2/5 font-bold"}>Comparison</h2>
             </div>
 
             <div style={{ height: '75vh', display: 'flex', justifyContent: 'space-around', alignItems: 'flex-start', marginTop:"-2vh"}}>
