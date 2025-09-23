@@ -389,42 +389,47 @@ const CodeEvaluation = () => {
 
             <header className="text-center text-4xl mt-8 font-bold">Code Comparison</header>
 
-            <div id="input-container" style={{border: "1vh light grey", borderRadius:"2vh", marginTop:"3vh"}}>
+            <div className={"bg-[#e7e7e7] p-4 mx-27 rounded-md border-[2px] border-[#BD0A0A] mt-10"} id="input-container" >
 
-                {file !== null && responseString !== "" && isAuthenticated && (
-                    <button className="cursor-pointer clear-btn">
-                        <Save file={file} responseText={responseString} />
+                <div className={""}>
+                    {/*{file !== null && responseString !== "" && isAuthenticated && (*/}
+                    {/*    <button className="cursor-pointer clear-btn">*/}
+                    {/*        <Save file={file} responseText={responseString} />*/}
+                    {/*    </button>*/}
+                    {/*)}*/}
+
+
+                    <input
+                        type="file"
+                        accept=".png,.jpg"
+                        onChange={handleFileUpload}
+                        className="chat-input bg-gray-100 w-[87%]"
+                        style={{fontSize:'2vh'}}
+                    />
+
+                    <button className="cursor-pointer clear-btn bg-[#BD0A0A] hover:bg-[#700606] text-white mx-4" onClick={() => {
+                        localStorage.clear();
+                        window.location.reload();
+                    }}>
+                        Clear
                     </button>
-                )}
 
-                <button
-                    className={"cursor-pointer clear-btn"}
-                    style={{
-                        backgroundColor: "#BD0A0A",
-                        color: "white",
+                    <button
+                        className={"cursor-pointer clear-btn"}
+                        style={{
+                            backgroundColor: "#BD0A0A",
+                            color: "white",
 
-                    }}
-                    onClick={handleCompare}
-                    disabled={loading}
-                >
-                    {loading ? "Comparing..." : "Compare"}
-                </button>
-
-                <input
-                    type="file"
-                    accept=".png,.jpg"
-                    onChange={handleFileUpload}
-                    className="chat-input"
-                    style={{fontSize:'2vh'}}
-                />
-
-                <button className="cursor-pointer clear-btn bg-[#BD0A0A] hover:bg-[#700606] text-white m-2" onClick={() => {
-                    localStorage.clear();
-                    window.location.reload();
-                }}>
-                    Clear
-                </button>
+                        }}
+                        onClick={handleCompare}
+                        disabled={loading}
+                    >
+                        {loading ? "Comparing..." : "Compare"}
+                    </button>
+                </div>
             </div>
+
+
 
             <div className={"flex"} style={{marginTop:"2vh"}}>
                 <h1 className={"w-2/5 font-bold"}>LLM Code</h1>

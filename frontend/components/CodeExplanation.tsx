@@ -244,32 +244,13 @@ const CodeExplanation = () => {
 
                         <header className="text-center text-4xl mt-8 font-bold">SQL Generation</header>
 
-                        <div id="input-container" style={{border: "1vh light grey", borderRadius:"2vh", marginTop:"3vh", marginBottom:"3vh"}}>
-                            <button className="cursor-pointer clear-btn bg-[#BD0A0A] hover:bg-[#700606] text-white" onClick={() => {
-                                let blob;
-                                if (localStorage.getItem("aiCode")) {
-                                    blob = new Blob([localStorage.getItem("aiCode")], { type: 'text/plain' });
-                                }
-                                else {
-                                    blob = new Blob([code], { type: 'text/plain' });
-                                }
-                                const url = URL.createObjectURL(blob);
-                                const link = document.createElement('a');
-                                link.href = url;
-                                link.download = 'Output.txt';
-                                document.body.appendChild(link);
-                                link.click();
-                                document.body.removeChild(link);
-                                URL.revokeObjectURL(url);
-                            }}>
-                                Download Output
-                            </button>
+                        <div id="input-container" className={"bg-[#e7e7e7] p-4 mx-27 rounded-md border-[2px] border-[#BD0A0A] mt-10"} >
 
                             <input
                                 type="file"
                                 accept=".png,.jpg"
                                 onChange={handleFileUpload}
-                                className="chat-input"
+                                className="chat-input bg-gray-100 w-[77%]"
                                 style={{fontSize:'2vh'}}
                             />
 
@@ -290,6 +271,26 @@ const CodeExplanation = () => {
                                     />
                                 </button>
                             )}
+
+                            <button className="cursor-pointer clear-btn bg-[#BD0A0A] hover:bg-[#700606] text-white" onClick={() => {
+                                let blob;
+                                if (localStorage.getItem("aiCode")) {
+                                    blob = new Blob([localStorage.getItem("aiCode")], { type: 'text/plain' });
+                                }
+                                else {
+                                    blob = new Blob([code], { type: 'text/plain' });
+                                }
+                                const url = URL.createObjectURL(blob);
+                                const link = document.createElement('a');
+                                link.href = url;
+                                link.download = 'Output.txt';
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                                URL.revokeObjectURL(url);
+                            }}>
+                                Download Output
+                            </button>
                         </div>
 
                         {/* collapsed headers */}
