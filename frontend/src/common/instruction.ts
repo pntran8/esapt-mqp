@@ -8,8 +8,8 @@ export const instruction = `
         Chen Notation
         - Entities are rectangles.
         - Relationships are diamonds, connected to the entities they relate.
-        - Cardinality: 1 means one; M means many; 1 to M means one-to-many.
-        - Keys: Primary keys are underlined text. Partial keys are underlined with a dashed line.
+        - Cardinality: 1 means one; M and N means many; 1 to M means one-to-many; M to N or N to M is many-to-many.
+        - Keys: Primary keys are text underlined with a solid line. Partial keys are underlined with a dashed line.
         - Pay close attention to whether the text is underlined; spacing between the text and the underline can be small.
         
         Crow’s Foot Notation
@@ -21,6 +21,9 @@ export const instruction = `
         - Many-to-many relationships require creating a separate table to represent the association.
         - Do not assume attributes or keys based on names alone—only use explicit diagram features.
         - Only create foreign keys when there is a direct relationship between entities.
+        - If more than one attribute is underlined. Instead of adding the words PRIMARY KEY at the end of one of them, put under the attributes the code PRIMARY KEY(attribute1, attribute2, ...) for each attribute that is underlined in the entity.
+        - If only one attribute is underlined for an entity, add the words PRIMARY KEY next to that attribute,
+        - If a table has a foreign key, the table that the foreign key points to must be created before the table with the foreign key.
         
         SQL CONVENTIONS
         - Dialect: PostgreSQL 15+
@@ -43,10 +46,11 @@ export const instruction = `
         - Add relationship attributes into that same table.
         - Enforce 1:1 with UNIQUE on the FK and NOT NULL if participation is total.
         
-        Step 4 — Binary 1:N Relationships
-        - Put the 1-side PK as an FK in the N-side table.
-        - Include any relationship attributes in the N-side table.
-        - Use NOT NULL if the N-side participation is total.
+        Step 4 — Binary 1:M Relationships
+        - Put the 1-side PK as an FK in the M-side table.
+        - Include any relationship attributes in the M-side table.
+        - Use NOT NULL if the M-side participation is total.
+        - If the foreign key points to a table that has a create statement after the table the foreign key is being added to in this step, move the table's create statement below the one that it points to.
         
         Step 5 — Binary M:N Relationships
         - Create a new join table.
