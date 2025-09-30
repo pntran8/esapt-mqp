@@ -65,10 +65,10 @@ export default function Footer() {
                             application. </h3>
                         <img style={{border: "solid black 1px", justifySelf: "center"}} src={HomeSQLGen}
                              alt={"Generate SQL Page Button"}/>
-                        <h3 style={{marginBottom: "2vh"}}> This button will take you to the page that generates SQL with an explanation.</h3>
+                        <h3 className={"h3-tut"} style={{marginBottom: "2vh"}}> This button will take you to the page that generates SQL with an explanation.</h3>
                         <img style={{border: "solid black 1px", justifySelf: "center"}} src={HomeComp}
                              alt={"Code Comparison Page Button"}/>
-                        <h3 style={{marginBottom: "2vh"}}> This button will take you to the page that allows you to compare your own code against generated code.</h3>
+                        <h3 className={"h3-tut"} style={{marginBottom: "2vh"}}> This button will take you to the page that allows you to compare your own code against generated code.</h3>
                     </div>
                     <div className="popuptext" id="genpopup">
                         <h1 className={"h1-tut"}>Generating SQL from an ERD with explanation</h1>
