@@ -497,7 +497,7 @@ const CodeEvaluation = () => {
                                 <li key={i}>
                                     {item.key == "PrimaryKey" ? "Primary Key: " :
                                          item.key == "ForeignKey" ? "Foreign key referencing: " :
-                                    item.key == "Attribute" ? "Attribute: " : item.key} {item.value}
+                                    item.key == "Attribute" ? "Additonal Attribute: " : item.key} {item.value}
                                 </li>
                             ))}
                         </ul>
@@ -511,7 +511,8 @@ const CodeEvaluation = () => {
                             {existsInUser.map((item, i) => (
                                 <li key={i}>
                                     {item.key == "PrimaryKey" ? "Primary Key: " :
-                                        item.key == "ForeignKey" ? "Foreign key referencing: " : item.key } {item.value}
+                                        item.key == "ForeignKey" ? "Foreign key referencing: " :
+                                            item.key == "Attribute" ? "Additional Attribute: " : item.key} {item.value}
                                 </li>
                             ))}
                         </ul>
