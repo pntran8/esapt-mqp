@@ -466,7 +466,7 @@ const CodeEvaluation = () => {
             if (inner.has(key)) {
                 const value = inner.get(key)!;
 
-                const llmArr = Array.isArray(value[0]) ? value[0] : [value[0]].filter(Boolean); // removes null, [], and undefined
+                const llmArr = Array.isArray(value[0]) ? value[0] : [value[0]].filter(Boolean); // removing null, [], and undefined stuff
                 const userArr = Array.isArray(value[1]) ? value[1] : [value[1]].filter(Boolean);
 
                 for (const entry of llmArr) {
@@ -495,7 +495,9 @@ const CodeEvaluation = () => {
                         <ul className="list-disc text-left pl-5">
                             {existsInLLM.map((item, i) => (
                                 <li key={i}>
-                                    {item.key} {item.value}
+                                    {item.key == "PrimaryKey" ? "Primary Key: " :
+                                         item.key == "ForeignKey" ? "Foreign key referencing: " :
+                                    item.key == "Attribute" ? "Attribute: " : item.key} {item.value}
                                 </li>
                             ))}
                         </ul>
@@ -508,7 +510,8 @@ const CodeEvaluation = () => {
                         <ul className="list-disc pl-5 text-left">
                             {existsInUser.map((item, i) => (
                                 <li key={i}>
-                                    {item.key} {item.value}
+                                    {item.key == "PrimaryKey" ? "Primary Key: " :
+                                        item.key == "ForeignKey" ? "Foreign key referencing: " : item.key } {item.value}
                                 </li>
                             ))}
                         </ul>
@@ -894,7 +897,7 @@ const CodeEvaluation = () => {
 
                     {allInfo.size > 0 ?(
                         <div>
-                            <h2 className={"text-left font-bold text-xl"}>Attributes do not match in these tables:</h2>
+                            <h2 className={"text-left font-bold text-xl"}>Schema Differences Between LLM and User Tables:</h2>
                             <div className={""}>
                                 <div>
                                     {Array.from(allInfo.entries()).map(([key, value]) => (
