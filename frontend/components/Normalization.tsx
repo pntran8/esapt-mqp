@@ -519,12 +519,12 @@ const Normalization = () => {
             </header>
 
             {/* file input */}
-            <div className="flex justify-center mt-6">
+            <div id="input-container" className={"bg-[#e7e7e7] p-4 mx-20 rounded-md border-[2px] border-[#BD0A0A] mt-10 flex items-center"} >
                 <input
                     type="file"
                     accept=".csv"
                     onChange={handleFileUpload}
-                    className="chat-input border rounded p-2"
+                    className="chat-input bg-gray-100 flex-grow mr-4 "
                     style={{ fontSize: "2vh" }}
                 />
             </div>
@@ -709,7 +709,10 @@ const Normalization = () => {
                     </div>
 
                 ) : (
-                    <p className="text-center mt-4">Upload a CSV to see results</p>
+                    <div className={"bg-[#D9D9D9] rounded-md text-center  h-100 border border-[#6B6B6B] mt-10"}>
+                        <p className="text-center mt-4">Upload a CSV file to see results</p>
+                    </div>
+
                 )}
 
             </div>
