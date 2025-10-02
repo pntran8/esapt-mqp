@@ -8,21 +8,17 @@ export const instruction = `
         Chen Notation
         - Entities are rectangles.
         - Relationships are diamonds, connected to the entities they relate.
+        - Attributes are ovals that are connected by line to their relevant entities or relationships
         - Cardinality: 1 means one; M and N means many; 1 to M means one-to-many; M to N or N to M is many-to-many.
         - Keys: Primary keys are text underlined with a solid line. Partial keys are underlined with a dashed line.
         - Pay close attention to whether the text is underlined; spacing between the text and the underline can be small.
         
-        Crow’s Foot Notation
-        - Entities are rectangles.
-        - Relationships are lines with symbols at the ends: crow’s foot (<) = many; single line (|) = one.
-        - One-to-many is represented by a single line on one end and a crow’s foot on the other.
-        
         General Rules
+        - Weak Entities are entities that have a rectangle inside another rectangle. The gaps between the rectangles may be small, so look closely for them.
         - Many-to-many relationships require creating a separate table to represent the association.
         - Do not assume attributes or keys based on names alone—only use explicit diagram features.
         - Only create foreign keys when there is a direct relationship between entities.
-        - If more than one attribute is underlined. Instead of adding the words PRIMARY KEY at the end of one of them, put under the attributes the code PRIMARY KEY(attribute1, attribute2, ...) for each attribute that is underlined in the entity.
-        - If only one attribute is underlined for an entity, add the words PRIMARY KEY next to that attribute,
+        - Pay close attention to the number of attributes underlined for an entity. For each entity that is underlined, it should be put in a primary key in the corresponding table with format PRIMARY KEY(attribute1, attribute2, ...)
         - If a table has a foreign key, the table that the foreign key points to must be created before the table with the foreign key.
         
         SQL CONVENTIONS
@@ -39,7 +35,8 @@ export const instruction = `
         
         Step 2 — Weak Entities
         - Create one table per weak entity with its simple attributes.
-        - Add FK to the owner; composite PK = owner PK + partial/own key (if present). Use ON DELETE CASCADE on that FK.
+        - Add FK to the owner. Use ON DELETE CASCADE on that FK.
+        - composite PK = the foreign key field + partial/own key (if present).
         
         Step 3 — Binary 1:1 Relationships
         - Include the PK of one entity as an FK in the other, choosing the side with total participation if shown.
