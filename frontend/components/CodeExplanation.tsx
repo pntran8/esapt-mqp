@@ -289,7 +289,7 @@ const CodeExplanation = () => {
                                 document.body.removeChild(link);
                                 URL.revokeObjectURL(url);
                             }}>
-                                Download Output
+                                Download SQL
                             </button>
                         </div>
 
