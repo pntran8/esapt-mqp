@@ -283,7 +283,7 @@ const CodeExplanation = () => {
                                 const url = URL.createObjectURL(blob);
                                 const link = document.createElement('a');
                                 link.href = url;
-                                link.download = 'Output.txt';
+                                link.download = 'image_to_sql_output.sql';
                                 document.body.appendChild(link);
                                 link.click();
                                 document.body.removeChild(link);
