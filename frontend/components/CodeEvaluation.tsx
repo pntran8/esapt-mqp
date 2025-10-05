@@ -557,7 +557,7 @@ const CodeEvaluation = () => {
 
         console.log(cleanedSchema)
         try {
-            const res = await fetch("http://localhost:8080/api/compare", {
+            const res = await fetch("/api/compare", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
