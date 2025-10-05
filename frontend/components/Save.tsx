@@ -91,7 +91,7 @@ const Save: React.FC<SaveProps> = ({ file, responseText }) => {
 
                 {!doneSaving ?
                     (isSaving ?
-                    "Saving..." : "Save to database")
+                    "Saving..." : "Save to Account")
                     :
                     (success ?
                             <p className="text-white">

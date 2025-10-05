@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import Header from "./Header.tsx";
-import { useNavigate } from "react-router-dom";
+import Footer from "./Footer";
 
 interface UploadEntry {
     id: number;
@@ -16,7 +16,7 @@ const View: React.FC = () => {
     const [entries, setEntries] = useState<UploadEntry[]>([]);
     const [openEntryId, setOpenEntryId] = useState(0);
     const openEntry = entries.find((e) => e.id === openEntryId) || null;
-    const navigate = useNavigate();
+    const [showCopiedMessage, setShowCopiedMessage] = useState(false);
 
     function parseText(input: string) {
         try {
@@ -162,13 +162,14 @@ const View: React.FC = () => {
         <>
             <Header />
             <header className="text-center text-4xl mt-8 font-bold">User History</header>
+            <h2 className="text-gray-500">Click On The Preview to Expand</h2>
 
             <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
                 {entries.map((entry) => (
                     <div
                         key={entry.id}
                         onClick={() => setOpenEntryId(entry.id)}
-                        className="cursor-pointer border shadow rounded-xl p-2 flex flex-col items-center w-auto h-95 overflow-hidden"
+                        className="cursor-pointer shadow-[0_10px_20px_rgba(0,0,0,0.4)] rounded-xl p-2 flex flex-col items-center w-auto h-95 overflow-hidden"
                     >
                         <img
                             src={entry.decodedImage}
@@ -178,7 +179,7 @@ const View: React.FC = () => {
                         <div className="text-xs overflow-auto whitespace-pre-wrap break-words">
                             {parseText(entry.textFile)}
                         </div>
-                        <p className="text-[10px] text-gray-500 mt-1">
+                        <p className="text-md text-gray-600 mt-1 font-bold">
                             {new Date(entry.timeCreated).toLocaleString()}
                         </p>
                     </div>
@@ -198,12 +199,23 @@ const View: React.FC = () => {
                         <div className="w-full flex justify-between items-center mb-4">
                             <div className="flex gap-2">
                                 <button
-                                    onClick={() =>
-                                        navigate(`/viewHistory/${user?.sub?.slice(-8).toUpperCase()}?id=${openEntry.id}&timeCreated=${encodeURIComponent(openEntry.timeCreated)}`)
-                                    }
+                                    onClick={async () => {
+                                        const url = `${window.location.origin}/viewHistory/${user?.sub?.slice(-8).toUpperCase()}?id=${openEntry.id}&timeCreated=${encodeURIComponent(openEntry.timeCreated)}`;
+
+                                        window.open(url, '_blank');
+
+                                        // copy to clipboard
+                                        try {
+                                            await navigator.clipboard.writeText(url);
+                                            setShowCopiedMessage(true);
+                                            setTimeout(() => setShowCopiedMessage(false), 3000);
+                                        } catch (err) {
+                                            console.error('Failed to copy: ', err);
+                                        }
+                                    }}
                                     className="bg-[#981026] text-white p-2 hover:bg-[#c31431] rounded-2xl cursor-pointer"
                                 >
-                                    Share Log
+                                    Copy Link to Clipboard
                                 </button>
                                 <button
                                     onClick={async () => {
@@ -243,6 +255,7 @@ const View: React.FC = () => {
                     </div>
                 </div>
             )}
+            <Footer />
         </>
     );
 };
