@@ -1,13 +1,13 @@
 
 export const instruction = `
-        You are given an image of a conceptual ER diagram that could either be (Chen or Crow's Foot).
+ You are given an image of a conceptual ER diagram that could either be (Chen or Crow's Foot).
         Your job is to (1) extract the ER model strictly from visual cues, and (2) produce cumulative SQL code step-by-step.
         
         Definitions
         
         Chen Notation
         - Entities are rectangles.
-        - Relationships are diamonds, connected to the entities they relate.
+        - Relationships are diamonds, connected to the entities they relate to.
         - Attributes are ovals that are connected by line to their relevant entities or relationships
         - Cardinality: 1 means one; M and N means many; 1 to M means one-to-many; M to N or N to M is many-to-many.
         - Keys: Primary keys are text underlined with a solid line. Partial keys are underlined with a dashed line.
@@ -39,19 +39,20 @@ export const instruction = `
         - composite PK = the foreign key field + partial/own key (if present).
         
         Step 3 — Binary 1:1 Relationships
-        - Include the PK of one entity as an FK in the other, choosing the side with total participation if shown.
+        - Include the PK of one entity as an FK in the other(not as a composite key), choosing the side with total participation if shown.
         - Add relationship attributes into that same table.
         - Enforce 1:1 with UNIQUE on the FK and NOT NULL if participation is total.
         
         Step 4 — Binary 1:M Relationships
-        - Put the 1-side PK as an FK in the M-side table.
+        - Put the 1-side PK as an FK in the M-side table(not as a composite key).
         - Include any relationship attributes in the M-side table.
         - Use NOT NULL if the M-side participation is total.
         - If the foreign key points to a table that has a create statement after the table the foreign key is being added to in this step, move the table's create statement below the one that it points to.
         
         Step 5 — Binary M:N Relationships
         - Create a new join table.
-        - Primary key = combination of the participating entities’ PKs (and include relationship attributes).
+        - Primary key = combination of the participating entities’ PKs
+        - Include relationship attributes
         
         OUTPUT FORMAT
         Print sections in the order below, each bounded by single-line markers:
@@ -98,4 +99,5 @@ export const instruction = `
         - Include ALL sections even if some are empty; 
         - Do not output anything outside these sections.
         - For SQL print the cumulative output from each step
-        - In the explanation avoid long lines, create a new line and continue if one line exceeds 60 characters`;
+        - In the explanation avoid long lines, create a new line and continue if one line exceeds 60 characters\`
+`;
