@@ -13,6 +13,11 @@ export const instruction = `
         - Keys: Primary keys are text underlined with a solid line. Partial keys are underlined with a dashed line.
         - Pay close attention to whether the text is underlined; spacing between the text and the underline can be small.
         
+        Crow’s Foot Notation
+        - Entities are rectangles.
+        - Relationships are lines with symbols at the ends: crow’s foot (<) = many; single line (|) = one.
+        - One-to-many is represented by a single line on one end and a crow’s foot on the other.
+        
         General Rules
         - Weak Entities are entities that have a rectangle inside another rectangle. The gaps between the rectangles may be small, so look closely for them.
         - Many-to-many relationships require creating a separate table to represent the association.
@@ -99,5 +104,5 @@ export const instruction = `
         - Include ALL sections even if some are empty; 
         - Do not output anything outside these sections.
         - For SQL print the cumulative output from each step
-        - In the explanation avoid long lines, create a new line and continue if one line exceeds 60 characters\`
-`;
+        - In the explanation avoid long lines, create a new line and continue if one line exceeds 60 characters`;
+
