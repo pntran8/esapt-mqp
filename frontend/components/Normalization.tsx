@@ -1,4 +1,4 @@
-import React, {SetStateAction, useState} from "react";
+import React, {useState} from "react";
 import Papa from "papaparse";
 import Header from "./Header";
 import Footer from "./Footer";
@@ -7,12 +7,19 @@ const Normalization = () => {
     const [data, setData] = useState<any[]>([]);
     const [pk, setPK] = useState<string>("");
     const [popUp, setPopUp] = useState<boolean>(false);
-    const [transitiveDependencies, setTransitiveDependencies] = useState<string[]>([]);
+    const [transitiveDependencies, setTransitiveDependencies] = useState<string[][]>([]);
     const [minimalKeys, setMinimalKeys] = useState<string[]>([]);
     const [fdsRewritten, setFdsRewritten] = useState(new Map());
     const [candidateKeys, setCandidateKeys] = useState<string[]>([]);
     const [splitDatasetResult, setSplitDatasetResult] = useState<any[]>([]);
     const [usedInSplitting, setUsedInSplitting] = useState<string>(true);
+    const [partialDependencies, setPartialDependencies] = useState<any[]>([]);
+    const [Tables3NFFrom, setTablesFrom3NF] = useState<any[]>([]);
+    const [Tables3NFAfter, setAfter3NF] = useState<Set<string>>([]);
+    const [nTables, setNormalizedTables] = useState<any[]>([]);
+    const [attrNames, setAttrNames] = useState<Set<string>>([]);
+    const [listTransitiveDependencies, setListTransitiveDependencies] = useState<string[][]>([]);
+    const [listPartialDependencies, setListPartialDependencies] = useState<string[][]>([]);
 
     // const [powerSet, setPowerSet] = useState<any[]>([]);
     let attributeNames = new Set<string>();
@@ -31,82 +38,92 @@ const Normalization = () => {
         });
     };
 
-    function getPowerSet (set: Set<string>) :string[][] {
-        if (set.size === 0) {
-            return [[]];
-        }
-
-        const arr = Array.from(set);
-
-        const subsets: string[][] = [];
-
-        const firstElement = arr[0];
-        const remainingArray = arr.slice(1);
-        const remainingSet: Set<string> = new Set(remainingArray);
-
-
-        getPowerSet(remainingSet).forEach((item) => {
-            subsets.push(item);
-            subsets.push([firstElement, ...item]);
-        })
-
-        console.log("length", subsets.length);
-        return subsets;
-
-    }
 
     function subsetToKey(subset: Iterable<string>): string {
         return Array.from(subset).sort().join(",");
     }
 
 
-    function partitionsAllLevels  (allAttributes: Set<string>, rhsPlusMap: Map<string, Set<string>>, rows : any[], powerSet : string[][]){
-        let partitionsByLevel = new Map<number, Map<string, number[][]>>();
 
-        for (const subset of powerSet) { // iterate through subsets (ie studentid, studentname, [studentid, studentname])
-            const partitionMap = new Map<string, number[]>();   // we want partition to be {studentid: {[0],[1]}}
-            // const currentSubset = powerSet[i]; // current subset
-            if (subset.length === 0){
-                continue;
-            }
-            const subsetSet = new Set(subset);
-            computeRHS(subsetSet, allAttributes, subset.length, rhsPlusMap);
-            for (let j = 0; j < rows.length; j++){ // for row in rows
+    function computePartition(subset: Set<string>, rows: any[]): number[][] {
+        const partitionMap = new Map<string, number[]>();
 
-                // i need the value of the subset in the row.
-                // check the row's subset's value
-                const row = rows[j];
-                let rowValue = [];
-                for (let attr of subset){
-                    rowValue.push(row[attr]);
-                }
-                const key = JSON.stringify(rowValue);
+        for (let j = 0; j < rows.length; j++) {
+            const row = rows[j];
+            const rowValue: any[] = [];
 
-
-                if (!partitionMap.has(key)) { // if combination of values doesn't exist
-                    partitionMap.set(key, []) // make new key value pair
-                }
-
-                partitionMap.get(key)!.push(j); // append value to key associated
-
+            for (const attr of subset) {
+                rowValue.push(row[attr]);
             }
 
-            const partition = Array.from(partitionMap.values());
-            const subsetKey = subsetToKey(subset);
+            const key = JSON.stringify(rowValue);
 
-            if (!partitionsByLevel.has(subset.length)) { // this level been defined alr? if no
-                partitionsByLevel.set(subset.length, new Map()); // make new key value pair of level
+            if (!partitionMap.has(key)) {
+                partitionMap.set(key, []);
             }
-            partitionsByLevel.get(subset.length)!.set(subsetKey, partition);  // add partitions to it
-
-
+            partitionMap.get(key)!.push(j);
         }
 
-        return partitionsByLevel;
-
+        return Array.from(partitionMap.values());
     }
 
+    function generatePartitionsByLevel(
+        attributeNames: Set<string>,
+        rows: any[]
+    ): { partitionsByLevel: Map<number, Map<string, number[][]>>, rhsPlusMap: Map<string, Set<string>>, superKeys: Set<string> } {
 
+        const superKeys = new Set<string>();
+        const partitionsByLevel = new Map<number, Map<string, number[][]>>();
+        const rhsPlusMap = new Map<string, Set<string>>();
+
+        // LEVEL 1
+        const level1 = new Map<string, number[][]>();
+        const prevLevelSubsets: Set<string>[] = [];
+
+        for (const attr of attributeNames) {
+            const subset = new Set([attr]);
+            prevLevelSubsets.push(subset);
+
+            const partition = computePartition(subset, rows);
+            level1.set(subsetToKey(subset), partition);
+            computeRHS(subset, attributeNames, 1, rhsPlusMap);
+        }
+        partitionsByLevel.set(1, level1);
+
+        // LEVEL 2+
+        let level = 2;
+        while (prevLevelSubsets.length > 1) {
+            const currentLevel = new Map<string, number[][]>();
+
+            for (let i = 0; i < prevLevelSubsets.length; i++) {
+                for (let j = i + 1; j < prevLevelSubsets.length; j++) {
+                    const union = new Set([...prevLevelSubsets[i], ...prevLevelSubsets[j]]);
+                    if (union.size !== level) continue;
+
+                    const key = subsetToKey(union);
+                    const partition = computePartition(union, rows);
+
+                    currentLevel.set(key, partition);
+                    computeRHS(union, attributeNames, level, rhsPlusMap);
+
+                }
+            }
+
+            if (currentLevel.size === 0) break;
+
+            partitionsByLevel.set(level, currentLevel);
+
+            prevLevelSubsets.splice(
+                0,
+                prevLevelSubsets.length,
+                ...Array.from(currentLevel.keys()).map(k => new Set(k.split(",")))
+            );
+
+            level++;
+        }
+
+        return { partitionsByLevel, rhsPlusMap, superKeys };
+    }
 
 
     function getArrayIntersection<T>(arr1: T[], arr2: T[]): T[] {
@@ -201,13 +218,12 @@ const Normalization = () => {
         return difference;
     }
 
-    function computeRHS (subset: Set<string>, allAttributes:Set<string>, level:number, rhsPlusMap:Map<string, Set<string>>){
+    function computeRHS (subset: Set<string>, allAttributes:Set<string>, level:number, rhsPlusMap:Map<string, Set<string>>) {
         let difference = subtractStringSets(allAttributes, subset);
-        if (level == 1){
+        if (level == 1) {
             rhsPlusMap.set(subsetToKey(subset), new Set(difference));
             return;
-        }
-        else{
+        } else {
             // get RHS+ for each immediate subset of X from rhsPlusMap
             // yeah but i have subset as a string rn
             // immediate subsets are level-1. do i change  rhsPlusMap to a Map<number, <string, number[]>> where the first number is the level. would that work
@@ -221,9 +237,9 @@ const Normalization = () => {
             }
 
             // now we want like an array of the possibleRHS for each immediate subset
-            const allPossibleRHS : string[][] = [];
-            for (const ss in immediateSubset){
-                const possibleRHS = rhsPlusMap.get(subsetToKey(immediateSubset[ss]))?? new Set<string>();
+            const allPossibleRHS: string[][] = [];
+            for (const ss in immediateSubset) {
+                const possibleRHS = rhsPlusMap.get(subsetToKey(immediateSubset[ss])) ?? new Set<string>();
                 allPossibleRHS.push(Array.from(possibleRHS));
             }
 
@@ -239,18 +255,6 @@ const Normalization = () => {
 
         }
     }
-
-    // ----------------------------------------------------------
-
-    // Function 2: generate levels and check dependencies
-    // for each subset in level i:
-    //     grab RHS+ of that subset (THIS IS WHERE FUNCTION 1 WOULD BE CALLED)
-    //     for RHS in RHS+:
-    //         check equivalency: does LHS -> RHS actually hold?
-    //             -> if yes, record FD
-    //             -> if no, prune RHS from RHS+
-
-
 
 
     function isSuperKey(partition: number[][], totalRows: number): boolean {
@@ -296,6 +300,7 @@ const Normalization = () => {
                     if (holds) {
                         fds.push([subsetKey, A]);
                     } else {
+                        console.log("deleted this rhs", A)
                         rhsSet.delete(A);
                     }
                 }
@@ -340,6 +345,8 @@ const Normalization = () => {
         return fds_rewritten;
     }
 
+
+    // naming is wrong this is lowkey getSuperkey
     function getCandidateKeys(fds_rewritten: Map<any, any>, numAttr: number) {
         const candidateKeys = new Set<string>;
         for (const key of fds_rewritten.keys()) {
@@ -355,6 +362,7 @@ const Normalization = () => {
         }
         return candidateKeys;
     }
+
 
     function getMinimalKeys(candidateKeys: Set<any>) {
         const minimalKeys = new Set<string>;
@@ -378,59 +386,280 @@ const Normalization = () => {
     // remove the candidate keys from fds
     // transtivie dependency becomes pk -> lhs -> rhs
 
-    function getTransitiveDependencies(fdsRewritten: Map<string, string[]>, candidateKeys: Set<string>, primaryKey:string) {
+    function getTransitiveDependencies(
+        fdsRewritten: Map<string, string[]>,
+        candidateKeys: Set<string>,
+        primaryKey:string) {
         // remove candidate keys from fds
+        const fdsCopy = new Map(fdsRewritten);
         for (const candidateKey of candidateKeys) {
             console.log("candidatekey here", candidateKey)
-            if (fdsRewritten.has(candidateKey)) {
+            if (fdsCopy.has(candidateKey)) {
                 console.log("HERE!?")
                 console.log("before", fdsRewritten)
-                fdsRewritten.delete(candidateKey);
+                fdsCopy.delete(candidateKey);
+
                 console.log("after", fdsRewritten)
             }
         }
 
-        // const transitiveDependencies: [string, string, string][] = [];
-        //
-        // for (const fd of fdsRewritten) {
-        //     transitiveDependencies.push([primaryKey, fd[0], fd[1].join()]);
-        // }
-
-        const transDepen : string[] = [];
-        for (const fd of fdsRewritten){
-            transDepen.push(primaryKey + " → " + fd[0] + " → " + fd[1].join(", "))
+        const transDepen: string[][] = [];
+        for (const [lhs, rhs] of fdsCopy){
+            const X = new Set(lhs.split(",").filter(x => x.length > 0)); // lhs
+            // now we wanna see if lhs is a superkey
+            if (!isSuperKeyTransitive(candidateKeys, X)) {
+                for (const str of rhs) {
+                    if (!candidateKeys.has(str)) {
+                        transDepen.push([lhs, str])
+                    }
+                }
+            }
         }
-
+        console.log("is it just not getting here")
         return transDepen;
     }
 
-    function splitDataset(sanitizedData, transitiveDependency: string) {
-        const splitTransitive = transitiveDependency.split("→").map(s => s.trim());
-        const secondDependent = splitTransitive[1];
-        const thirdDependent = splitTransitive[2];
+    function isSuperKeyTransitive (candidateKeys: Set<string>, X : Set<string>): boolean {
+        for (const key of candidateKeys) {
+            const lhsAttrs = new Set (key.split(",").filter(x => x.length > 0));
+            let isSubset = true;
+            for (const attr of lhsAttrs) {
+                if(!X.has(attr)){
+                    isSubset = false;
+                    break;
+                }
+            }
 
-        const copySanitized = structuredClone(sanitizedData);
-
-        const additionalTableRaw = copySanitized.map(item => ({
-            [secondDependent]: item[secondDependent],
-            [thirdDependent]: item[thirdDependent],
-        }));
-
-        const seen = new Set();
-        const additionalTable = additionalTableRaw.filter(item => {
-            const key = `${item[secondDependent]}|${item[thirdDependent]}`;
-            if (seen.has(key)) return false;
-            seen.add(key);
-            return true;
-        });
-
-        const removedSanitized = copySanitized.map(
-            ({ [thirdDependent]: _, ...rest }) => rest
-        );
-
-        return [removedSanitized, additionalTable];
+            if (isSubset) {
+                return true;
+            }
+        }
+        return false;
     }
 
+    // function splitDataset(sanitizedData, transitiveDependency: string[]) {
+    //     const secondDependent = transitiveDependency[0];
+    //     const thirdDependent = transitiveDependency[1];
+    //
+    //     const copySanitized = structuredClone(sanitizedData);
+    //
+    //     const additionalTableRaw = copySanitized.map(item => ({
+    //         [secondDependent]: item[secondDependent],
+    //         [thirdDependent]: item[thirdDependent],
+    //     }));
+    //
+    //     const seen = new Set();
+    //     const additionalTable = additionalTableRaw.filter(item => {
+    //         const key = `${item[secondDependent]}|${item[thirdDependent]}`;
+    //         if (seen.has(key)) return false;
+    //         seen.add(key);
+    //         return true;
+    //     });
+    //
+    //     const removedSanitized = copySanitized.map(
+    //         ({ [thirdDependent]: _, ...rest }) => rest
+    //     );
+    //
+    //     return [removedSanitized, additionalTable];
+    // }
+
+    function isProperSet(setA: Set<string>, setB: Set<string>){
+        if (setA.size < setB.size){
+            for (const A of setA) {
+                if (!setB.has(A)){
+                    return false;
+                }
+            }
+        }
+        else{
+            return false;
+        }
+        return true;
+    }
+
+
+    function normalize2NF (fds_rewritten: Map<string, string[]>, primaryKey: Set<string>) {
+        const fdViolators : string[][] = [];
+        for (const [lhs, rhs] of fds_rewritten) {
+            const X = new Set(lhs.split(",").filter(x => x.length > 0)); // lhs
+            if (isProperSet(X, primaryKey)) {
+                for (const attr of rhs) {
+                    if (!primaryKey.has(attr)) {
+                        fdViolators.push([lhs, attr])
+                    }
+                }
+            }
+        }
+        return fdViolators;
+    }
+    function decomposeMultiple(fds: string[][], ogTable: Set<string>){
+        // When a partial key is found, the workaround to normalizing the table is to move the dependent RHS and the
+        // determinate LHS into their own table,
+        // where the determinate becomes the primary key of that table.
+        // In addition, we move the dependent attribute out of the original table.
+        const copyOG = new Set(ogTable);
+        const newTables : string[][] = []
+        for (const dependency of fds){
+            // need to check if the rhs is even in the og
+            if (copyOG.has(dependency[1])){
+                newTables.push([dependency[0], dependency[1]]);
+                copyOG.delete(dependency[1]);
+            }
+        }
+
+
+        return {
+            newTables,
+            reducedOG: copyOG
+        }
+    }
+
+    // function populateNormalizedTables(sanitizedData: any[], decompositions: { newTable: string[][], reducedOG: Set<string> }[]) {
+    //
+    //     const populatedTables: any[][] = [];
+    //
+    //     for (const decomp of decompositions) {
+    //         const { newTable } = decomp;
+    //         const tableAttributes = newTable.flat();
+    //         const populatedTable : any[] = [];
+    //         for (const row of sanitizedData){
+    //             const newRow : any= {};
+    //             for (const attr of tableAttributes){
+    //                 newRow[attr] = row[attr];
+    //             }
+    //             populatedTable.push(newRow);
+    //         }
+    //
+    //         populatedTables.push(populatedTable);
+    //
+    //     }
+    //
+    //     for (const decomp of decompositions) {
+    //         const { reducedOG } = decomp;
+    //         const tableAttributes = Array.from(reducedOG);
+    //         const populatedTable : any[] = [];
+    //         for (const row of sanitizedData){
+    //             const newRow : any= {};
+    //             for (const attr of tableAttributes){
+    //                 newRow[attr] = row[attr];
+    //             }
+    //             populatedTable.push(newRow);
+    //         }
+    //
+    //         populatedTables.push(populatedTable);
+    //     }
+    //
+    //
+    //
+    //     return populatedTables;
+    // }
+
+    function rowExists(arr: any[], newRow: any): boolean {
+        const newRowStr = JSON.stringify(newRow);
+        return arr.some(obj => JSON.stringify(obj) === newRowStr);
+    }
+
+    function populateNormalizedTables2(sanitizedData: any[], decompositions: { newTable: string[][], reducedOG: Set<string> }[]) {
+
+        const populatedTables: any[][] = [];
+        console.log("newtable", decompositions)
+        for (const decomp of decompositions) {
+            console.log("DECOMP", decomp)
+            const { newTable } = decomp;
+            for (const table of newTable){
+                console.log("before flat", table)
+                const tableAttributes = table.flat();
+                console.log("after flat", tableAttributes);
+                const populatedTable : any[] = [];
+                for (const row of sanitizedData){
+                    console.log("row", row)
+                    const newRow : any= {};
+                    for (const attr of tableAttributes){
+                        if (attr.includes(",")) {
+                            const attrSplit = attr.split(",");
+                            for (const miniAttr of attrSplit) {
+                                newRow[miniAttr] = row[miniAttr];
+                            }
+                        } else {
+                            newRow[attr] = row[attr];
+                        }
+                        console.log("newrow", newRow)
+                    }
+
+
+                    if (!rowExists(populatedTable, newRow)){
+                        populatedTable.push(newRow);
+                    }
+
+                }
+                console.log("POPULATED!", populatedTable)
+                populatedTables.push(populatedTable);
+            }
+
+        }
+
+        for (const decomp of decompositions) {
+            const { reducedOG } = decomp;
+            const tableAttributes = Array.from(reducedOG);
+            const populatedTable : any[] = [];
+            for (const row of sanitizedData){
+                const newRow : any= {};
+                for (const attr of tableAttributes){
+                    newRow[attr] = row[attr];
+                }
+                console.log("POPULATED2!", populatedTable)
+                populatedTable.push(newRow);
+            }
+
+            populatedTables.push(populatedTable);
+        }
+
+
+
+        return populatedTables;
+    }
+
+
+
+    // remove mirrored duplicates for decomposition only
+    function filterMirroredDeps(transitiveDeps: string[][]): string[][] {
+        const seen = new Set<string>();
+        const filtered: string[][] = [];
+
+        for (const [lhs, rhs] of transitiveDeps) {
+            const key1 = `${lhs}->${rhs}`;
+            const key2 = `${rhs}->${lhs}`;
+
+            // if we've already seen the reverse, skip this one
+            if (!seen.has(key1) && !seen.has(key2)) {
+                filtered.push([lhs, rhs]);
+                seen.add(key1);
+            }
+        }
+
+        return filtered;
+    }
+
+    function downloadCSV(table: any[], filename: string) {
+        if (!table.length) return;
+        const keys = Object.keys(table[0]);
+        const header = keys.join(",");
+
+        const rows = table.map(row => {
+            return keys.map(k => `"${row[k]}"`).join(",");
+        });
+
+        const csv = [header, ...rows].join("\n");
+
+        const blob = new Blob([csv], { type: "text/csv" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
 
 
 
@@ -448,6 +677,12 @@ const Normalization = () => {
                 skipEmptyLines: true,
             });
 
+            setPK("");
+            setPartialDependencies([]);
+            setListTransitiveDependencies([]);
+            setTransitiveDependencies([]);
+            setListPartialDependencies([]);
+
 
             const sanitizedData = sanitizeColumns(data);
             setData(sanitizedData);
@@ -456,13 +691,11 @@ const Normalization = () => {
 
             // attribute names as a Set<string>
             const attributeNames = new Set<string>(Object.keys(sanitizedData[0]));
-            const powerSet = getPowerSet(attributeNames);
+            setAttrNames(attributeNames)
+            const { partitionsByLevel, rhsPlusMap, superKeys } = generatePartitionsByLevel(attributeNames, sanitizedData);
 
-            // RHS+ map (empty to start; computeRHS writes into this when called inside partitionsAllLevels)
-            const rhsPlusMap = new Map<string, Set<string>>();
 
-            // build partitions AND compute RHS+ for every subset (partitionsAllLevels calls computeRHS)
-            const partitionsByLevel = partitionsAllLevels(attributeNames, rhsPlusMap, sanitizedData, powerSet);
+
 
             // now discover FDs using the filled partitions + rhsPlusMap
             const fds = discoverFDs(attributeNames, rhsPlusMap, partitionsByLevel, sanitizedData.length);
@@ -491,16 +724,116 @@ const Normalization = () => {
 
             setPK(Array.from(minimalKeys)[0]);
 
-            const transitiveDependencies = getTransitiveDependencies(fds_rewritten, candidateKeys, primaryKey);
+            const primaryKeySet = new Set(primaryKey.split(","));
+            console.log("primary key set", primaryKeySet)
+            if (primaryKeySet.size > 1){
+                const fdViolators2NF = normalize2NF(fds_rewritten, primaryKeySet);
+                console.log("Partial Dependencies (2NF Violators):", fdViolators2NF);
+                setPartialDependencies(fdViolators2NF);
+                setListPartialDependencies(fdViolators2NF);
 
-            console.log("Transitive Dependencies:", transitiveDependencies)
+                const { newTables: tablesFrom2NF, reducedOG: tableAfter2NF } = decomposeMultiple(fdViolators2NF, attributeNames);
+                console.log("Tables from 2NF decomposition:", tablesFrom2NF);
+                console.log("Reduced original table after 2NF:", Array.from(tableAfter2NF));
 
-            setTransitiveDependencies(transitiveDependencies);
+                const allTransitiveDeps: any[] = [];
+                const allCandidateKeys: any[] = [];
+                for (const tableAttrs of tablesFrom2NF) {
+                    const localData = sanitizedData.map(row => {
+                        const subRow: any = {};
+                        tableAttrs.forEach(attr => { subRow[attr] = row[attr]; });
+                        return subRow;
+                    });
 
-            console.log("what does this return", splitDataset(sanitizedData, transitiveDependencies[0]));
-            setUsedInSplitting(transitiveDependencies[0])
-            const normalized = splitDataset(sanitizedData, transitiveDependencies[0]);
-            setSplitDatasetResult(normalized);
+                    const localAttrSet = new Set<string>(tableAttrs);
+                    const { partitionsByLevel, rhsPlusMap, superKeys } = generatePartitionsByLevel(localAttrSet, localData);
+
+                    const localFDs = discoverFDs(localAttrSet, rhsPlusMap, partitionsByLevel, localData.length);
+                    const localFDsRewritten = rewriteFDs(localFDs);
+
+                    const localCandidateKeys = getCandidateKeys(localFDsRewritten, localAttrSet.size);
+                    const localMinimalKeys = getMinimalKeys(localCandidateKeys);
+                    const localPK = Array.from(localMinimalKeys)[0];
+
+                    const localTransitiveDeps = getTransitiveDependencies(localFDsRewritten, new Set(localCandidateKeys), localPK);
+                    console.log(`Transitive Dependencies in table [${tableAttrs.join(", ")}]:`, localTransitiveDeps);
+
+                    allCandidateKeys.push(...localCandidateKeys);
+                    allTransitiveDeps.push(...localTransitiveDeps);
+                }
+
+
+                // const candidateKeysSet = new Set(candidateKeys);
+                // const transitiveDeps = getTransitiveDependencies(fds_rewritten, candidateKeysSet, primaryKey);
+                // console.log("Transitive Dependencies (3NF Violators):", transitiveDeps);
+                setListTransitiveDependencies(allTransitiveDeps)
+                console.log("is it not listing", listTransitiveDependencies)
+                setTransitiveDependencies(allTransitiveDeps)
+                setCandidateKeys(allCandidateKeys)
+
+                const { newTables: tablesFrom3NF, reducedOG: tableAfter3NF } = decomposeMultiple(allTransitiveDeps, tableAfter2NF);
+                console.log("Tables from 3NF decomposition:", tablesFrom3NF);
+                console.log("Reduced table after 3NF:", Array.from(tableAfter3NF));
+                setTablesFrom3NF(tablesFrom3NF);
+
+                setAfter3NF(tableAfter3NF);
+
+                const normalizedTables: string[][] = [
+                    Array.from(tableAfter3NF),
+                    ...tablesFrom2NF,
+                    ...tablesFrom3NF
+                ];
+                setNormalizedTables(normalizedTables);
+                console.log("All normalized tables:", normalizedTables);
+
+                const decompositions = [
+                    { newTable: tablesFrom2NF, reducedOG: tableAfter2NF },
+                ];
+
+                const populated = populateNormalizedTables2(sanitizedData, decompositions);
+                console.log("Populated normalized tables:", populated);
+                setSplitDatasetResult(populated)
+            }
+            else {
+
+
+                const candidateKeysSet = new Set(candidateKeys);
+                const transitiveDeps = getTransitiveDependencies(fds_rewritten, candidateKeysSet, primaryKey);
+                console.log("Transitive Dependencies (3NF Violators):", transitiveDeps);
+                setTransitiveDependencies(transitiveDeps)
+                setListTransitiveDependencies(transitiveDeps)
+
+                const filteredTransitiveDeps = filterMirroredDeps(transitiveDeps);
+                console.log("Filtered", filteredTransitiveDeps)
+                const { newTables: tablesFrom3NF, reducedOG: tableAfter3NF } = decomposeMultiple(filteredTransitiveDeps, attributeNames);
+                console.log("Tables from 3NF decomposition:", tablesFrom3NF);
+                console.log("Reduced table after 3NF:", Array.from(tableAfter3NF));
+
+                const normalizedTables: string[][] = [
+                    Array.from(tableAfter3NF),
+                    ...tablesFrom3NF
+                ];
+                console.log("All normalized tables:", normalizedTables);
+
+                const decompositions = [
+                    { newTable: tablesFrom3NF, reducedOG: tableAfter3NF }
+                ];
+
+                const populated = populateNormalizedTables2(sanitizedData, decompositions);
+                console.log("Populated normalized tables:", populated);
+                setSplitDatasetResult(populated)
+
+                // const transitiveDeps = getTransitiveDependencies(fds_rewritten, candidateKeysSet, primaryKey);
+                // console.log("Transitive Dependencies (3NF Violators):", transitiveDeps);
+                //
+                // const filteredTransitiveDeps = filterMirroredDeps(transitiveDeps);
+                //
+                // const { newTables: tablesFrom3NF, reducedOG: tableAfter3NF } = decomposeMultiple(filteredTransitiveDeps, tableAfter2NF);
+
+            }
+
+
+
         };
 
 
@@ -518,8 +851,10 @@ const Normalization = () => {
                 Normalization
             </header>
 
+
             {/* file input */}
             <div id="input-container" className={"bg-[#e7e7e7] p-4 mx-20 rounded-md border-[2px] border-[#BD0A0A] mt-10 flex items-center"} >
+
                 <input
                     type="file"
                     accept=".csv"
@@ -527,6 +862,15 @@ const Normalization = () => {
                     className="chat-input bg-gray-100 flex-grow mr-4 "
                     style={{ fontSize: "2vh" }}
                 />
+                {splitDatasetResult.length > 0 ?
+                    <button className="cursor-pointer clear-btn bg-[#BD0A0A] hover:bg-[#700606] text-white mx-4" onClick={() => {
+                        splitDatasetResult.forEach((tbl, idx) => downloadCSV(tbl, `table${idx + 1}.csv`));
+                    }}>
+                        Download Normalized Dataset
+                    </button>
+                    : <div></div>
+                }
+
             </div>
             <div>
                 {data.length > 0 ? (
@@ -539,24 +883,30 @@ const Normalization = () => {
                         </div>
 
                         <div className="">
-                            <div className="font-bold">Transitive Dependencies Found:</div>
+                            <div className="font-bold">Partial Dependencies Found:</div>
                             <div className={"ml-10"}>
-                                <li>
-                                    {transitiveDependencies.map((item, index) => (
-                                        <li key={index}>{item}</li>
-                                    ))}
-                                </li>
+                                {listPartialDependencies.length === 0 ? <li>None</li> :
+                                    <li>
+                                        {listPartialDependencies.map((item, index) => {
+                                            const display = Array.isArray(item) ? `${item[0]} → ${item[1]}` : "None";
+                                            return <li key={index}>{display}</li>;
+                                        })}
+                                    </li>
+                                }
                             </div>
                         </div>
 
-                        <div>
-                            <div className="font-bold">Explanation:</div>
-                            <div>
-                                <p>
-                                    We found that the third item was dependent on the second item rather than directly on the key.
-                                    This created a transitive dependency chain that violated normalization. To resolve this, we restructured the relation by splitting the original table into two separate tables. One table maintains the direct dependency between the key and the second item, while the other captures the dependency between the second and third items.
-                                    This eliminates the transitive dependency and ensures that each non-key attribute depends only on the key.
-                                </p>
+                        <div className="">
+                            <div className="font-bold">Transitive Dependencies Found:</div>
+                            <div className={"ml-10"}>
+                                {listTransitiveDependencies.length === 0 ? <li>None</li> :
+                                    <li>
+                                        {listTransitiveDependencies.map((item, index) => {
+                                            const display = Array.isArray(item) ? `${item[0]} → ${item[1]}` : String(item);
+                                            return <li key={index}>{display}</li>;
+                                        })}
+                                    </li>
+                                }
                             </div>
                         </div>
 
@@ -568,17 +918,11 @@ const Normalization = () => {
             </div>
 
 
-            {/*<div className={"bg-opacity-30"}></div>*/}
-            {/*<div style={{ height: '75vh', display: 'flex', justifyContent: 'space-around', alignItems: 'flex-start', marginTop:"-2vh"}}>*/}
-            {/*</div>*/}
-            {/*<div className={"p-20"}>*/}
-            {/*    HELLO*/}
-            {/*</div>*/}
             {popUp ? (
                 <div
-                    className="fixed inset-0 bg-gray-400/50 flex justify-center items-center z-50 p-4">
+                    className="fixed inset-0  bg-gray-400/50 flex justify-center items-center z-50 p-4">
 
-                    <div className={"h-1/2 w-2/5 bg-[#F0F0F0] rounded-lg border-3 border-[#B3B3B3]"}>
+                    <div className={"w-2/5 bg-[#F0F0F0] rounded-lg border-3 border-[#B3B3B3]"}>
                         <div className={"flex justify-end"}>
                             <button
                                 onClick={() => setPopUp(false)}
@@ -589,32 +933,230 @@ const Normalization = () => {
                         </div>
 
                         <div className={"flex justify-start"}>
-                            <h2 className={"ml-6 mb-5 font-bold text-3xl text-[#353535]"}>Edit Dataset </h2>
+                            <h2 className={"ml-6 mb-2 font-bold text-3xl text-[#353535]"}>Edit Dataset </h2>
                         </div>
                         <div className="flex justify-start font-bold text-[#353535] ml-6 mt-2 text-lg">
                             Candidate Key(s) Found:
                         </div>
                         <div className="flex justify-start">
                             <div>
-                                <ul className="flex flex-row ml-8 mt-3 space-y-2">
+                                <ul className="flex flex-wrap ml-8 mt-3">
                                     {minimalKeys.map((item, index) => (
-                                        <li key={index} className="flex">
+                                        <li
+                                            key={index}
+                                            className="flex basis-1/3 mb-2"
+                                        >
                                             <input
                                                 type="radio"
                                                 name="candidateKey"
                                                 className="w-4 h-4"
-                                                checked={item === pk}
+                                                checked={
+                                                     item === pk
+                                                }
                                                 onChange={() => {
-                                                    setPK(item);
-                                                    setTransitiveDependencies(getTransitiveDependencies(fdsRewritten, new Set(candidateKeys), item));
+                                                    if (item.includes(",")) {
+                                                        setPK(item);
+                                                        console.log("compositive key", pk)
+                                                        const fdViolators2NF = normalize2NF(fdsRewritten, new Set(pk.split(",")));
+                                                        console.log("Partial Dependencies (2NF Violators):", fdViolators2NF);
+                                                        setPartialDependencies(fdViolators2NF);
+                                                        setListPartialDependencies(fdViolators2NF);
+                                                        // console.log("attr names, ", attrNames)
+
+                                                        const {
+                                                            newTables: tablesFrom2NF,
+                                                            reducedOG: tableAfter2NF
+                                                        } = decomposeMultiple(fdViolators2NF, attrNames);
+                                                        console.log("Tables from 2NF decomposition:", tablesFrom2NF);
+                                                        console.log("Reduced original table after 2NF:", Array.from(tableAfter2NF));
+
+                                                        const allTransitiveDeps: any[] = [];
+                                                        const allCandidateKeys: any[] = [];
+                                                        for (const tableAttrs of tablesFrom2NF) {
+                                                            const localData = data.map(row => {
+                                                                const subRow: any = {};
+                                                                tableAttrs.forEach(attr => {
+                                                                    subRow[attr] = row[attr];
+                                                                });
+                                                                return subRow;
+                                                            });
+
+                                                            const localAttrSet = new Set<string>(tableAttrs);
+                                                            const {
+                                                                partitionsByLevel,
+                                                                rhsPlusMap,
+                                                                superKeys
+                                                            } = generatePartitionsByLevel(localAttrSet, localData);
+
+                                                            const localFDs = discoverFDs(localAttrSet, rhsPlusMap, partitionsByLevel, localData.length);
+                                                            const localFDsRewritten = rewriteFDs(localFDs);
+
+                                                            const localCandidateKeys = getCandidateKeys(localFDsRewritten, localAttrSet.size);
+                                                            const localMinimalKeys = getMinimalKeys(localCandidateKeys);
+                                                            const localPK = Array.from(localMinimalKeys)[0];
+
+                                                            const localTransitiveDeps = getTransitiveDependencies(localFDsRewritten, new Set(localCandidateKeys), localPK);
+                                                            console.log(`Transitive Dependencies in table [${tableAttrs.join(", ")}]:`, localTransitiveDeps);
+
+                                                            allCandidateKeys.push(...localCandidateKeys);
+                                                            allTransitiveDeps.push(...localTransitiveDeps);
+                                                        }
+
+
+                                                        // const candidateKeysSet = new Set(candidateKeys);
+                                                        // const transitiveDeps = getTransitiveDependencies(fds_rewritten, candidateKeysSet, primaryKey);
+                                                        // console.log("Transitive Dependencies (3NF Violators):", transitiveDeps);
+                                                        setListTransitiveDependencies(allTransitiveDeps)
+                                                        console.log("is it not listing", listTransitiveDependencies)
+                                                        setTransitiveDependencies(allTransitiveDeps)
+                                                        setCandidateKeys(allCandidateKeys)
+
+                                                        const {
+                                                            newTables: tablesFrom3NF,
+                                                            reducedOG: tableAfter3NF
+                                                        } = decomposeMultiple(allTransitiveDeps, tableAfter2NF);
+                                                        console.log("Tables from 3NF decomposition:", tablesFrom3NF);
+                                                        console.log("Reduced table after 3NF:", Array.from(tableAfter3NF));
+                                                        setTablesFrom3NF(tablesFrom3NF);
+
+                                                        setAfter3NF(tableAfter3NF);
+
+                                                        const normalizedTables: string[][] = [
+                                                            Array.from(tableAfter3NF),
+                                                            ...tablesFrom2NF,
+                                                            ...tablesFrom3NF
+                                                        ];
+                                                        setNormalizedTables(normalizedTables);
+                                                        console.log("All normalized tables:", normalizedTables);
+
+                                                        const decompositions = [
+                                                            {newTable: tablesFrom2NF, reducedOG: tableAfter2NF},
+                                                        ];
+
+                                                        const populated = populateNormalizedTables2(data, decompositions);
+                                                        console.log("Populated normalized tables:", populated);
+                                                    }
+                                                    else{
+                                                        setPK(item)
+                                                    };
                                                 }}
                                             />
                                             <span className="ml-2 mr-4 relative -top-1">{item}</span>
                                         </li>
                                     ))}
                                 </ul>
+
                             </div>
                         </div>
+
+                        <div className="flex justify-start font-bold text-[#353535] ml-6 mt-2 text-lg">
+                            Partial Dependencies Found:
+                        </div>
+                        <div className="flex justify-start">
+                            <div>
+                                <ul className="ml-8 mt-2 space-y-2">
+                                    {listPartialDependencies.length === 0 ? <li>None</li> :
+                                        <div className={"overflow-auto-scroll h-32"}>
+                                            {listPartialDependencies.map((item, index) => {
+                                                const display = Array.isArray(item) ? `${item[0]} → ${item[1]}` : String(item);
+                                                return (
+                                                    <li key={index} className="flex items-center">
+                                                        <input
+                                                            type="checkbox"
+                                                            className="w-4 h-4"
+                                                            checked={(partialDependencies.some(dep => dep.join(",") === item.join(",")))}
+                                                            onChange={(e) => {
+                                                                let updatedDeps: string[][];
+
+                                                                console.log("before check deps", partialDependencies)
+
+                                                                if (e.target.checked) {
+                                                                    // add to list
+                                                                    updatedDeps = [...partialDependencies, item];
+                                                                    console.log("updated deps add", updatedDeps)
+                                                                } else {
+                                                                    // remove from list
+                                                                    updatedDeps = partialDependencies.filter(
+                                                                        dep => dep.join(",") !== item.join(",")
+                                                                    );
+                                                                    console.log("updated deps remove", updatedDeps)
+                                                                }
+
+                                                                setPartialDependencies(updatedDeps)
+
+                                                                const { newTables: tablesFrom2NF, reducedOG: tableAfter2NF } = decomposeMultiple(updatedDeps, attrNames);
+                                                                console.log("Tables from 2NF decomposition:", tablesFrom2NF);
+                                                                console.log("Reduced original table after 2NF:", Array.from(tableAfter2NF));
+
+                                                                const allTransitiveDeps: any[] = [];
+                                                                const allCandidateKeys: any[] = [];
+                                                                for (const tableAttrs of tablesFrom2NF) {
+                                                                    const localData = data.map(row => {
+                                                                        const subRow: any = {};
+                                                                        tableAttrs.forEach(attr => { subRow[attr] = row[attr]; });
+                                                                        return subRow;
+                                                                    });
+
+                                                                    const localAttrSet = new Set<string>(tableAttrs);
+                                                                    const { partitionsByLevel, rhsPlusMap, superKeys } = generatePartitionsByLevel(localAttrSet, localData);
+
+                                                                    const localFDs = discoverFDs(localAttrSet, rhsPlusMap, partitionsByLevel, localData.length);
+                                                                    const localFDsRewritten = rewriteFDs(localFDs);
+
+                                                                    const localCandidateKeys = getCandidateKeys(localFDsRewritten, localAttrSet.size);
+                                                                    const localMinimalKeys = getMinimalKeys(localCandidateKeys);
+                                                                    const localPK = Array.from(localMinimalKeys)[0];
+
+                                                                    const localTransitiveDeps = getTransitiveDependencies(localFDsRewritten, new Set(localCandidateKeys), localPK);
+                                                                    console.log(`Transitive Dependencies in table [${tableAttrs.join(", ")}]:`, localTransitiveDeps);
+
+                                                                    allCandidateKeys.push(...localCandidateKeys);
+                                                                    allTransitiveDeps.push(...localTransitiveDeps);
+                                                                }
+
+
+                                                                // const candidateKeysSet = new Set(candidateKeys);
+                                                                // const transitiveDeps = getTransitiveDependencies(fds_rewritten, candidateKeysSet, primaryKey);
+                                                                // console.log("Transitive Dependencies (3NF Violators):", transitiveDeps);
+                                                                setListTransitiveDependencies(allTransitiveDeps)
+                                                                console.log("is it not listing", listTransitiveDependencies)
+                                                                setTransitiveDependencies(allTransitiveDeps)
+                                                                setCandidateKeys(allCandidateKeys)
+
+                                                                const { newTables: tablesFrom3NF, reducedOG: tableAfter3NF } = decomposeMultiple(allTransitiveDeps, tableAfter2NF);
+                                                                console.log("Tables from 3NF decomposition:", tablesFrom3NF);
+                                                                console.log("Reduced table after 3NF:", Array.from(tableAfter3NF));
+                                                                setTablesFrom3NF(tablesFrom3NF);
+
+                                                                setAfter3NF(tableAfter3NF);
+
+                                                                const normalizedTables: string[][] = [
+                                                                    Array.from(tableAfter3NF),
+                                                                    ...tablesFrom2NF,
+                                                                    ...tablesFrom3NF
+                                                                ];
+                                                                setNormalizedTables(normalizedTables);
+                                                                console.log("All normalized tables:", normalizedTables);
+
+                                                                const decompositions = [
+                                                                    { newTable: tablesFrom2NF, reducedOG: tableAfter2NF },
+                                                                ];
+
+                                                                const populated = populateNormalizedTables2(data, decompositions);
+                                                                console.log("Populated normalized tables:", populated);
+                                                                setSplitDatasetResult(populated)
+
+                                                            }}
+                                                        />
+                                                        <span className="ml-2">{display}</span>
+                                                    </li>
+                                                );
+                                            })}
+                                        </div>}
+                                </ul>
+                            </div>
+                        </div>
+
 
                         <div className="flex justify-start font-bold text-[#353535] ml-6 mt-2 text-lg">
                             Transitive Dependencies Found:
@@ -622,20 +1164,61 @@ const Normalization = () => {
                         <div className="flex justify-start">
                             <div>
                                 <ul className="ml-8 mt-2 space-y-2">
-                                    {transitiveDependencies.map((item, index) => (
-                                        <li key={index} className="flex items-center">
-                                            <input
-                                                type="checkbox"
-                                                className="w-4 h-4"
-                                                checked={item === usedInSplitting}
-                                                onChange={() => {
-                                                    setSplitDatasetResult(splitDataset(data, item));
-                                                    setUsedInSplitting(item);
-                                                }}
-                                            />
-                                            <span className="ml-2">{item}</span>
-                                        </li>
-                                    ))}
+                                    {listTransitiveDependencies.length === 0 ? <li>None</li> :
+                                        <div className={"overflow-auto-scroll h-32 mb-4"}>
+                                            {listTransitiveDependencies.map((item, index) => {
+                                                const display = Array.isArray(item) ? `${item[0]} → ${item[1]}` : String(item);
+                                                return (
+                                                    <li key={index} className="flex items-center">
+                                                        <input
+                                                            type="checkbox"
+                                                            className="w-4 h-4"
+                                                            checked={(transitiveDependencies.some(dep => dep.join(",") === item.join(",")))}
+                                                            onChange={(e) => {
+                                                                let updatedDeps: string[][];
+
+                                                                console.log("before check deps", transitiveDependencies)
+
+                                                                if (e.target.checked) {
+                                                                    updatedDeps = [...transitiveDependencies, item];
+                                                                    console.log("updated deps add", updatedDeps)
+                                                                } else {
+                                                                    updatedDeps = transitiveDependencies.filter(
+                                                                        dep => dep.join(",") !== item.join(",")
+                                                                    );
+                                                                    console.log("updated deps remove", updatedDeps)
+                                                                }
+
+                                                                setTransitiveDependencies(updatedDeps);
+                                                                console.log("after check deps", transitiveDependencies)
+
+                                                                const filteredTransitiveDeps = filterMirroredDeps(updatedDeps);
+                                                                console.log("Filtered", filteredTransitiveDeps);
+                                                                console.log("attr names", attrNames)
+                                                                const { newTables: tablesFrom3NF, reducedOG: tableAfter3NF } = decomposeMultiple(filteredTransitiveDeps, attrNames);
+                                                                console.log("Tables from 3NF decomposition:", tablesFrom3NF);
+                                                                console.log("Reduced table after 3NF:", Array.from(tableAfter3NF));
+
+                                                                const normalizedTables: string[][] = [
+                                                                    Array.from(tableAfter3NF),
+                                                                    ...tablesFrom3NF
+                                                                ];
+                                                                console.log("All normalized tables:", normalizedTables);
+
+                                                                const decompositions = [
+                                                                    { newTable: tablesFrom3NF, reducedOG: tableAfter3NF }
+                                                                ];
+
+                                                                const populated = populateNormalizedTables2(data, decompositions);
+                                                                console.log("Populated normalized tables:", populated);
+                                                                setSplitDatasetResult(populated)
+                                                            }}
+                                                        />
+                                                        <span className="ml-2">{display}</span>
+                                                    </li>
+                                                );
+                                            })}
+                                        </div>}
                                 </ul>
                             </div>
                         </div>
@@ -772,432 +1355,3 @@ const Normalization = () => {
 };
 
 export default Normalization;
-
-{/* show parsed CSV */}
-{/*<div className="p-4">*/}
-{/*    {data.length > 0 ? (*/}
-{/*        <pre>{JSON.stringify(data, null, 2)}</pre>*/}
-{/*    ) : (*/}
-{/*        <p className="text-center mt-4">Upload a CSV to see results</p>*/}
-{/*    )}*/}
-{/*</div>*/}
-
-// function buildLevels (powerSet :any[]) {
-//     let levels = new Map<number, any[]>();    // should be like {1:{{a},{b}}, 2:{{a,b}}
-//     for (let subset of powerSet) { // a, b, ...
-//         const size = subset.length;
-//
-//         if (!levels.has(size)) {
-//             levels.set(size, []);
-//         }
-//         levels.get(size)!.push(subset);
-//     }
-//
-//     return levels;
-// }
-
-// function partitionsAllLevels  (rows : any[], powerSet : any[]){
-//     const partitionsByLevel : Record <string, any[]> = {};
-//     for (let i = 0; i < powerSet.length; i++) {// iterate through subsets (ie a,b, a, whatever)
-//         const partition : Record<string, any[]> = {};
-//         const currentSubset = powerSet[i]; // current subset
-//         for (let j = 0; j < rows.length; j++){ // for row in rows
-//             let row = rows[j]; // single tuple
-//             const key = currentSubset.map(attr => row[attr]).join(',');
-//
-//             if (partition.hasOwnProperty(key)) { // this combination alr exists
-//                 partition[key].push(j); // add to combination
-//             }
-//             else{
-//                 partition[key] = [j]; // combination doesn't exist, just append to whole thing
-//             }
-//
-//         }
-//
-//         if (!partitionsByLevel[powerSet[i].length]) {
-//             partitionsByLevel[powerSet[i].length] = []; // if it bugs out try {} instead of []
-//         }
-//
-//         partitionsByLevel[powerSet[i].length][currentSubset.toString()] = partition;
-//     }
-//
-//     return partitionsByLevel;
-//
-// }
-
-// powerSet [{}, {studentid}, {studentname}, {studentid, studentname}]
-// outcome: {1: {studentid: {[0],[1]}}
-//      {studentname: {[0], [1]}}
-//   2: {studentid,studentname: {[0],[1]}}
-// }
-
-
-// function checkEquivalence(partition1: Record<string, any[]>, partition2: Record<string, any[]>) : boolean {
-//     const equal = partition1.every(block1 =>
-//         partition2.some(block2 =>
-//             block1.every(idx => block2.includes(idx))
-//         )
-//     );
-//     return equal;
-// }
-
-// function checkEquivalence(partition1: Record<string, any[]>, partition2: Record<string, any[]>) : boolean {
-//     const equal = partition1.every(block1 =>
-//         partition2.some(block2 =>
-//             block1.every(idx => block2.includes(idx))
-//         )
-//     );
-//     return equal;
-// }
-
-
-// function getUnionPartition(arr1: number[][], arr2: number[][]): number[][] {
-//     // arr1 is number[][], arr2 is number[][] too
-//     const union = new Set<string>();
-//     for (let arr of arr1){
-//         for (let array of arr2){
-//             const intersection = getArrayIntersection(arr, array);
-//             if (intersection.length > 0){
-//                 union.add(intersection.join(","));
-//             }
-//         }
-//     }
-//
-//     return Array.from(union, key => key.split(",").map(Number));
-// }
-
-
-// single dependency
-// function checkEquivalence(partition1: Map<string, number[][]>, partition2: Map<string, number[][]>) : boolean {
-//     const unionPartition = new Set<string>();
-//     partition1.forEach((value1) => {
-//         partition2.forEach(value2 => {
-//             const union = getUnionPartition(value1, value2);
-//             union.forEach(group => {
-//                 unionPartition.add(group.join(","));
-//             });
-//
-//         })
-//     })
-//
-//     // first we need the union partition
-//     // how? we want to check values of partition1, see if they exist (even if theyre apart of a populated array (like we just care if it exists, doesn't matter if its [1] or [1,0,2]
-//     // get the intersection of them
-//     // add it to union partition
-//
-//
-//     const combined1 = Array.from(partition1.values()).map(g => g.join(","));
-//     const combined2 = Array.from(partition2.values()).map(g => g.join(","));
-//
-//
-//     // first we check the length
-//     if (combined1.length != combined2.length) {
-//         return false;
-//     }
-//
-//     //then the values - partition1 vs unionpartition
-//     // for arr of partition1
-//     //   for partition of unionPartition
-//     //     if lengths not the same, return false
-//     //     if lengths are the same
-//     //          for val of arr
-//     //              for val2 in partition
-//     //                  val === val2? if yes continue, if no return false
-//
-//     const set2 = new Set(combined2)
-//     for (let combined of combined1) {
-//         if(!set2.has(combined)){
-//             return false;
-//         }
-//     }
-//
-//     return true;
-//
-// }
-
-// function pruneBySuperKeys(levelNum: number, partitionsByLevel: Record<string, any[]>, key1: string, level: any[]) {
-//     for (let i = levelNum; i < Object.keys(partitionsByLevel).length; i++) {
-//         const currentLevel = partitionsByLevel[i];
-//
-//         if (Object.keys(currentLevel).length === 0) continue;
-//
-//         console.log("Current level:", currentLevel);
-//
-//         // copy of keys
-//         const keys = Object.keys(currentLevel);
-//         for (const key of keys) {
-//             // console.log("Checking key:", key);
-//             // console.log("key1:", key1);
-//
-//             if (key.includes(key1) && currentLevel !== level) {
-//                 console.log(`Deleting key "${key}" from currentLevel`);
-//                 delete currentLevel[key];
-//             }
-//         }
-//     }
-// }
-
-// rhs+ pruning
-// Function 1: compute RHS+ for a subset
-// to get possible RHSs (gonna call it RHS+)
-// first, get the set of all attributes
-// then, get the set of attributes in the current subset X
-// set of all attributes - set of attributes in X -> base RHS+
-// make another constant previousRHS+ (empty for now)
-
-// EDITED: only do the intersection part if level > 1
-// if level > 1:
-//     for each immediate subset Y of the current subset X (size = subset size - 1) from level - 1
-//         get the RHS+ saved to Y
-//         append or intersect that RHS+ with previousRHS+
-//     RHS+ = RHS+ ∩ intersection of all previousRHS+ sets
-// else (level 1):
-//     RHS+ = base RHS+ (no intersection needed)
-
-// for RHS in RHS+
-//     if RHS is in intersection (for level > 1) or in base RHS+ (for level 1)
-//         -> keep it
-//     else
-//         -> remove from possible RHS
-
-// ----------------------------------------------------------
-
-// Function 2: generate levels and check dependencies
-// for each subset in level i:
-//     grab RHS+ of that subset (THIS IS WHERE FUNCTION 1 WOULD BE CALLED)
-//     for RHS in RHS+:
-//         check equivalency: does LHS -> RHS actually hold?
-//             -> if yes, record FD
-//             -> if no, prune RHS from RHS+
-
-
-// const sanitizedData = sanitizeColumns(data);
-// setData(sanitizedData);
-// console.log("sanitized data, ", sanitizedData);
-// const powerSet = getPowerSet(attributeNames);
-// const arrAttributeNames = Array.from(attributeNames);
-// console.log("power set", powerSet);
-//
-//
-//
-// // partitions by levels
-// // let levels = buildLevels(powerSet);  // should be like {1:{{a},{b}}, 2:{{a,b}}
-// //
-// //
-// // console.log("levels ", levels);
-// //
-// //
-// // console.log("array power set: ", arrAttributeNames);
-//
-// const partitionsByLevel = partitionsAllLevels(sanitizedData, powerSet);
-// // const allPartitions : Record<string, any[]> = {};
-//
-//
-// // console.log("allPartitions ", allPartitions);
-// console.log("partitions by level, ", partitionsByLevel)
-// console.log("length, ", Object.keys(partitionsByLevel).length)
-//
-// type FD = {
-//     lhs: string[];
-//     rhs: string[];
-// };
-//
-// const fds: FD[] = [];
-//
-// function comparePartitions (partitionsByLevel : Record<string, any[]>){
-//     for (let levelNum = 1; levelNum < Object.keys(partitionsByLevel).length; levelNum++){ // level
-//         const level = partitionsByLevel[levelNum];
-//         if (Object.keys(level).length === 0) continue;
-//         console.log(`LEVEL ${levelNum}`, level);
-//         // [a: Array(1), b: Array(1), c: Array(1), d: Array(1)]
-//
-//         for (const [key1, partition1] of Object.entries(level)) {
-//             for (const [key2, partition2] of Object.entries(partitionsByLevel[1])) {
-//                 console.log(`Testing ${key1} -> ${key2}`);
-//
-//                 // key2.includes(key1)
-//                 if (key1.includes(key2)){
-//                     // want it to ignore it, since its trivial
-//                     console.log(`Trivial`);
-//                 }
-//                 // else if (partition1.length !== partition2.length){
-//                 //     // ignore it, since if length not the same they clearly not equal
-//                 //     console.log(`NOPE! ${key1} ! -> ${key2}`);
-//                 // }
-//                 else {
-//                     // length is equal.
-//                     // const combinedArray = partition1.concat(partition2);
-//                     function normalize(rows: any[][]): Set<string> {
-//                         return new Set(rows.map(r => JSON.stringify(r)));
-//                     }
-//
-//                     const set1 = normalize(partition1);
-//                     const set2 = normalize(partition2);
-//
-//                     // equal if they have the same size and every row from set1 is in set2
-//                     if (checkEquivalence (partition1, partition2)) {
-//                         console.log("Partitions are equivalent!");
-//                         fds.push({ lhs: key1.split(","), rhs: key2.split(",") });
-//                         if (set1.size === sanitizedData.length) {
-//                             console.log("this is also a superkey i think idk im a little lost");
-//                             pruneBySuperKeys(levelNum, partitionsByLevel, key1, level);
-//                         }
-//                     }
-//                     else{
-//                         console.log("Partitions are not equivalent!");
-//                     }
-//
-//
-//                 }
-//
-//             }
-//
-//         }
-//     }
-// }
-//
-// comparePartitions(partitionsByLevel);
-// console.log("ALL DA KEYS", fds);
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-//
-// //////////////////////////////////////////
-//
-// function groupFDsByLHS(fds: FD[]): Record<string, string[]> {
-//     const lhsMap: Record<string, string[]> = {};
-//
-//     for (const fd of fds) {
-//         const key = fd.lhs.join(","); // stringify LHS as key
-//         if (!lhsMap[key]) {
-//             lhsMap[key] = [];
-//         }
-//         lhsMap[key].push(...fd.rhs);
-//     }
-//
-//     return lhsMap;
-// }
-//
-// function computeClosure(attrs: string[], fds: { lhs: string[], rhs: string[] }[]): string[] {
-//     const closure = new Set(attrs);
-//     let updated = true;
-//
-//     while (updated) {
-//         updated = false;
-//         for (const fd of fds) {
-//             // if lhs ⊆ closure
-//             if (fd.lhs.every(a => closure.has(a))) {
-//                 for (const r of fd.rhs) {
-//                     if (!closure.has(r)) {
-//                         closure.add(r);
-//                         updated = true;
-//                     }
-//                 }
-//             }
-//         }
-//     }
-//     return Array.from(closure);
-// }
-//
-//
-// function identifyCandidateKeys(
-//     lhsMap: Record<string, string[]>,
-//     allAttrs: string[],
-//     fds: { lhs: string[], rhs: string[] }[]
-// ) {
-//     const superKeys: string[][] = [];
-//     const otherKeys: Record<string, string[]> = { ...lhsMap };
-//
-//     for (const lhsStr of Object.keys(lhsMap)) {
-//         const lhsAttrs = lhsStr.split(",");
-//
-//         // 🚀 compute full closure
-//         const closure = computeClosure(lhsAttrs, fds);
-//
-//         if (closure.length === allAttrs.length) {
-//             superKeys.push(lhsAttrs);
-//             delete otherKeys[lhsStr];
-//         }
-//     }
-//
-//     // ✅ Filter to minimal candidate keys
-//     const candidateKeys = superKeys.filter(
-//         key => !superKeys.some(
-//             other =>
-//                 other.length < key.length &&
-//                 other.every(attr => key.includes(attr))
-//         )
-//     ).map(k => k.join(",")); // stringify to match your old output
-//
-//     return { candidateKeys, otherKeys };
-// }
-//
-//
-//
-// const lhsMap = groupFDsByLHS(fds);
-// // const results = identifyCandidateKeys(lhsMap, arrAttributeNames, fds);
-// // console.log("BANG!", results);
-//
-//
-//
-//
-// function getShortestCandidateKeys(candidateKeys: string[]): string[] {
-//     if (candidateKeys.length === 0) return [];
-//
-//     const lengths = candidateKeys.map(key => key.split(",").length);
-//     const minLength = Math.min(...lengths);
-//
-//     return candidateKeys.filter(key => key.split(",").length === minLength);
-// }
-//
-// // console.log("shortest candidate keys", getShortestCandidateKeys(results.candidateKeys))
-// // console.log("other fds", results.otherKeys);
-//
-// function findTransitiveDependencies(
-//     fds: { lhs: string[], rhs: string[] }[],
-//     candidateKeys: string[],
-//     nonPrimes: string[]
-// ) {
-//     const transitives: { through: string, to: string }[] = [];
-//
-//     for (const key of candidateKeys) {
-//         for (const np of nonPrimes) {
-//             // check if key -> np
-//             if (fds.some(fd => fd.lhs.length === 1 && fd.lhs[0] === key && fd.rhs.includes(np))) {
-//                 for (const np2 of nonPrimes) {
-//                     if (np !== np2) {
-//                         // check if np -> np2
-//                         if (fds.some(fd => fd.lhs.length === 1 && fd.lhs[0] === np && fd.rhs.includes(np2))) {
-//                             // deduplicate by pair (through, to)
-//                             if (!transitives.some(t => t.through === np && t.to === np2)) {
-//                                 transitives.push({ through: np, to: np2 });
-//                             }
-//                         }
-//                     }
-//                 }
-//             }
-//         }
-//     }
-//
-//     return transitives;
-// }
-//
-// const results = identifyCandidateKeys(lhsMap, arrAttributeNames, fds);
-// const candidateKeys = results.candidateKeys.map(k => k.split(",")[0]);
-// console.log("Candidate Keys:" + candidateKeys);
-// const nonPrimes = arrAttributeNames.filter(a => !candidateKeys.includes(a));
-//
-// const transDeps = findTransitiveDependencies(fds, candidateKeys, nonPrimes);
-// console.log("Transitive dependencies:", transDeps);
-//
-
-
