@@ -50,11 +50,11 @@ export default function Footer() {
                     onClick={() => {
                         console.log(getUrl())
                         if (getUrl() == "esapt2025.vercel.app" || getUrl() == "") {
-                            myFunction()
+                            goToTut()
                         } else if (getUrl() == "imggem") {
-                            myFunction2()
+                            goToTut()
                         } else if (getUrl() == "evaluation") {
-                            myFunction3()
+                            goToTut()
                         }
                     }}>
                     <h2 style={{color: "white", fontSize: "2vh"}}>i</h2>
