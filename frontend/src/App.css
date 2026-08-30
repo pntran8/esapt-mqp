@@ -42,8 +42,18 @@
   visibility: visible;
 }
 
+input[type="checkbox"] {
+  accent-color: #7a7a7a;
+  background-color: #7a7a7a;
+  height: 25px;
+  width: 25px;
+}
 
-
+input[type="radio"] {
+  accent-color: #7a7a7a;
+  height: 20px;
+  width: 20px;
+}
 
 #root {
   margin: 0 auto;
@@ -71,6 +81,15 @@
   border-radius:50%;
   height:60px;
   width:60px;
+  background-color:#BD0A0A;
+  margin:30px;
+}
+
+.red-button{
+  cursor: pointer;
+  border-radius:50%;
+  height:30px;
+  width:30px;
   background-color:#BD0A0A;
   margin:30px;
 }
@@ -135,6 +154,11 @@
   a:nth-of-type(2) .logo {
     animation: logo-spin infinite 20s linear;
   }
+}
+
+.table-container {
+  max-height: 1000px;  /* limit height */
+  overflow-y: auto;    /* vertical scroll */
 }
 
 .card {
